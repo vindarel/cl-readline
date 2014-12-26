@@ -39,7 +39,8 @@
 designator), it will be printed before reading of input. If PROMPT is NIL,
 no prompt will be printed. If ADD-HISTORY supplied and its value is not NIL,
 user's input will be added to history. However, blank lines don't get into
-history anyway."
+history anyway. Return value on success is actual string and NIL on
+failure."
   (let* ((prompt (if (typep prompt 'string-designator)
                      (string prompt)
                      ""))

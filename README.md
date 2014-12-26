@@ -15,7 +15,7 @@ should have installed them.
 
 See contents of directory `doc`. Documentation is also available online:
 
-https://mrkkrp.github.io/lpnes/
+https://mrkkrp.github.io/cl-readline/
 
 ## License
 

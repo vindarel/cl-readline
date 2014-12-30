@@ -65,8 +65,27 @@
    #:register-prep-term-function
    #:register-deprep-term-function
    ;; Work with Keymaps
-   
+   #:make-bare-keymap
+   #:copy-keymap
+   #:make-keymap
+   #:free-keymap
+   #:get-keymap
+   #:set-keymap
+   #:get-keymap-by-name
+   #:get-keymap-name
+   #:with-new-keymap
+   ;; Binding keys
 
+   ;; Associating Function Names and Bindings
+
+   ;; Allowing Undoing
+
+   ;; Redisplay
+
+   ;; Modifying Text
+
+   ;; Character Input
+   
    ;; Terminal Management
    #:prep-terminal
    #:deprep-terminal
@@ -77,15 +96,17 @@
    #:extend-line-buffer
    #:initialize
    #:ding
-   #:alphabeticp
    ;; Miscelaneous Functions
    #:macro-dumper
    #:variable-bind
    #:variable-value
    #:variable-dumper
    #:set-paren-blink-timeout
-   #:get-termcap
-   #:clear-history))
+   #:clear-history
+   ;; Signal Handling
+
+   ;; Custom Completion
+   ))
 
 (in-package #:cl-readline)
 
@@ -454,6 +475,12 @@ NIL on failure."
                          :pointer ptr
                          :void)))))
 
+(defun ensure-initialization ()
+  "Makes sure that Readline is initialized. If it's not initialized yet,
+initializes it."
+  (unless (find :initialized +readline-state+)
+    (initialize)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                       Hooks and Custom Functions                       ;;
@@ -509,35 +536,61 @@ to use eight-bit characters. By default, PREP-TERMINAL is used."
 should undo the effects of PREP-TERM-FUNCTION."
   (set-callback *deprep-term-function* function))
 
+
+;; naming a funciton - rl_add_defun
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                           Work with Keymaps                            ;;
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defcfun ("rl_make_bare_keymap" make-bare-keymap) :pointer
+  "Returns a new, empty keymap. The space for the keymap is allocated with
+malloc(); the caller should free it by calling FREE-KEYMAP when done.")
 
+(defcfun ("rl_copy_keymap" copy-keymap) :pointer
+  "Return a new keymap which is a copy of map.")
 
+(defcfun ("rl_make_keymap" make-keymap) :pointer
+  "Return a new keymap with the printing characters bound to rl_insert, the
+lowercase Meta characters bound to run their equivalents, and the Meta
+digits bound to produce numeric arguments.")
 
-;; Readline Convenience Functions (this section is still vague)
+(defcfun ("rl_free_keymap" free-keymap) :void
+  "Free all storage associated with keymap."
+  (keymap :pointer))
 
-;; naming a funciton - rl_add_defun
+(defcfun ("rl_get_keymap" get-keymap) :pointer
+  "Returns currently active keymap.")
 
-;; work with keymaps:
-;; rl_make_bare_keymap
-;; rl_copy_keymap
-;; rl_make_keymap
-;; rl_discard_keymap
-;; rl_free_keymap
-;; rl_get_keymap
-;; rl_set_keymap
-;; rl_get_keymap_by_name
-;; rl_get_keymap_name
-;; + predefined keymaps: emacs_standard_keymap, emacs_meta_keymap,
-;; emacs_ctlx_keymap, vi_insertion_keymap, vi_movement_keymap
+(defcfun ("rl_set_keymap" set-keymap) :void
+  "Makes KEYMAP the currently active keymap."
+  (keymap :pointer))
 
-;; binding keys
+(defcfun ("rl_get_keymap_by_name" get-keymap-by-name) :pointer
+  "Return the keymap matching NAME. NAME is one which would be supplied in a
+set keymap inputrc line.")
 
-;; function for handly bindings (use rl_startup_hook perhaps)
+(defcfun ("rl_get_keymap_name" get-keymap-name) :string
+  "Return the name matching KEYMAP. Name is one which would be supplied in a
+set keymap inputrc line."
+  (keymap :pointer))
+
+(defmacro with-new-keymap (form &body body)
+  "Create new keymap evaluating FORM, then free it when control flow leaves
+BODY. MAKE-BARE-KEYMAP, COPY-KEYMAP, and MAKE-KEYMAP can be used to produce
+new keymap."
+  (with-gensyms (keymap)
+    `(let ((,keymap ,form))
+       ,@body
+       (free-keymap ,keymap))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                        ;;
+;;                              Binding Keys                              ;;
+;;                                                                        ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; rl_bind_key
 ;; rl_bind_key_in_map
@@ -556,7 +609,11 @@ should undo the effects of PREP-TERM-FUNCTION."
 ;; rl_parse_and_bind
 ;; rl_read_init_file
 
-;; associating function names and bindings
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                        ;;
+;;                Associating Function Names and Bindings                 ;;
+;;                                                                        ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; rl_named_function
 ;; rl_function_of_keyseq
@@ -567,7 +624,11 @@ should undo the effects of PREP-TERM-FUNCTION."
 ;; rl_funmap_names
 ;; rl_add_funmap_entry
 
-;; allowing undoing
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                        ;;
+;;                            Allowing Undoing                            ;;
+;;                                                                        ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; rl_begin_undo_group (macro may be useful here)
 ;; rl_end_undo_group   (macro may be useful here)
@@ -576,7 +637,11 @@ should undo the effects of PREP-TERM-FUNCTION."
 ;; rl_do_undo
 ;; rl_modifying
 
-;; redisplay
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                        ;;
+;;                               Redisplay                                ;;
+;;                                                                        ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; rl_redisplay
 ;; rl_forced_update_display
@@ -592,7 +657,11 @@ should undo the effects of PREP-TERM-FUNCTION."
 ;; rl_expand_prompt
 ;; rl_set_prompt
 
-;; modifying text
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                        ;;
+;;                             Modifying Text                             ;;
+;;                                                                        ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; rl_insert_text
 ;; rl_delete_text
@@ -600,7 +669,11 @@ should undo the effects of PREP-TERM-FUNCTION."
 ;; rl_kill_text
 ;; rl_push_macro_input
 
-;; character input
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                        ;;
+;;                            Character Input                             ;;
+;;                                                                        ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; rl_read_key
 ;; rl_getc
@@ -625,11 +698,14 @@ should be non-NIL if Readline should read eight-bit input."
   "Undo the effects of PREP-TERMINAL, leaving the terminal in the state in
 which it was before the most recent call to PREP-TERMINAL.")
 
-(defcfun ("rl_tty_set_default_bindings" tty-set-default-bindings) :void
+(defun tty-set-default-bindings (keymap)
   "Read the operating system's terminal editing characters (as would be
 displayed by stty) to their Readline equivalents. The bindings are performed
 in KEYMAP."
-  (keymap :pointer))
+  (ensure-initialization)
+  (foreign-funcall "rl_tty_set_default_bindings"
+                   :pointer keymap
+                   :void))
 
 (defcfun ("rl_tty_unset_default_bindings" tty-unset-default-bindings) :void
   "Reset the bindings manipulated by TTY-SET-DEFAULT-BINDINGS so that the
@@ -667,44 +743,45 @@ necessary to call this; READLINE calls it before reading any input.")
 (defcfun ("rl_ding" ding) :boolean
   "Ring the terminal bell, obeying the setting of bell-style.")
 
-(defcfun ("rl_alphabetic" alphabeticp) :boolean
-  "Return T if CHAR is an alphabetic character."
-  (char int-char))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                         Miscelaneous Functions                         ;;
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; TODO: make sure that readline is initialized before using rl-macro-dumper
-;; or rl-variable-dumper
-
 (defun macro-dumper (&optional (readable t)) ; TODO: output redirection
   "Print the key sequences bound to macros and their values, using the
 current keymap to *STANDARD-OUTPUT*. If READABLE is non-NIL (T is default),
 the list is formatted in such a way that it can be made part of an inputrc
 file and re-read."
+  (ensure-initialization)
   (foreign-funcall "rl_macro_dumper"
                    :boolean readable
                    :void))
 
-(defcfun ("rl_variable_bind" variable-bind) :boolean
+(defun variable-bind (variable value)
   "Make the Readline variable VARIABLE have VALUE. This behaves as if the
 readline command 'set variable value' had been executed in an inputrc file."
-  (variable :string)
-  (value    :string))
+  (ensure-initialization)
+  (foreign-funcall "rl_variable_bind"
+                   :string variable
+                   :string value
+                   :boolean))
 
-(defcfun ("rl_variable_value" variable-value) :string
+(defun variable-value (variable)
   "Return a string representing the value of the Readline variable
 VARIABLE. For boolean variables, this string is either 'on' or 'off'."
-  (variable :string))
+  (ensure-initialization)
+  (foreign-funcall "rl_variable_value"
+                   :string variable
+                   :string))
 
 (defun variable-dumper (&optional (readable t)) ; TODO: output redir
   "Print the readline variable names and their current values to
 *STANDARD-OUTPUT*. If readable is not NIL (T is default), the list is
 formatted in such a way that it can be made part of an inputrc file and
 re-read."
+  (ensure-initialization)
   (foreign-funcall "rl_variable_dumper"
                    :boolean readable
                    :void))
@@ -714,15 +791,6 @@ re-read."
 a balancing character when blink-matching-paren has been enabled. The
 function returns previous value of the parameter."
   (micros :int))
-
-(defcfun ("rl_get_termcap" get-termcap) :string
-  "Retrieve the string value of the termcap capability CAP. Readline fetches
-the termcap entry for the current terminal name and uses those capabilities
-to move around the screen line and perform other terminal-specific
-operations, like erasing a line. Readline does not use all of a terminal's
-capabilities, and this function will return values for only those
-capabilities Readline uses."
-  (cap :string))
 
 (defcfun ("rl_clear_history" clear-history) :void
   "Clear the history list by deleting all of the entries.")

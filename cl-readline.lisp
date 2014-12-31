@@ -52,6 +52,9 @@
    #:+emacs-ctlx-keymap+
    #:+vi-insertion-keymap+
    #:+vi-movement-keymap+
+   #:*catch-signals*
+   #:*catch-sigwinch*
+   #:*change-environment*
    ;; Basic Functionality
    #:readline
    #:add-defun
@@ -123,8 +126,18 @@
    #:set-paren-blink-timeout
    #:clear-history
    ;; Signal Handling
-   
+   #:cleanup-after-signal
+   #:free-line-state
+   #:reset-after-signal
+   #:echo-signal-char
+   #:resize-terminal
+   #:set-screen-size
+   #:get-screen-size
+   #:reset-screen-size
+   #:set-signals
+   #:clear-signals
    ;; Custom Completion
+   
    ))
 
 (in-package #:cl-readline)
@@ -238,10 +251,23 @@ Readline and readable Lisp keyword.")
 current editing mode.")
 
 (defcenum undo-code
+  "This enumeration contains codes for various types of undo operations."
   :undo-delete
   :undo-insert
   :undo-begin
   :undo-end)
+
+(defcenum unix-signal
+  "Enumeration of some Unix signals for use with some Readline functions,
+see section 'Signal Handling'."
+  (:sighup  1)
+  (:sigint  2)
+  (:sigquit 3)
+  (:sigalrm 14)
+  (:sigterm 15)
+  (:sigtstp 20)
+  (:sigttin 26)
+  (:sigttou 27))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -451,6 +477,21 @@ or :UNKNOWN.")
 
 (defcvar ("vi_movement_keymap" +vi-movement-keymap+ :read-only t) :pointer
   "Vi movement keymap.")
+
+(defcvar ("rl_catch_signals" *catch-signals*) :boolean
+  "If this variable is non-NIL, Readline will install signal handlers for
+SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM, SIGTSTP, SIGTTIN, and
+SIGTTOU. The default value of *CATCH-SIGNALS* is T.")
+
+(defcvar ("rl_catch_sigwinch" *catch-sigwinch*) :boolean
+  "If this variable is set to a non-NIL value, Readline will install a
+signal handler for SIGWINCH. The default value of *CATCH-SIGWINCH* is T.")
+
+(defcvar ("rl_change_environment" *change-environment*) :boolean
+  "If this variable is set to a non-NIL value, and Readline is handling
+SIGWINCH, Readline will modify the LINES and COLUMNS environment variables
+upon receipt of a SIGWINCH. The default value of *CHANGE-ENVIRONMENT* is
+T.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -1105,7 +1146,67 @@ function returns previous value of the parameter."
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; ???
+(defcfun ("rl_cleanup_after_signal" cleanup-after-signal) :void
+  "This function will reset the state of the terminal to what it was before
+READLINE was called, and remove the Readline signal handlers for all
+signals, depending on the values of *CATCH-SIGNALS* and *CATCH-SIGWINCH*.")
+
+(defcfun ("rl_free_line_state" free-line-state) :void
+  "This will free any partial state associated with the current input
+line (undo information, any partial history entry, any partially-entered
+keyboard macro, and any partially-entered numeric argument). This should be
+called before CLEANUP-AFTER-SIGNAL. The Readline signal handler for SIGINT
+calls this to abort the current input line.")
+
+(defcfun ("rl_reset_after_signal" reset-after-signal) :void
+  "This will reinitialize the terminal and reinstall any Readline signal
+handlers, depending on the values of *CATCH-SIGNALS* and *CATCH-SIGWINCH*.")
+
+(defcfun ("rl_echo_signal_char" echo-signal-char) :void
+  "If an application wishes to install its own signal handlers, but still
+have readline display characters that generate signals, calling this
+function with SIG set to :SIGINT, :SIGQUIT, or :SIGTSTP will display the
+character generating that signal."
+  (sig unix-signal))
+
+(defun resize-terminal ()
+  "Update Readline's internal screen size by reading values from the
+kernel."
+  (ensure-initialization)
+  (foreign-funcall "rl_resize_terminal"
+                   :void))
+
+(defcfun ("rl_set_screen_size" set-screen-size) :void
+  "Set Readline's idea of the terminal size to ROWS rows and COLS
+columns. If either rows or columns is less than or equal to 0, Readline's
+idea of that terminal dimension is unchanged."
+  (rows :int)
+  (cols :int))
+
+(defun get-screen-size ()
+  "Return Readline's idea of the terminal's size. The function returns
+multiple values: rows and cols."
+  (ensure-initialization)
+  (with-foreign-objects ((rows :int)
+                         (cols :int))
+    (foreign-funcall "rl_get_screen_size"
+                     :pointer rows
+                     :pointer cols
+                     :void)
+    (values (mem-ref rows :int)
+            (mem-ref cols :int))))
+
+(defcfun ("rl_reset_screen_size" reset-screen-size) :void
+  "Cause Readline to reobtain the screen size and recalculate its
+dimensions.")
+
+(defcfun ("rl_set_signals" set-signals) :boolean
+  "Install Readline's signal handler for SIGINT, SIGQUIT, SIGTERM, SIGHUP,
+SIGALRM, SIGTSTP, SIGTTIN, SIGTTOU, and SIGWINCH, depending on the values of
+*CATCH-SIGNALS* and *CATCH-SIGWINCH*.")
+
+(defcfun ("rl_clear_signals" clear-signals) :boolean
+  "Remove all of the Readline signal handlers installed by SET-SIGNALS.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;

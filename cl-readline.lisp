@@ -54,20 +54,13 @@
    #:+vi-movement-keymap+
    ;; Basic Functionality
    #:readline
+   #:add-defun
    ;; Hooks and Custom Functions
-   #:register-startup-hook
-   #:register-pre-input-hook
-   #:register-event-hook
-   #:register-getc-function
-   #:register-signal-event-hook
-   #:register-input-available-hook
-   #:register-redisplay-function
-   #:register-prep-term-function
-   #:register-deprep-term-function
+   #:register-hook
+   #:register-function
    ;; Work with Keymaps
-   #:make-bare-keymap
-   #:copy-keymap
    #:make-keymap
+   #:copy-keymap
    #:free-keymap
    #:get-keymap
    #:set-keymap
@@ -75,22 +68,48 @@
    #:get-keymap-name
    #:with-new-keymap
    ;; Binding keys
-
+   #:bind-key
+   #:unbind-key
+   #:unbind-command
+   #:bind-keyseq
+   #:parse-and-bind
+   #:read-init-file
    ;; Associating Function Names and Bindings
-
+   #:function-dumper
+   #:list-funmap-names
+   #:funmap-names
+   #:add-funmap-entry
    ;; Allowing Undoing
-
+   #:undo-group
+   #:add-undo
+   #:free-undo-list
+   #:do-undo
+   #:modifying
    ;; Redisplay
-
+   #:redisplay
+   #:forced-update-display
+   #:on-new-line
+   #:reset-line-state
+   #:crlf
+   #:show-char
+   #:with-message
+   #:set-prompt
    ;; Modifying Text
-
+   #:insert-text
+   #:delete-text
+   #:kill-text
    ;; Character Input
-   
+   #:read-key
+   #:stuff-char
+   #:execute-next
+   #:clear-pending-input
+   #:set-keyboard-input-timeout
    ;; Terminal Management
    #:prep-terminal
    #:deprep-terminal
    #:tty-set-default-bindings
    #:tty-unset-default-bindings
+   #:reset-terminal
    ;; Utility Functions
    #:replace-line
    #:extend-line-buffer
@@ -104,7 +123,7 @@
    #:set-paren-blink-timeout
    #:clear-history
    ;; Signal Handling
-
+   
    ;; Custom Completion
    ))
 
@@ -176,13 +195,17 @@ Readline library version."
   (or (nth mode +editing-modes+)
       :unknown))
 
-(defmacro set-callback (place function &optional func-arg-list)
-  "Sets PLACE to pointer to callback that calls FUNCTION."
-  (with-gensyms (temp)
-    `(progn
-       (defcallback ,temp :boolean ,func-arg-list
-         (funcall ,function ,@(mapcar #'car func-arg-list)))
-       (setf ,place (get-callback ',temp)))))
+(defmacro produce-callback (function return-type &optional func-arg-list)
+  "Return pointer to callback that calls FUNCTION."
+  (let ((gensymed-list (mapcar (lambda (x) (list (gensym) x))
+                               func-arg-list)))
+    (with-gensyms (temp)
+      `(if ,function
+           (progn
+             (defcallback ,temp ,return-type ,gensymed-list
+               (funcall ,function ,@(mapcar #'car gensymed-list)))
+             (get-callback ',temp))
+           (null-pointer)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -213,6 +236,12 @@ Readline and readable Lisp keyword.")
               :from-c decode-editing-mode)
   "This wrapper performs conversion between C int and a keyword representing
 current editing mode.")
+
+(defcenum undo-code
+  :undo-delete
+  :undo-insert
+  :undo-begin
+  :undo-end)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -302,11 +331,11 @@ variable the first time it is called.")
   "This symbol-macro should be set to a unique name by each application
 using Readline. The value allows conditional parsing of the inputrc file.")
 
-(defcvar ("rl_instream" *instream*) :pointer ;; ???
+(defcvar ("rl_instream" *instream*) :pointer ;; not used
   "The stdio stream from which Readline reads input. If NULL, Readline
 defaults to stdin.")
 
-(defcvar ("rl_outstream" *outstream*) :pointer ;; ???
+(defcvar ("rl_outstream" *outstream*) :pointer
   "The stdio stream to which Readline performs output. If NULL, Readline
 defaults to stdout.")
 
@@ -481,63 +510,120 @@ initializes it."
   (unless (find :initialized +readline-state+)
     (initialize)))
 
+(defun add-defun (name function &optional key)
+  "Add NAME to the list of named functions. Make FUNCTION be the function
+that gets called. If KEY is not NIL and it's a character, then bind it to
+function using BIND-KEY. FUNCTION must be able to take at least two
+arguments: integer representing its argument and character representing key
+that has invoked it."
+  (ensure-initialization)
+  (foreign-funcall "rl_add_defun"
+                   :string name
+                   :pointer (produce-callback function
+                                              :boolean
+                                              (:int int-char))
+                   :int (if key (char-code key) -1)))
+
+(defmacro with-possible-redirection (filename append &body body)
+  "If FILENAME is not NIL, tries to create C file with name FILENAME,
+temporarily reassign *OUTSTREAM* to pointer to this file, perform BODY, then
+close the file and assign *OUTSTREAM* to the old value. If APPEND is not
+NIL, output will be appended to the file. Return NIL of success and T on
+failure."
+  (with-gensyms (temp-outstream file-pointer body-fnc)
+    `(flet ((,body-fnc ()
+              ,@body))
+       (if ,filename
+           (let ((,temp-outstream *outstream*)
+                 (,file-pointer (foreign-funcall "fopen"
+                                                 :string ,filename
+                                                 :string (if ,append "a" "w")
+                                                 :pointer)))
+             (if ,file-pointer
+                 (unwind-protect
+                      (progn
+                        (setf *outstream* ,file-pointer)
+                        (,body-fnc))
+                   (progn
+                     (foreign-funcall "fclose"
+                                      :pointer ,file-pointer
+                                      :boolean)
+                     (setf *outstream* ,temp-outstream)))
+                 t)
+             (,body-fnc))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                       Hooks and Custom Functions                       ;;
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun register-startup-hook (function)
-  "Make Readline call FUNCTION just before it prints the prompt."
-  (set-callback *startup-hook* function))
+(defun register-hook (hook function)
+  "Register a hook. FUNCTION must be a function that takes no arguments and
+returns NIL on success and T on failure. If FUNCTION is NIL, hook will be
+removed. HOOK should be a keyword, one of the following:
 
-(defun register-pre-input-hook (function)
-  "Make Readline call FUNCTION after prompt has been printed and just before
-READLINE starts reading input characters."
-  (set-callback *pre-input-hook* function))
+:STARTUP hook is called just before READLINE prints the prompt.
 
-(defun register-event-hook (function)
-  "Make Readline call FUNCTION periodically when waiting for terminal
-input. By default, this will be called at most ten times a second if there
-is no keyboard input."
-  (set-callback *event-hook* function))
+:PRE-INPUT hook is called after prompt has been printed and just before
+READLINE starts reading input characters.
 
-(defun register-getc-function (function)
-  "Register FUNCTION to get a character from the input stream. In general,
-an application that registers getcfunction should consider registering input
-available hook as well."
-  (set-callback *getc-function* function))
+:EVENT hook is called periodically when waiting for terminal input. By
+default, this will be called at most ten times a second if there is no
+keyboard input.
 
-(defun register-signal-event-hook (function)
-  "If registered, this is the function to call if a read system call is
-interrupted when Readline is reading terminal input."
-  (set-callback *signal-event-hook* function))
+:SIGNAL hook is called when a read system call is interrupted when
+READLINE is reading terminal input.
 
-(defun register-input-available-hook (function)
-  "If registered, Readline will use this function's return value when it
-needs to determine whether or not there is available input on the current
-input source. NIL means that there is no available input."
-  (set-callback *input-available-hook* function))
+:INPUTP hook is called when Readline need to determine whether or not there
+is available input on the current input source. If FUNCTION returns NIL, it
+means that there is no available input.
 
-(defun register-redisplay-function (function)
-  "Readline will call the function to update the display with the current
-contents of the editing buffer. By default, it is set to RL-REDISPLAY, the
-default Readline redisplay function."
-  (set-callback *redisplay-function* function))
+Other values of HOOK will be ignored."
+  (let ((cb (produce-callback function :boolean)))
+    (cond ((eql :startup   hook) (setf *startup-hook*         cb))
+          ((eql :pre-input hook) (setf *pre-input-hook*       cb))
+          ((eql :event     hook) (setf *event-hook*           cb))
+          ((eql :signal    hook) (setf *signal-event-hook*    cb))
+          ((eql :inputp    hook) (setf *input-available-hook* cb))))
+  nil)
 
-(defun register-prep-term-function (function)
-  "Readline will call the function to initialize the terminal. The function
-must be able to take at least one argument, a flag that says whether or not
-to use eight-bit characters. By default, PREP-TERMINAL is used."
-  (set-callback *prep-term-function* function ((x :boolean))))
+(defun register-function (func function)
+  "Register a function. FUNCTION must be a function, if FUNCTION is NIL,
+result is unpredictable. FUNC should be a keyword, one of the following:
 
-(defun register-deprep-term-function (function)
-  "Readline will call the function to reset the terminal. This function
-should undo the effects of PREP-TERM-FUNCTION."
-  (set-callback *deprep-term-function* function))
+:GETC function is used to get a character from the input stream, thus
+FUNCTION should take pointer to C stream and return a character if this
+function is desired to be registered. In general, an application that
+registers :GETC function should consider registering :INPUTP hook as
+well (see REGISTER-HOOK).
 
+:REDISPLAY function is used to update the display with the current contents
+of the editing buffer, thus FUNCTION should take no arguments and return NIL
+on success and non-NIL of failure. By default, it is set to REDISPLAY, the
+default Readline redisplay function.
 
-;; naming a funciton - rl_add_defun
+:PREP-TERM function is used to initialize the terminal, so FUNCTION must be
+able to take at least one argument, a flag that says whether or not to use
+eight-bit characters. By default, PREP-TERMINAL is used.
+
+:DEPREP-TERM function is used to reset the terminal. This function should
+undo the effects of :PREP-TERM function.
+
+Other values of FUNC will be ignored."
+  (cond ((eql :getc func)
+         (setf *getc-function*
+               (produce-callback function int-char (:pointer))))
+        ((eql :redisplay func)
+         (setf *redisplay-function*
+               (produce-callback function :void)))
+        ((eql :prep-term func)
+         (setf *prep-term-function*
+               (produce-callback function :void (:boolean))))
+        ((eql :deprep-term func)
+         (setf *deprep-term-function*
+               (produce-callback function :void))))
+  nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -545,17 +631,19 @@ should undo the effects of PREP-TERM-FUNCTION."
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defcfun ("rl_make_bare_keymap" make-bare-keymap) :pointer
-  "Returns a new, empty keymap. The space for the keymap is allocated with
-malloc(); the caller should free it by calling FREE-KEYMAP when done.")
+(defun make-keymap (&optional bare)
+  "Return a new keymap with self-inserting printing characters, the
+lowercase Meta characters bound to run their equivalents, and the Meta
+digits bound to produce numeric arguments. If BARE is supplied and it's not
+NIL, empty keymap will be returned."
+  (if bare
+      (foreign-funcall "rl_make_bare_keymap"
+                       :pointer)
+      (foreign-funcall "rl_make_keymap"
+                       :pointer)))
 
 (defcfun ("rl_copy_keymap" copy-keymap) :pointer
   "Return a new keymap which is a copy of map.")
-
-(defcfun ("rl_make_keymap" make-keymap) :pointer
-  "Return a new keymap with the printing characters bound to rl_insert, the
-lowercase Meta characters bound to run their equivalents, and the Meta
-digits bound to produce numeric arguments.")
 
 (defcfun ("rl_free_keymap" free-keymap) :void
   "Free all storage associated with keymap."
@@ -579,8 +667,7 @@ set keymap inputrc line."
 
 (defmacro with-new-keymap (form &body body)
   "Create new keymap evaluating FORM, then free it when control flow leaves
-BODY. MAKE-BARE-KEYMAP, COPY-KEYMAP, and MAKE-KEYMAP can be used to produce
-new keymap."
+BODY. MAKE-KEYMAP and COPY-KEYMAP can be used to produce new keymap."
   (with-gensyms (keymap)
     `(let ((,keymap ,form))
        ,@body
@@ -592,22 +679,94 @@ new keymap."
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; rl_bind_key
-;; rl_bind_key_in_map
-;; rl_bind_key_if_unbound
-;; rl_bind_key_if_unbound_in_map
-;; rl_unbind_key
-;; rl_unbind_key_in_map
+(defun bind-key (key function &key keymap if-unbound)
+  "Binds KEY to FUNCTION in the currently active keymap. If KEYMAP argument
+supplied, binding takes place in specified KEYMAP. If IF-UNBOUND is supplied
+and it's not NIL, KEY will be bound to FUNCTION only if it's not already
+bound."
+  (let ((cb (produce-callback function :boolean (:int int-char))))
+    (cond ((and keymap if-unbound)
+           (foreign-funcall "rl_bind_key_if_unbound_in_map"
+                            int-char key
+                            :pointer cb
+                            :pointer keymap
+                            :boolean))
+          (keymap
+           (foreign-funcall "rl_bind_key_in_map"
+                            int-char key
+                            :pointer cb
+                            :pointer keymap
+                            :boolean))
+          (if-unbound
+           (foreign-funcall "rl_bind_key_if_unbound"
+                            int-char key
+                            :pointer cb
+                            :boolean))
+          (t
+           (foreign-funcall "rl_bind_key"
+                            int-char key
+                            :pointer cb
+                            :boolean)))))
+
+(defun unbind-key (key &optional keymap)
+  "Unbind KEY in KEYMAP. If KEYMAP is not supplied or it's NIL, KEY will be
+unbound in currently active keymap. The function returns NIL on success and
+T on failure."
+  (if keymap
+      (foreign-funcall "rl_unbind_key_in_map"
+                       int-char key
+                       :pointer keymap
+                       :boolean)
+      (foreign-funcall "rl_unbind_key"
+                       int-char key
+                       :boolean)))
+
 ;; rl_unbind_function_in_map
-;; rl_unbind_command_in_map
-;; rl_bind_keyseq
-;; rl_bind_keyseq_in_map
-;; rl_set_key
-;; rl_bind_keyseq_if_unbound
-;; rl_bind_keyseq_if_unbound_in_map
-;; rl_generic_bind
-;; rl_parse_and_bind
-;; rl_read_init_file
+
+(defcfun ("rl_unbind_command_in_map" unbind-command) :boolean
+  "Unbind all keys that are bound to COMMAND in KEYMAP."
+  (command :string)
+  (keymap  :pointer))
+
+(defun bind-keyseq (keyseq function &key keymap if-unbound)
+  "Bind the key sequence represented by the string KEYSEQ to the function
+FUNCTION, beginning in the current keymap. This makes new keymaps as
+necessary. If KEYMAP supplied and it's not NIL, initial bindings are
+performed in KEYMAP. If IF-UNBOUND is supplied and it's not NIL, KEYSEQ will
+be bound to FUNCTION only if it's not already bound. The return value is T
+if KEYSEQ is invalid."
+  (let ((cb (produce-callback function :boolean (:int int-char))))
+    (cond ((and keymap if-unbound)
+           (foreign-funcall "rl_bind_keyseq_if_unbound_in_map"
+                            :string  keyseq
+                            :pointer cb
+                            :pointer keymap
+                            :boolean))
+          (keymap
+           (foreign-funcall "rl_bind_keyseq_in_map"
+                            :string  keyseq
+                            :pointer cb
+                            :pointer keymap
+                            :boolean))
+          (if-unbound
+           (foreign-funcall "rl_bind_keyseq_if_unbound"
+                            :string  keyseq
+                            :pointer cb
+                            :boolean))
+          (t
+           (foreign-funcall "rl_bind_keyseq"
+                            :string  keyseq
+                            :pointer cb
+                            :boolean)))))
+
+(defcfun ("rl_parse_and_bind" parse-and-bind) :boolean
+  "Parse LINE as if it had been read from the inputrc file and perform any
+key bindings and variable assignments found."
+  (line :string))
+
+(defcfun ("rl_read_init_file" read-init-file) :boolean
+  "Read keybindings and variable assignments from FILENAME."
+  (filename :string))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -619,10 +778,53 @@ new keymap."
 ;; rl_function_of_keyseq
 ;; rl_invoking_keyseqs
 ;; rl_invoking_keyseqs_in_map
-;; rl_function_dumper
-;; rl_list_funmap_names
-;; rl_funmap_names
-;; rl_add_funmap_entry
+
+(defun function-dumper (readable &optional filename append)
+  "Print the Readline function names and the key sequences currently bound
+to them to stdout. If readable is non-NIL, the list is formatted in such a
+way that it can be made part of an inputrc file and re-read. If FILENAME is
+supplied and it's a string or path, output will be redirected to the
+file. APPEND allows to append text to the file instead of overwriting it."
+  (ensure-initialization)
+  (with-possible-redirection filename append
+    (foreign-funcall "rl_function_dumper"
+                     :boolean readable
+                     :void)))
+
+(defun list-funmap-names (&optional filename append)
+  "Print the names of all bindable Readline functions to stdout. If FILENAME
+is supplied and it's a string or path, output will be redirected to the
+file. APPEND allows append text to the file instead of overwriting it."
+  (ensure-initialization)
+  (with-possible-redirection filename append
+    (foreign-funcall "rl_list_funmap_names"
+                     :void)))
+
+(defun funmap-names ()
+  "Return a list of known function names. The list is sorted."
+  (ensure-initialization)
+  (let ((ptr (foreign-funcall "rl_funmap_names"
+                              :pointer))
+        result)
+    (when ptr
+      (unwind-protect
+           (do ((i 0 (1+ i)))
+               ((null-pointer-p (mem-aref ptr :pointer i))
+                (reverse result))
+             (push (foreign-string-to-lisp (mem-aref ptr :pointer i))
+                   result))
+        (foreign-funcall "free"
+                         :pointer ptr
+                         :void)))))
+
+(defun add-funmap-entry (name function)
+  "Add NAME to the list of bindable Readline command names, and make
+FUNCTION the function to be called when name is invoked."
+  (foreign-funcall "rl_add_funmap_entry"
+                   :string name
+                   :pointer (produce-callback function
+                                              :boolean
+                                              (:int int-char))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -630,12 +832,35 @@ new keymap."
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; rl_begin_undo_group (macro may be useful here)
-;; rl_end_undo_group   (macro may be useful here)
-;; rl_add_undo
-;; rl_free_undo_list
-;; rl_do_undo
-;; rl_modifying
+(defmacro undo-group (&body body)
+  "All insertion and deletion inside this macro will be grouped together
+into one undo operation."
+  `(progn
+     (foreign-funcall "rl_begin_undo_group" :boolean)
+     ,@body
+     (foreign-funcall "rl_end_undo_group" :boolean)))
+
+(defcfun ("rl_add_undo" add-undo) :void
+  "Remember how to undo an event (according to WHAT). The affected text runs
+from START to END, and encompasses TEXT. Possible values of WHAT
+include: :UNDO-DELETE, :UNDO-INSERT, :UNDO-BEGIN, and :UNDO-END."
+  (what  undo-code)
+  (start :int)
+  (end   :int)
+  (text  :string))
+
+(defcfun ("rl_free_undo_list" free-undo-list) :void
+  "Free the existing undo list.")
+
+(defcfun ("rl_do_undo" do-undo) :boolean
+  "Undo the first thing on the undo list. Returns NIL if there was nothing
+to undo, T if something was undone.")
+
+(defcfun ("rl_modifying" modifying) :boolean
+  "Tell Readline to save the text between START and END as a single undo
+unit. It is assumed that you will subsequently modify that text."
+  (start :int)
+  (end   :int))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -643,19 +868,58 @@ new keymap."
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; rl_redisplay
-;; rl_forced_update_display
-;; rl_on_new_line
-;; rl_on_new_line_with_prompt
-;; rl_reset_line_state
-;; rl_crlf
-;; rl_show_char
-;; rl_message
-;; rl_clear_message
-;; rl_save_prompt
-;; rl_restore_prompt
-;; rl_expand_prompt
-;; rl_set_prompt
+(defcfun ("rl_redisplay" redisplay) :void
+  "Change what's displayed on the screen to reflect the current contents of
+*LINE-BUFFER*.")
+
+(defcfun ("rl_forced_update_display" forced-update-display) :boolean
+  "Force the line to be updated and redisplayed, whether or not Readline
+thinks the screen display is correct.")
+
+(defun on-new-line (&optional with-prompt)
+  "Tell the update functions that we have moved onto a new (empty) line,
+usually after outputting a newline. When WITH-PROMPT is T, Readline will
+think that prompt is already displayed. This could be used by applications
+that want to output the prompt string themselves, but still need Readline to
+know the prompt string length for redisplay. This should be used together
+with :ALREADY-PROMPTED keyword argument of READLINE."
+  (if with-prompt
+      (foreign-funcall "rl_on_new_line_with_prompt" :boolean)
+      (foreign-funcall "rl_on_new_line" :boolean)))
+
+(defcfun ("rl_reset_line_state" reset-line-state) :boolean
+  "Reset the display state to a clean state and redisplay the current line
+starting on a new line.")
+
+(defcfun ("rl_crlf" crlf) :boolean
+  "Move the cursor to the start of the next screen line.")
+
+(defcfun ("rl_show_char" show-char) :boolean
+  "Display character CHAR on outstream. If Readline has not been set to
+display meta characters directly, this will convert meta characters to a
+meta-prefixed key sequence. This is intended for use by applications which
+wish to do their own redisplay."
+  (char int-char))
+
+(defmacro with-message (message save-prompt &body body)
+  "Show message MESSAGE in the echo area while executing BODY. If
+SAVE-PROMPT is not NIL, save prompt before showing the message and restore
+it before clearing the message."
+  `(progn
+     (when ,save-prompt
+       (foreign-funcall "rl_save_prompt" :void))
+     (foreign-funcall "rl_message"
+                      :string ,message
+                      :boolean)
+     ,@body
+     (when ,save-prompt
+       (foreign-funcall "rl_restore_prompt" :void))
+     (foreign-funcall "rl_clear_message" :boolean)))
+
+(defcfun ("rl_set_prompt" set-prompt) :boolean
+  "Make Readline use prompt for subsequent redisplay. This calls
+EXPAND-PROMPT to expand the prompt and sets PROMPT to the result."
+  (prompt :string))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -663,11 +927,25 @@ new keymap."
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; rl_insert_text
-;; rl_delete_text
-;; rl_copy_text
-;; rl_kill_text
-;; rl_push_macro_input
+(defcfun ("rl_insert_text" insert-text) :int
+  "Insert TEXT into the line at the current cursor position. Returns the
+number of characters inserted."
+  (text :string))
+
+(defcfun ("rl_delete_text" delete-text) :int
+  "Delete the text between START and END in the current line. Returns the
+number of characters deleted."
+  (start :int)
+  (end   :int))
+
+(defcfun ("rl_kill_text" kill-text) :boolean
+  "Copy the text between START and END in the current line to the kill ring,
+appending or prepending to the last kill if the last command was a kill
+command. The text is deleted. If START is less than END, the text is
+appended, otherwise prepended. If the last command was not a kill, a new
+kill ring slot is used."
+  (start :int)
+  (end   :int))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -675,12 +953,33 @@ new keymap."
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; rl_read_key
-;; rl_getc
-;; rl_stuff_char
-;; rl_execute_next
-;; rl_clear_pending_input
-;; rl_set_keyboard_input_timeout
+(defcfun ("rl_read_key" read-key) int-char
+  "Return the next character available from Readline's current input
+stream.")
+
+(defcfun ("rl_stuff_char" stuff-char) :boolean
+  "Insert CHAR into the Readline input stream. It will be 'read' before
+Readline attempts to read characters from the terminal with READ-KEY. Up to
+512 characters may be pushed back. STUFF-CHAR returns T if the character was
+successfully inserted; NIL otherwise."
+  (char int-char))
+
+(defcfun ("rl_execute_next" execute-next) :boolean
+  "Make CHAR be the next command to be executed when READ-KEY is
+called."
+  (char int-char))
+
+(defcfun ("rl_clear_pending_input" clear-pending-input) :boolean
+  "Negate the effect of any previous call to EXECUTE-NEXT. This works only
+if the pending input has not already been read with READ-KEY.")
+
+(defcfun ("rl_set_keyboard_input_timeout" set-keyboard-input-timeout) :int
+  "While waiting for keyboard input in READ-KEY, Readline will wait for U
+microseconds for input before calling any function assigned to EVENT-HOOK. U
+must be greater than or equal to zero (a zero-length timeout is equivalent
+to a poll). The default waiting period is one-tenth of a second. Returns the
+old timeout value."
+  (u :int))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -749,15 +1048,18 @@ necessary to call this; READLINE calls it before reading any input.")
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun macro-dumper (&optional (readable t)) ; TODO: output redirection
+(defun macro-dumper (readable &optional filename append)
   "Print the key sequences bound to macros and their values, using the
-current keymap to *STANDARD-OUTPUT*. If READABLE is non-NIL (T is default),
-the list is formatted in such a way that it can be made part of an inputrc
-file and re-read."
+current keymap to stdout. If READABLE is non-NIL, the list is formatted in
+such a way that it can be made part of an inputrc file and re-read. If
+filename is supplied and it's a string or path, output will be redirected to
+the file. APPEND allows to append text to the file instead of overwriting
+it."
   (ensure-initialization)
-  (foreign-funcall "rl_macro_dumper"
-                   :boolean readable
-                   :void))
+  (with-possible-redirection filename append
+    (foreign-funcall "rl_macro_dumper"
+                     :boolean readable
+                     :void)))
 
 (defun variable-bind (variable value)
   "Make the Readline variable VARIABLE have VALUE. This behaves as if the
@@ -776,15 +1078,17 @@ VARIABLE. For boolean variables, this string is either 'on' or 'off'."
                    :string variable
                    :string))
 
-(defun variable-dumper (&optional (readable t)) ; TODO: output redir
-  "Print the readline variable names and their current values to
-*STANDARD-OUTPUT*. If readable is not NIL (T is default), the list is
-formatted in such a way that it can be made part of an inputrc file and
-re-read."
+(defun variable-dumper (readable &optional filename append)
+  "Print the readline variable names and their current values to stdout. If
+readable is not NIL, the list is formatted in such a way that it can be made
+part of an inputrc file and re-read. If FILENAME is supplied and it's a
+string or path, output will be redirected to the file. APPEND allows to
+append text to the file instead of overwriting it."
   (ensure-initialization)
-  (foreign-funcall "rl_variable_dumper"
-                   :boolean readable
-                   :void))
+  (with-possible-redirection filename append
+    (foreign-funcall "rl_variable_dumper"
+                     :boolean readable
+                     :void)))
 
 (defcfun ("rl_set_paren_blink_timeout" set-paren-blink-timeout) :int
   "Set the time interval (in microseconds) that Readline waits when showing

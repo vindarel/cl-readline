@@ -29,6 +29,7 @@
    #:*end*
    #:*mark*
    #:*done*
+   #:*dispatching*
    #:+prompt+
    #:*display-prompt*
    #:+library-version+
@@ -143,10 +144,7 @@
    #:get-screen-size
    #:reset-screen-size
    #:set-signals
-   #:clear-signals
-   ;; Custom Completion
-
-   ))
+   #:clear-signals))
 
 (in-package #:cl-readline)
 
@@ -184,7 +182,7 @@
     :vicmdonce     ; 0x0400000 entered vi command mode at least once
     :readisplaying ; 0x0800000 updating terminal display
     :done)         ; 0x1000000 done; accepted line
-  "Possible state values for +RL-READLINE-STATE+.")
+  "Possible state values for +READLINE-STATE+.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -326,7 +324,6 @@ character bound to accept-line.")
 to stuff a single character into the input stream.")
 
 (defcvar ("rl_dispatching" *dispatching*) :boolean
-  ;; TODO: use as arg of function called by a cmd
   "Set to a non-NIL value if a function is being called from a key binding;
 NIL otherwise. Application functions can test this to discover whether they
 were called directly or by Readline's dispatching mechanism. ")
@@ -763,7 +760,7 @@ Other values of HOOK will be ignored."
       (:lsmatches (setf *completion-display-matches-hook* cb))))
   nil)
 
-(defun register-function (func function)
+(defun register-function (func function) ;; TODO: implement :COMPLETE
   "Register a function. FUNCTION must be a function, if FUNCTION is NIL,
 result is unpredictable. FUNC should be a keyword, one of the following:
 

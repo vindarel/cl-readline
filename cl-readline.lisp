@@ -898,8 +898,6 @@ T on failure."
                        int-char key
                        :boolean)))
 
-;; rl_unbind_function_in_map
-
 (defcfun ("rl_unbind_command_in_map" unbind-command) :boolean
   "Unbind all keys that are bound to COMMAND in KEYMAP."
   (command :string)
@@ -950,11 +948,6 @@ key bindings and variable assignments found."
 ;;                Associating Function Names and Bindings                 ;;
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; rl_named_function
-;; rl_function_of_keyseq
-;; rl_invoking_keyseqs
-;; rl_invoking_keyseqs_in_map
 
 (defun function-dumper (readable &optional filename append)
   "Print the Readline function names and the key sequences currently bound
@@ -1338,22 +1331,3 @@ SIGALRM, SIGTSTP, SIGTTIN, SIGTTOU, and SIGWINCH, depending on the values of
 
 (defcfun ("rl_clear_signals" clear-signals) :boolean
   "Remove all of the Readline signal handlers installed by SET-SIGNALS.")
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                                        ;;
-;;                           Custom Completion                            ;;
-;;                                                                        ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; custom completers
-
-;; rl_complete
-;; rl_completion_entry_function <- pointer to function that produces completions
-
-;; ... see more in the manual.
-
-;; good interface would be something like this:
-
-;; (rl-use-completion <function or nil> completion-type)
-
-;; function should take a string to complete and return list of completions

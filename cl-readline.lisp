@@ -2,7 +2,7 @@
 ;;;
 ;;; cl-readline, bindings to GNU Readline library.
 ;;;
-;;; Copyright (c) 2014 Mark Karpov
+;;; Copyright (c) 2015 Mark Karpov
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify it
 ;;; under the terms of the GNU General Public License as published by the
@@ -55,6 +55,14 @@
    #:*catch-signals*
    #:*catch-sigwinch*
    #:*change-environment*
+   #:*basic-word-break-characters*
+   #:*basic-quote-characters*
+   #:*completer-word-break-characters*
+   #:*completion-query-items*
+   #:*completion-append-character*
+   #:*ignore-completion-duplicates*
+   #:*sort-completion-matches*
+   #:*completion-type*
    ;; Basic Functionality
    #:readline
    #:add-defun
@@ -137,7 +145,7 @@
    #:set-signals
    #:clear-signals
    ;; Custom Completion
-   
+
    ))
 
 (in-package #:cl-readline)
@@ -178,11 +186,6 @@
     :done)         ; 0x1000000 done; accepted line
   "Possible state values for +RL-READLINE-STATE+.")
 
-(defvar +editing-modes+
-  '(:vi            ; vi mode is active
-    :emacs)        ; Emacs mode is active
-  "Value denoting Readline's current editing mode.")
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                                Helpers                                 ;;
@@ -203,11 +206,6 @@ Readline library version."
           (iota (length +states+))
           +states+))
 
-(defun decode-editing-mode (mode)
-  "Transform C int into a keyword representing current editing mode."
-  (or (nth mode +editing-modes+)
-      :unknown))
-
 (defmacro produce-callback (function return-type &optional func-arg-list)
   "Return pointer to callback that calls FUNCTION."
   (let ((gensymed-list (mapcar (lambda (x) (list (gensym) x))
@@ -219,6 +217,17 @@ Readline library version."
                (funcall ,function ,@(mapcar #'car gensymed-list)))
              (get-callback ',temp))
            (null-pointer)))))
+
+(defun to-list-of-strings (pointer)
+  "Converts null-terminated array of pointers to chars into list of Lisp
+strings."
+  (unless (null-pointer-p pointer)
+    (let (result)
+      (do ((i 0 (1+ i)))
+          ((null-pointer-p (mem-aref pointer :pointer i))
+           (reverse result))
+        (push (foreign-string-to-lisp (mem-aref pointer :pointer i))
+              result)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -242,13 +251,12 @@ of Readline library and Lisp values.")
     (:wrapper :int
               :from-c decode-state)
   "This wrapper performs conversion between raw C int representing state of
-Readline and readable Lisp keyword.")
+Readline and list of keywords.")
 
-(defctype editing-mode
-    (:wrapper :int
-              :from-c decode-editing-mode)
-  "This wrapper performs conversion between C int and a keyword representing
-current editing mode.")
+(defcenum editing-mode
+  "Enumeration of all possible editing modes in Readline."
+  :vi
+  :emacs)
 
 (defcenum undo-code
   "This enumeration contains codes for various types of undo operations."
@@ -268,6 +276,15 @@ see section 'Signal Handling'."
   (:sigtstp 20)
   (:sigttin 26)
   (:sigttou 27))
+
+(defcenum completion-type
+  "Types of completion performed by Readline. See description of
+*COMPLETION-TYPE* for more information."
+  (:standard-completion 9)
+  (:display-and-perform 33)
+  (:insert-all          42)
+  (:list-all            63)
+  (:not-list-cmn-prefix 64))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -493,6 +510,105 @@ SIGWINCH, Readline will modify the LINES and COLUMNS environment variables
 upon receipt of a SIGWINCH. The default value of *CHANGE-ENVIRONMENT* is
 T.")
 
+(defcvar ("rl_attempted_completion_function"
+          *attempted-completion-function*)
+    :pointer
+  "A pointer to an alternative function to create matches. The function is
+called with TEXT, START, and END. START and END are indices in *LINE-BUFFER*
+defining the boundaries of text, which is a character string. If this
+function exists and returns NULL, or if this variable is set to NULL, then
+COMPLETE will call the value of *COMPLETION-ENTRY-FUNCTION* to generate
+matches, otherwise the array of strings returned will be used. If this
+function sets the *ATTEMPTED-COMPLETION-OVER* variable to a non-NIL value,
+Readline will not perform its default completion even if this function
+returns no matches.")
+
+(defcvar ("rl_completion_display_matches_hook"
+          *completion-display-matches-hook*)
+    :pointer
+  "If non-zero, then this is the address of a function to call when
+completing a word would normally display the list of possible matches. This
+function is called au lieu de Readline displaying the list. It takes three
+arguments: (char **matches, int num_matches, int max_length) where matches
+is the array of matching strings, num_matches is the number of strings in
+that array, and max_length is the length of the longest string in that
+array.")
+
+(defcvar ("rl_basic_word_break_characters"
+          *basic-word-break-characters*)
+    :string
+  "The basic list of characters that signal a break between words for the
+completer routine. The default value of this variable is the characters
+which break words for completion in Bash.")
+
+(defcvar ("rl_basic_quote_characters" *basic-quote-characters*) :string
+  "A list of quote characters which can cause a word break.")
+
+(defcvar ("rl_completer_word_break_characters"
+          *completer-word-break-characters*)
+    :string
+  "The list of characters that signal a break between words for
+COMPLETE-INTERNAL. The default list is the value of
+*BASIC-WORD-BREAK-CHARACTERS*.")
+
+(defcvar ("rl_completion_query_items" *completion-query-items*) :int
+  "Up to this many items will be displayed in response to a
+possible-completions call. After that, readline asks the user if she is sure
+she wants to see them all. The default value is 100. A negative value
+indicates that Readline should never ask the user.")
+
+(defcvar ("rl_completion_append_character"
+          *completion-append-character*)
+    int-char
+  "When a single completion alternative matches at the end of the command
+line, this character is appended to the inserted completion text. The
+default is a space character. Setting this to the null character prevents
+anything being appended automatically. This can be changed in
+application-specific completion functions to provide the 'most sensible word
+separator character' according to an application-specific command line
+syntax specification.")
+
+(defcvar ("rl_ignore_completion_duplicates"
+          *ignore-completion-duplicates*)
+    :boolean
+  "If non-NIL, then duplicates in the matches are removed. The default is
+T.")
+
+(defcvar ("rl_attempted_completion_over"
+          *attempted-completion-over*)
+    :boolean
+  "If an application-specific completion function assigned to
+*ATTEMPTED-COMPLETION-FUNCTION* sets this variable to a non-NIL value,
+Readline will not perform its default filename completion even if the
+application's completion function returns no matches. It should be set only
+by an application's completion function.")
+
+(defcvar ("rl_sort_completion_matches"
+          *sort-completion-matches*)
+    :boolean
+  "If an application sets this variable to NIL, Readline will not sort the
+list of completions (which implies that it cannot remove any duplicate
+completions). The default value is T, which means that Readline will sort
+the completions and, depending on the value of
+*IGNORE-COMPLETION-DUPLICATES*, will attempt to remove duplicate matches.")
+
+(defcvar ("rl_completion_type" *completion-type*) completion-type
+  "Set to a keyword describing the type of completion Readline is currently
+attempting. Acceptable values are:
+
+:STANDARD-COMPLETION tells Readline to do standard completion.
+
+:DISPLAY-AND-PERFORM means to display all possible completions if there is
+more than one, as well as performing partial completion.
+
+:INSERT-ALL means insert all possible completions.
+
+:LIST-ALL means list the possible completions.
+
+:NOT-LIST-CMN-PREFIX is similar to :DISPLAY-AND-PERFORM but possible
+completions are not listed if the possible completions share a common
+prefix.")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                          Basic Functionality                           ;;
@@ -554,9 +670,9 @@ initializes it."
 (defun add-defun (name function &optional key)
   "Add NAME to the list of named functions. Make FUNCTION be the function
 that gets called. If KEY is not NIL and it's a character, then bind it to
-function using BIND-KEY. FUNCTION must be able to take at least two
-arguments: integer representing its argument and character representing key
-that has invoked it."
+function using BIND-KEY. FUNCTION must be able to take two arguments:
+integer representing its argument and character representing key that has
+invoked it."
   (ensure-initialization)
   (foreign-funcall "rl_add_defun"
                    :string name
@@ -602,7 +718,8 @@ failure."
 (defun register-hook (hook function)
   "Register a hook. FUNCTION must be a function that takes no arguments and
 returns NIL on success and T on failure. If FUNCTION is NIL, hook will be
-removed. HOOK should be a keyword, one of the following:
+removed (or default function will be used). HOOK should be a keyword, one of
+the following:
 
 :STARTUP hook is called just before READLINE prints the prompt.
 
@@ -620,13 +737,30 @@ READLINE is reading terminal input.
 is available input on the current input source. If FUNCTION returns NIL, it
 means that there is no available input.
 
+:LSMATCHES hook is called to display list of completions. FUNCTION must be
+able to take three arguments: list of completions, length of the list, and
+length of the longest completion in the list. It's up to the function how to
+display these completions.
+
 Other values of HOOK will be ignored."
-  (let ((cb (produce-callback function :boolean)))
-    (cond ((eql :startup   hook) (setf *startup-hook*         cb))
-          ((eql :pre-input hook) (setf *pre-input-hook*       cb))
-          ((eql :event     hook) (setf *event-hook*           cb))
-          ((eql :signal    hook) (setf *signal-event-hook*    cb))
-          ((eql :inputp    hook) (setf *input-available-hook* cb))))
+  (let ((cb (if (and (eql hook :lsmatches)
+                     function)
+                (produce-callback
+                 (lambda (matches num max-length)
+                   (funcall function
+                            (to-list-of-strings matches)
+                            num
+                            max-length))
+                 :void
+                 (:pointer :int :int))
+                (produce-callback function :boolean))))
+    (case hook
+      (:startup   (setf *startup-hook*                    cb))
+      (:pre-input (setf *pre-input-hook*                  cb))
+      (:event     (setf *event-hook*                      cb))
+      (:signal    (setf *signal-event-hook*               cb))
+      (:inputp    (setf *input-available-hook*            cb))
+      (:lsmatches (setf *completion-display-matches-hook* cb))))
   nil)
 
 (defun register-function (func function)
@@ -645,11 +779,16 @@ on success and non-NIL of failure. By default, it is set to REDISPLAY, the
 default Readline redisplay function.
 
 :PREP-TERM function is used to initialize the terminal, so FUNCTION must be
-able to take at least one argument, a flag that says whether or not to use
-eight-bit characters. By default, PREP-TERMINAL is used.
+able to take one argument, a flag that says whether or not to use eight-bit
+characters. By default, PREP-TERMINAL is used.
 
 :DEPREP-TERM function is used to reset the terminal. This function should
 undo the effects of :PREP-TERM function.
+
+:COMPLETE function is used to generate list of possible completions for
+given partially entered word. The functions must be able to take one
+argument - partially entered word, and return list of all possible
+completions.
 
 Other values of FUNC will be ignored."
   (cond ((eql :getc func)
@@ -845,15 +984,10 @@ file. APPEND allows append text to the file instead of overwriting it."
   "Return a list of known function names. The list is sorted."
   (ensure-initialization)
   (let ((ptr (foreign-funcall "rl_funmap_names"
-                              :pointer))
-        result)
-    (when ptr
+                              :pointer)))
+    (unless (null-pointer-p ptr)
       (unwind-protect
-           (do ((i 0 (1+ i)))
-               ((null-pointer-p (mem-aref ptr :pointer i))
-                (reverse result))
-             (push (foreign-string-to-lisp (mem-aref ptr :pointer i))
-                   result))
+           (to-list-of-strings ptr)
         (foreign-funcall "free"
                          :pointer ptr
                          :void)))))

@@ -1,9 +1,18 @@
 # cl-readline
 
-*Please note that this project is in progress, it's not usable.*
-
 Common Lisp bindings to [GNU Readline
 library](http://directory.fsf.org/wiki/Readline).
+
+The Readline library provides a set of functions for use by applications
+that allow users to edit command lines as they are typed in. Both Emacs and
+vi editing modes are available. The Readline library includes additional
+functions to maintain a list of previously-entered command lines, to recall
+and perhaps reedit those lines, and perform csh-like history expansion on
+previous commands.
+
+This bindings provide Lispy interface to GNU Readline somewhat reducing its
+hair. Some minor features are omitted, they may be added by request. Open an
+issue if you have any propositions.
 
 ## Installation
 
@@ -19,6 +28,6 @@ https://mrkkrp.github.io/cl-readline/
 
 ## License
 
-Copyright (c) 2014 Mark Karpov
+Copyright (c) 2015 Mark Karpov
 
 Distributed under GNU GRL.

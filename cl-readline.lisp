@@ -17,135 +17,6 @@
 ;;; You should have received a copy of the GNU General Public License along
 ;;; with this program. If not, see <http://www.gnu.org/licenses/>.
 
-(cl:defpackage :cl-readline
-  (:nicknames  :rl)
-  (:use        #:common-lisp
-               #:alexandria
-               #:cffi)
-  (:export
-   ;; Readline Variables
-   #:*line-buffer*
-   #:*point*
-   #:*end*
-   #:*mark*
-   #:*done*
-   #:*dispatching*
-   #:+prompt+
-   #:*display-prompt*
-   #:+library-version+
-   #:+readline-version+
-   #:+gnu-readline-p+
-   #:*terminal-name*
-   #:*readline-name*
-   #:*prefer-env-winsize*
-   #:+executing-keymap+
-   #:+binding-keymap+
-   #:+executing-macro+
-   #:+executing-key+
-   #:+executing-keyseq+
-   #:+key-sequence-length+
-   #:+readline-state+
-   #:+explicit-arg+
-   #:+numeric-arg+
-   #:+editing-mode+
-   #:+emacs-std-keymap+
-   #:+emacs-meta-keymap+
-   #:+emacs-ctlx-keymap+
-   #:+vi-insertion-keymap+
-   #:+vi-movement-keymap+
-   #:*catch-signals*
-   #:*catch-sigwinch*
-   #:*change-environment*
-   #:*basic-word-break-characters*
-   #:*basic-quote-characters*
-   #:*completer-word-break-characters*
-   #:*completion-query-items*
-   #:*completion-append-character*
-   #:*ignore-completion-duplicates*
-   #:*sort-completion-matches*
-   #:*completion-type*
-   ;; Basic Functionality
-   #:readline
-   #:add-defun
-   ;; Hooks and Custom Functions
-   #:register-hook
-   #:register-function
-   ;; Work with Keymaps
-   #:make-keymap
-   #:copy-keymap
-   #:free-keymap
-   #:get-keymap
-   #:set-keymap
-   #:get-keymap-by-name
-   #:get-keymap-name
-   #:with-new-keymap
-   ;; Binding keys
-   #:bind-key
-   #:unbind-key
-   #:unbind-command
-   #:bind-keyseq
-   #:parse-and-bind
-   #:read-init-file
-   ;; Associating Function Names and Bindings
-   #:function-dumper
-   #:list-funmap-names
-   #:funmap-names
-   #:add-funmap-entry
-   ;; Allowing Undoing
-   #:undo-group
-   #:add-undo
-   #:free-undo-list
-   #:do-undo
-   #:modifying
-   ;; Redisplay
-   #:redisplay
-   #:forced-update-display
-   #:on-new-line
-   #:reset-line-state
-   #:crlf
-   #:show-char
-   #:with-message
-   #:set-prompt
-   ;; Modifying Text
-   #:insert-text
-   #:delete-text
-   #:kill-text
-   ;; Character Input
-   #:read-key
-   #:stuff-char
-   #:execute-next
-   #:clear-pending-input
-   #:set-keyboard-input-timeout
-   ;; Terminal Management
-   #:prep-terminal
-   #:deprep-terminal
-   #:tty-set-default-bindings
-   #:tty-unset-default-bindings
-   #:reset-terminal
-   ;; Utility Functions
-   #:replace-line
-   #:extend-line-buffer
-   #:initialize
-   #:ding
-   ;; Miscelaneous Functions
-   #:macro-dumper
-   #:variable-bind
-   #:variable-value
-   #:variable-dumper
-   #:set-paren-blink-timeout
-   #:clear-history
-   ;; Signal Handling
-   #:cleanup-after-signal
-   #:free-line-state
-   #:reset-after-signal
-   #:echo-signal-char
-   #:resize-terminal
-   #:set-screen-size
-   #:get-screen-size
-   #:reset-screen-size
-   #:set-signals
-   #:clear-signals))
-
 (in-package #:cl-readline)
 
 (define-foreign-library readline
@@ -155,134 +26,6 @@
   (t     (:default "libreadline")))
 
 (use-foreign-library readline)
-
-(defvar +states+
-  '(:initializing  ; 0x0000001 initializing
-    :initialized   ; 0x0000002 initialization done
-    :termprepped   ; 0x0000004 terminal is prepped
-    :readcmd       ; 0x0000008 reading a command key
-    :metanext      ; 0x0000010 reading input after ESC
-    :dispatching   ; 0x0000020 dispatching to a command
-    :moreinput     ; 0x0000040 reading more input in a command function
-    :isearch       ; 0x0000080 doing incremental search
-    :nsearch       ; 0x0000100 doing non-incremental search
-    :search        ; 0x0000200 doing a history search
-    :numericarg    ; 0x0000400 reading numeric argument
-    :macroinput    ; 0x0000800 getting input from a macro
-    :macrodef      ; 0x0001000 defining keyboard macro
-    :overwrite     ; 0x0002000 overwrite mode
-    :completing    ; 0x0004000 doing completion
-    :sighandler    ; 0x0008000 in readline sighandler
-    :undoing       ; 0x0010000 doing an undo
-    :inputpending  ; 0x0020000 rl_execute_next called
-    :ttycsaved     ; 0x0040000 tty special chars saved
-    :callback      ; 0x0080000 using the callback interface
-    :vimotion      ; 0x0100000 reading vi motion arg
-    :multikey      ; 0x0200000 reading multiple-key command
-    :vicmdonce     ; 0x0400000 entered vi command mode at least once
-    :readisplaying ; 0x0800000 updating terminal display
-    :done)         ; 0x1000000 done; accepted line
-  "Possible state values for +READLINE-STATE+.")
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                                        ;;
-;;                                Helpers                                 ;;
-;;                                                                        ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defun decode-version (version)
-  "Transform VERSION into two values representing major and minor numbers of
-Readline library version."
-  (values (ldb (byte 8 8) version)
-          (ldb (byte 8 0) version)))
-
-(defun decode-state (state)
-  "Transform Readline STATE into corresponding keyword."
-  (mapcan (lambda (index keyword)
-            (when (logbitp index state)
-              (list keyword)))
-          (iota (length +states+))
-          +states+))
-
-(defmacro produce-callback (function return-type &optional func-arg-list)
-  "Return pointer to callback that calls FUNCTION."
-  (let ((gensymed-list (mapcar (lambda (x) (list (gensym) x))
-                               func-arg-list)))
-    (with-gensyms (temp)
-      `(if ,function
-           (progn
-             (defcallback ,temp ,return-type ,gensymed-list
-               (funcall ,function ,@(mapcar #'car gensymed-list)))
-             (get-callback ',temp))
-           (null-pointer)))))
-
-(defun to-list-of-strings (pointer)
-  "Converts null-terminated array of pointers to chars into list of Lisp
-strings."
-  (unless (null-pointer-p pointer)
-    (let (result)
-      (do ((i 0 (1+ i)))
-          ((null-pointer-p (mem-aref pointer :pointer i))
-           (reverse result))
-        (push (foreign-string-to-lisp (mem-aref pointer :pointer i))
-              result)))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                                        ;;
-;;                      Foreign Structures and Types                      ;;
-;;                                                                        ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defctype int-char
-    (:wrapper :int
-              :from-c code-char
-              :to-c   char-code)
-  "This wrapper performs conversion between C int and Lisp character.")
-
-(defctype version
-    (:wrapper :int
-              :from-c decode-version)
-  "This wrapper performs conversion between raw C int representing version
-of Readline library and Lisp values.")
-
-(defctype state
-    (:wrapper :int
-              :from-c decode-state)
-  "This wrapper performs conversion between raw C int representing state of
-Readline and list of keywords.")
-
-(defcenum editing-mode
-  "Enumeration of all possible editing modes in Readline."
-  :vi
-  :emacs)
-
-(defcenum undo-code
-  "This enumeration contains codes for various types of undo operations."
-  :undo-delete
-  :undo-insert
-  :undo-begin
-  :undo-end)
-
-(defcenum unix-signal
-  "Enumeration of some Unix signals for use with some Readline functions,
-see section 'Signal Handling'."
-  (:sighup  1)
-  (:sigint  2)
-  (:sigquit 3)
-  (:sigalrm 14)
-  (:sigterm 15)
-  (:sigtstp 20)
-  (:sigttin 26)
-  (:sigttou 27))
-
-(defcenum completion-type
-  "Types of completion performed by Readline. See description of
-*COMPLETION-TYPE* for more information."
-  (:standard-completion 9)
-  (:display-and-perform 33)
-  (:insert-all          42)
-  (:list-all            63)
-  (:not-list-cmn-prefix 64))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -589,7 +332,7 @@ completions). The default value is T, which means that Readline will sort
 the completions and, depending on the value of
 *IGNORE-COMPLETION-DUPLICATES*, will attempt to remove duplicate matches.")
 
-(defcvar ("rl_completion_type" *completion-type*) completion-type
+(defcvar ("rl_completion_type" +completion-type+ :read-only t) completion-type
   "Set to a keyword describing the type of completion Readline is currently
 attempting. Acceptable values are:
 
@@ -605,6 +348,10 @@ more than one, as well as performing partial completion.
 :NOT-LIST-CMN-PREFIX is similar to :DISPLAY-AND-PERFORM but possible
 completions are not listed if the possible completions share a common
 prefix.")
+
+(defcvar ("rl_inhibit_completion" *inhibit-completion*) :boolean
+  "If this variable is non-NIL, completion is inhibited. The completion
+character will be inserted as any other bound to self-insert.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -632,20 +379,13 @@ not NIL, user's input will be added to history. However, blank lines don't
 get into history anyway. Return value on success is the actual string and
 NIL on failure."
   (setf *already-prompted*  already-prompted
-        *num-chars-to-read* (if (and (integerp num-chars)
-                                     (plusp    num-chars))
-                                num-chars
-                                0)
-        *erase-empty-line* erase-empty-line)
-  (let* ((prompt (if (and (not (null prompt))
-                          (typep prompt 'string-designator))
-                     (string prompt)
-                     ""))
+        *num-chars-to-read* (if num-chars num-chars 0)
+        *erase-empty-line*  erase-empty-line)
+  (let* ((prompt (if prompt (string prompt) ""))
          (ptr (foreign-funcall "readline"
                                :string prompt
                                :pointer)))
-    (when (and (pointerp ptr)
-               (not (null-pointer-p ptr)))
+    (unless (null-pointer-p ptr))
       (unwind-protect
            (let ((str (foreign-string-to-lisp ptr)))
              (when (and add-history
@@ -656,11 +396,11 @@ NIL on failure."
              str)
         (foreign-funcall "free"
                          :pointer ptr
-                         :void)))))
+                         :void))))
 
 (defun ensure-initialization ()
-  "Makes sure that Readline is initialized. If it's not initialized yet,
-initializes it."
+  "Make sure that Readline is initialized. If it's not initialized yet,
+initialize it."
   (unless (find :initialized +readline-state+)
     (initialize)))
 
@@ -682,7 +422,7 @@ invoked it."
   "If FILENAME is not NIL, tries to create C file with name FILENAME,
 temporarily reassign *OUTSTREAM* to pointer to this file, perform BODY, then
 close the file and assign *OUTSTREAM* to the old value. If APPEND is not
-NIL, output will be appended to the file. Return NIL of success and T on
+NIL, output will be appended to the file. Returns NIL on success and T on
 failure."
   (with-gensyms (temp-outstream file-pointer body-fnc)
     `(flet ((,body-fnc ()
@@ -693,17 +433,16 @@ failure."
                                                  :string ,filename
                                                  :string (if ,append "a" "w")
                                                  :pointer)))
-             (if ,file-pointer
+             (if (null-pointer-p ,file-pointer)
+                 t
                  (unwind-protect
                       (progn
                         (setf *outstream* ,file-pointer)
                         (,body-fnc))
-                   (progn
-                     (foreign-funcall "fclose"
-                                      :pointer ,file-pointer
-                                      :boolean)
-                     (setf *outstream* ,temp-outstream)))
-                 t)
+                   (foreign-funcall "fclose"
+                                    :pointer ,file-pointer
+                                    :boolean)
+                   (setf *outstream* ,temp-outstream)))
              (,body-fnc))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -760,7 +499,7 @@ Other values of HOOK will be ignored."
       (:lsmatches (setf *completion-display-matches-hook* cb))))
   nil)
 
-(defun register-function (func function) ;; TODO: implement :COMPLETE
+(defun register-function (func function)
   "Register a function. FUNCTION must be a function, if FUNCTION is NIL,
 result is unpredictable. FUNC should be a keyword, one of the following:
 
@@ -783,23 +522,32 @@ characters. By default, PREP-TERMINAL is used.
 undo the effects of :PREP-TERM function.
 
 :COMPLETE function is used to generate list of possible completions for
-given partially entered word. The functions must be able to take one
-argument - partially entered word, and return list of all possible
+given partially entered word. The function must be able to take three
+arguments: partially entered word, start index of the word in *LINE-BUFFER*
+and end index of the word in the buffer. The function must return a list
+where first element is the actual completion (or part of completion if two
+or more completions share common prefix) and the rest arguments are possible
 completions.
 
 Other values of FUNC will be ignored."
-  (cond ((eql :getc func)
-         (setf *getc-function*
-               (produce-callback function int-char (:pointer))))
-        ((eql :redisplay func)
-         (setf *redisplay-function*
-               (produce-callback function :void)))
-        ((eql :prep-term func)
-         (setf *prep-term-function*
-               (produce-callback function :void (:boolean))))
-        ((eql :deprep-term func)
-         (setf *deprep-term-function*
-               (produce-callback function :void))))
+  (case func
+    (:getc        (setf *getc-function*
+                        (produce-callback function int-char (:pointer))))
+    (:redisplay   (setf *redisplay-function*
+                        (produce-callback function :void)))
+    (:prep-term   (setf *prep-term-function*
+                        (produce-callback function :void (:boolean))))
+    (:deprep-term (setf *deprep-term-function*
+                        (produce-callback function :void)))
+    (:complete    (setf *attempted-completion-function*
+                        (produce-callback
+                         (lambda (text start end)
+                           (prog1
+                               (to-array-of-strings
+                                (funcall function text start end))
+                             (setf *attempted-completion-over* t)))
+                         :pointer
+                         (:string :int :int)))))
   nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -843,12 +591,13 @@ set keymap inputrc line."
   (keymap :pointer))
 
 (defmacro with-new-keymap (form &body body)
-  "Create new keymap evaluating FORM, then free it when control flow leaves
-BODY. MAKE-KEYMAP and COPY-KEYMAP can be used to produce new keymap."
-  (with-gensyms (keymap)
-    `(let ((,keymap ,form))
-       ,@body
-       (free-keymap ,keymap))))
+  "Create new keymap evaluating FORM, bind symbol KEYMAP to the result, then
+free it when control flow leaves BODY. MAKE-KEYMAP and COPY-KEYMAP can be
+used to produce new keymap."
+  `(let ((keymap ,form))
+     (unwind-protect
+          (progn ,@body)
+       (free-keymap keymap))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -1000,9 +749,10 @@ FUNCTION the function to be called when name is invoked."
 (defmacro undo-group (&body body)
   "All insertion and deletion inside this macro will be grouped together
 into one undo operation."
-  `(progn
-     (foreign-funcall "rl_begin_undo_group" :boolean)
-     ,@body
+  `(unwind-protect
+        (progn
+          (foreign-funcall "rl_begin_undo_group" :boolean)
+          ,@body)
      (foreign-funcall "rl_end_undo_group" :boolean)))
 
 (defcfun ("rl_add_undo" add-undo) :void
@@ -1070,13 +820,14 @@ wish to do their own redisplay."
   "Show message MESSAGE in the echo area while executing BODY. If
 SAVE-PROMPT is not NIL, save prompt before showing the message and restore
 it before clearing the message."
-  `(progn
-     (when ,save-prompt
-       (foreign-funcall "rl_save_prompt" :void))
-     (foreign-funcall "rl_message"
-                      :string ,message
-                      :boolean)
-     ,@body
+  `(unwind-protect
+        (progn
+          (when ,save-prompt
+            (foreign-funcall "rl_save_prompt" :void))
+          (foreign-funcall "rl_message"
+                           :string ,message
+                           :boolean)
+          ,@body)
      (when ,save-prompt
        (foreign-funcall "rl_restore_prompt" :void))
      (foreign-funcall "rl_clear_message" :boolean)))

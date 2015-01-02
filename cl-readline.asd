@@ -22,6 +22,10 @@
   :description  "Common Lisp bindings to GNU Readline library"
   :author       "Mark Karpov"
   :license      "GNU GPL v.3"
-  :components   ((:file "cl-readline"))
+  :serial       t
+  :components   ((:file "package")
+                 (:file "utils")
+                 (:file "ctypes")
+                 (:file "cl-readline"))
   :depends-on   (:alexandria
                  :cffi))

@@ -128,7 +128,7 @@
    #:extend-line-buffer
    #:initialize
    #:ding
-   ;; Miscelaneous Functions
+   ;; Miscellaneous Functions
    #:macro-dumper
    #:variable-bind
    #:variable-value

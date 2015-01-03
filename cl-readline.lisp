@@ -383,11 +383,11 @@ the current line, including any prompt, any time a newline is typed as the
 only character on an otherwise-empty line. The cursor is moved to the
 beginning of the newly-blank line. If ADD-HISTORY supplied and its value is
 not NIL, user's input will be added to history. However, blank lines don't
-get into history anyway. If NOVELTY-CHECK is supplied, it must be a
-predicate that takes two strings: the actual line and the most recent
-history line. Only when the predicate evaluates to non-NIL value new line
-will be added to the history. Return value on success is the actual string
-and NIL on failure."
+get into history anyway. If NOVELTY-CHECK supplied, it must be a predicate
+that takes two strings: the actual line and the most recent history
+line. Only when the predicate evaluates to non-NIL value new line will be
+added to the history. Return value on success is the actual string and NIL
+on failure."
   (setf *already-prompted*  already-prompted
         *num-chars-to-read* (if num-chars num-chars 0)
         *erase-empty-line*  erase-empty-line)

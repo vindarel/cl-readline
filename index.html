@@ -38,6 +38,7 @@
       <li><a href="#12">12 Utility Functions</a></li>
       <li><a href="#13">13 Miscellaneous Functions</a></li>
       <li><a href="#14">14 Signal Handling</a></li>
+      <li><a href="#15">15 Example</a></li>
     </ul>
     <h2 id="1">1 Overview of cl-readline</h2>
     <p>cl-readline is bindings to GNU Readline library.</p>
@@ -118,42 +119,41 @@
     <p><u>Symbol macro</u> <code><b>+readline-state+</b></code> &ndash; list
       of keywords</p>
     <p>This symbol macro is evaluated to a list containing keywords that
-      denote state of Readline. The following flags are used:
-      <ul>
-        <li><code>:initializing</code> &ndash; initializing;</li>
-        <li><code>:initialized</code> &ndash; initialization done;</li>
-        <li><code>:termprepped</code> &ndash; terminal is prepped;</li>
-        <li><code>:readcmd</code> &ndash; reading a command key;</li>
-        <li><code>:metanext</code> &ndash; reading input after ESC;</li>
-        <li><code>:dispatching</code> &ndash; dispatching to a command;</li>
-        <li><code>:moreinput</code> &ndash; reading more input in a command
-          function</li>
-        <li><code>:isearch</code> &ndash; doing incremental search;</li>
-        <li><code>:nsearch</code> &ndash; doing non-incremental search;</li>
-        <li><code>:search</code> &ndash; doing a history search;</li>
-        <li><code>:numericarg</code> &ndash; reading numeric argument;</li>
-        <li><code>:macroinput</code> &ndash; getting input from a
-          macro;</li>
-        <li><code>:macrodef</code> &ndash; defining keyboard macro;</li>
-        <li><code>:overwrite</code> &ndash; overwrite mode;</li>
-        <li><code>:completing</code> &ndash; doing completion;</li>
-        <li><code>:sighandler</code> &ndash; in readline sighandler;</li>
-        <li><code>:undoing</code> &ndash; doing a undo;</li>
-        <li><code>:inputpending</code> &ndash; <code>execute-next</code>
-          called;</li>
-        <li><code>:ttycsaved</code> &ndash; tty special chars saved;</li>
-        <li><code>:callback</code> &ndash; using the callback
-          interface;</li>
-        <li><code>:vimotion</code> &ndash; reading vi motion argument;</li>
-        <li><code>:multikey</code> &ndash; reading multiple-key
-          command;</li>
-        <li><code>:vicmdonce</code> &ndash; entered vi command at least
-          once;</li>
-        <li><code>:redisplaying</code> &ndash; undating terminal
-          display;</li>
-        <li><code>:done</code> &ndash; done; accepted line.</li>
-      </ul>
-    </p>
+      denote state of Readline. The following flags are used:</p>
+    <ul>
+      <li><code>:initializing</code> &ndash; initializing;</li>
+      <li><code>:initialized</code> &ndash; initialization done;</li>
+      <li><code>:termprepped</code> &ndash; terminal is prepped;</li>
+      <li><code>:readcmd</code> &ndash; reading a command key;</li>
+      <li><code>:metanext</code> &ndash; reading input after ESC;</li>
+      <li><code>:dispatching</code> &ndash; dispatching to a command;</li>
+      <li><code>:moreinput</code> &ndash; reading more input in a command
+        function</li>
+      <li><code>:isearch</code> &ndash; doing incremental search;</li>
+      <li><code>:nsearch</code> &ndash; doing non-incremental search;</li>
+      <li><code>:search</code> &ndash; doing a history search;</li>
+      <li><code>:numericarg</code> &ndash; reading numeric argument;</li>
+      <li><code>:macroinput</code> &ndash; getting input from a
+        macro;</li>
+      <li><code>:macrodef</code> &ndash; defining keyboard macro;</li>
+      <li><code>:overwrite</code> &ndash; overwrite mode;</li>
+      <li><code>:completing</code> &ndash; doing completion;</li>
+      <li><code>:sighandler</code> &ndash; in readline sighandler;</li>
+      <li><code>:undoing</code> &ndash; doing a undo;</li>
+      <li><code>:inputpending</code> &ndash; <code>execute-next</code>
+        called;</li>
+      <li><code>:ttycsaved</code> &ndash; tty special chars saved;</li>
+      <li><code>:callback</code> &ndash; using the callback
+        interface;</li>
+      <li><code>:vimotion</code> &ndash; reading vi motion argument;</li>
+      <li><code>:multikey</code> &ndash; reading multiple-key
+        command;</li>
+      <li><code>:vicmdonce</code> &ndash; entered vi command at least
+        once;</li>
+      <li><code>:redisplaying</code> &ndash; undating terminal
+        display;</li>
+      <li><code>:done</code> &ndash; done; accepted line.</li>
+    </ul>
     <p><u>Symbol macro</u> <code><b>+editing-mode+</b></code> &ndash;
       keyword</p>
     <p>Evaluated to keyword denoting actual editing
@@ -175,17 +175,12 @@
       beginning of the newly-blank line. If <code>add-history</code>
       supplied and its value is not <code>nil</code>, user's input will be
       added to history. However, blank lines don't get into history
-      anyway. Return value on success is the actual string
+      anyway. If <code>novelty-check</code> is supplied, it must be a
+      predicate that takes two strings: the actual line and the most recent
+      history line. Only when the predicate evaluates to
+      non-<code>nil</code> value new line will be added to the
+      history. Return value on success is the actual string
       and <code>nil</code> on failure.</p>
-    <p><u>Function</u> <code><b>add-defun</b> name function &optional
-        key</code></p>
-    <p>Add <code>name</code> to the list of named
-      functions. Make <code>function</code> be the function that gets
-      called. If <code>key</code> is not <code>nil</code> and it's a
-      character, then bind it to function
-      using <code>bind-key</code>. <code>function</code> must be able to
-      take two arguments: integer representing its argument and character
-      representing key that has invoked it.</p>
     <p>[<a href="#0">contents</a>]</p>
     <h2 id="3">3 Hooks and Custom Functions</h2>
     <p>cl-readline provides ways to register custom functions, so you can
@@ -237,20 +232,20 @@
     <p><u>Symbol macro</u> <code><b>+completion-type+</b></code> &ndash;
       keyword</p>
     <p>Set to a keyword describing the type of completion Readline is
-      currently attempting. Acceptable values are:
-      <ul>
-        <li><code>:standard-completion</code> tells Readline to do standard
-          completion.</li>
-        <li><code>:display-and-perform</code> means to display all possible
-          completions if there is more than one, as well as performing
-          partial completion.</li>
-        <li><code>:insert-all</code> means insert all possible
-          completions.</li>
-        <li><code>:list-all</code> means list the possible completions.</li>
-        <li><code>:not-list-cmn-prefix</code> is similar to
-          <code>:display-and-perform</code> but possible completions are not
-          listed if the possible completions share a common prefix.</li>
-    </ul></p>
+      currently attempting. Acceptable values are:</p>
+    <ul>
+      <li><code>:standard-completion</code> tells Readline to do standard
+        completion.</li>
+      <li><code>:display-and-perform</code> means to display all possible
+        completions if there is more than one, as well as performing
+        partial completion.</li>
+      <li><code>:insert-all</code> means insert all possible
+        completions.</li>
+      <li><code>:list-all</code> means list the possible completions.</li>
+      <li><code>:not-list-cmn-prefix</code> is similar to
+        <code>:display-and-perform</code> but possible completions are not
+        listed if the possible completions share a common prefix.</li>
+    </ul>
     <p><u>Symbol macro</u> <code><b>*inhibit-completion*</b></code> &ndash;
       Boolean</p>
     <p>If this variable is non-<code>nil</code>, completion is
@@ -261,67 +256,67 @@
       no arguments and returns <code>nil</code> on success
       and <code>t</code> on failure. If <code>function</code>
       is <code>nil</code>, hook will be removed (or default function will be
-      used). <code>hook</code> should be a keyword, one of the following:
-      <ul>
-        <li><code>:startup</code> hook is called just
-          before <code>readline</code> prints the prompt.</li>
-        <li><code>:pre-input</code> hook is called after prompt has been
-          printed and just before <code>readline</code> starts reading input
-          characters.</li>
-        <li><code>:event</code> hook is called periodically when waiting for
-          terminal input. By default, this will be called at most ten times
-          a second if there is no keyboard input.</li>
-        <li><code>:signal</code> hook is called when a read system call is
-          interrupted when <code>readline</code> is reading terminal
-          input.</li>
-        <li><code>:inputp</code> hook is called when Readline need to
-          determine whether or not there is available input on the current
-          input source. If <code>function</code> returns <code>nil</code>,
-          it means that there is no available input.</li>
-        <li><code>:lsmatches</code> hook is called to display list of
-          completions. <code>function</code> must be able to take three
-          arguments: list of completions, length of the list, and length of
-          the longest completion in the list. It's up to the function how to
-          display these completions.</li>
-      </ul>
-      Other values of <code>hook</code> will be ignored.</p>
+      used). <code>hook</code> should be a keyword, one of the following:</p>
+    <ul>
+      <li><code>:startup</code> hook is called just
+        before <code>readline</code> prints the prompt.</li>
+      <li><code>:pre-input</code> hook is called after prompt has been
+        printed and just before <code>readline</code> starts reading input
+        characters.</li>
+      <li><code>:event</code> hook is called periodically when waiting for
+        terminal input. By default, this will be called at most ten times
+        a second if there is no keyboard input.</li>
+      <li><code>:signal</code> hook is called when a read system call is
+        interrupted when <code>readline</code> is reading terminal
+        input.</li>
+      <li><code>:inputp</code> hook is called when Readline need to
+        determine whether or not there is available input on the current
+        input source. If <code>function</code> returns <code>nil</code>,
+        it means that there is no available input.</li>
+      <li><code>:lsmatches</code> hook is called to display list of
+        completions. <code>function</code> must be able to take three
+        arguments: list of completions, length of the list, and length of
+        the longest completion in the list. It's up to the function how to
+        display these completions.</li>
+    </ul>
+    <p>Other values of <code>hook</code> will be ignored.</p>
     <p><u>Function</u> <code><b>register-function</b> func
         function</code></p>
     <p>Register a function. <code>function</code> must be a function,
       if <code>function</code> is <code>nil</code>, result is
       unpredictable. <code>func</code> should be a keyword, one of the
-      following:
-      <ul>
-        <li><code>:getc</code> function is used to get a character from the
-          input stream, thus <code>function</code> should take pointer to C
-          stream and return a character if this function is desired to be
-          registered. In general, an application that
-          registers <code>:getc</code> function should consider registering
-          <code>:inputp</code> hook as well
-          (see <code>register-hook</code>).</li>
-        <li><code>:redisplay</code> function is used to update the display
-          with the current contents of the editing buffer,
-          thus <code>function</code> should take no arguments and
-          return <code>nil</code> on success and non-<code>nil</code> of
-          failure. By default, it is set to <code>redisplay</code>, the
-          default Readline redisplay function.</li>
-        <li><code>:prep-term</code> function is used to initialize the
-          terminal, so <code>function</code> must be able to take one
-          argument, a flag that says whether or not to use eight-bit
-          characters. By default, <code>prep-terminal</code> is used.</li>
-        <li><code>:deprep-term</code> function is used to reset the
-          terminal. This function should undo the effects
-          of <code>:prep-term</code> function.</li>
-        <li><code>:complete</code> function is used to generate list of
-          possible completions for given partially entered word. The
-          function must be able to take three arguments: partially entered
-          word, start index of the word in <code>*line-buffer*</code>, and
-          end index of the word in the buffer. The function must return a
-          list where first element is the actual completion (or part of
-          completion if two or more completions share common prefix) and the
-          rest arguments are possible completions.</li>
-      </ul>
-      Other values of <code>func</code> will be ignored.</p>
+      following:</p>
+    <ul>
+      <li><code>:getc</code> function is used to get a character from the
+        input stream, thus <code>function</code> should take pointer to C
+        stream and return a character if this function is desired to be
+        registered. In general, an application that
+        registers <code>:getc</code> function should consider registering
+        <code>:inputp</code> hook as well
+        (see <code>register-hook</code>).</li>
+      <li><code>:redisplay</code> function is used to update the display
+        with the current contents of the editing buffer,
+        thus <code>function</code> should take no arguments and
+        return <code>nil</code> on success and non-<code>nil</code> of
+        failure. By default, it is set to <code>redisplay</code>, the
+        default Readline redisplay function.</li>
+      <li><code>:prep-term</code> function is used to initialize the
+        terminal, so <code>function</code> must be able to take one
+        argument, a flag that says whether or not to use eight-bit
+        characters. By default, <code>prep-terminal</code> is used.</li>
+      <li><code>:deprep-term</code> function is used to reset the
+        terminal. This function should undo the effects
+        of <code>:prep-term</code> function.</li>
+      <li><code>:complete</code> function is used to generate list of
+        possible completions for given partially entered word. The
+        function must be able to take three arguments: partially entered
+        word, start index of the word in <code>*line-buffer*</code>, and
+        end index of the word in the buffer. The function must return a
+        list where first element is the actual completion (or part of
+        completion if two or more completions share common prefix) and the
+        rest arguments are possible completions.</li>
+    </ul>
+    <p>Other values of <code>func</code> will be ignored.</p>
     <p>[<a href="#0">contents</a>]</p>
     <h2 id="4">4 Work with Keymaps</h2>
     <p>Keymaps tell Readline which function should it invoke when the user
@@ -362,24 +357,8 @@
     <p>[<a href="#0">contents</a>]</p>
     <h2 id="5">5 Binding Keys</h2>
     <p>Key sequences are associate with functions through the
-      keymap. Readline has several internal keymaps (see below). You
-      should not modify these keymaps manually, but you can use special
-      functions to modify them.</p>
-    <p><u>Symbol macro</u> <code><b>+emacs-std-keymap+</b></code> &ndash; C
-      pointer</p>
-    <p>Emacs standard keymap - default keymap of Readline.</p>
-    <p><u>Symbol macro</u> <code><b>+emacs-meta-keymap+</b></code> &ndash; C
-      pointer</p>
-    <p>Emacs meta keymap.</p>
-    <p><u>Symbol macro</u> <code><b>+emacs-ctlx-keymap+</b></code> &ndash; C
-      pointer</p>
-    <p>Emacs Ctlx keymap.</p>
-    <p><u>Symbol macro</u> <code><b>+vi-insertion-keymap+</b></code> &ndash;
-      C pointer</p>
-    <p>Vi insertion keymap.</p>
-    <p><u>Symbol macro</u> <code><b>+vi-movement-keymap+</b></code> &ndash;
-      C pointer</p>
-    <p>Vi movement keymap.</p>
+      keymap. Here are the function that may be of interest when working
+      with keymaps.</p>
     <p><u>Symbol macro</u> <code><b>+executing-macro+</b></code> &ndash;
       string</p>
     <p>This symbol macro is evaluated to the text of any currently-executing
@@ -401,6 +380,15 @@
       from a key binding; <code>nil</code> otherwise. Application functions
       can test this to discover whether they were called directly or by
       Readline's dispatching mechanism.</p>
+    <p><u>Function</u> <code><b>add-defun</b> name function &amp;optional
+        key</code></p>
+    <p>Add <code>name</code> to the list of named
+      functions. Make <code>function</code> be the function that gets
+      called. If <code>key</code> is not <code>nil</code> and it's a
+      character, then bind it to function
+      using <code>bind-key</code>. <code>function</code> must be able to
+      take two arguments: integer representing its argument and character
+      representing key that has invoked it.</p>
     <p><u>Function</u> <code><b>bind-key</b> key function &amp;key keymap
         if-unbound</code></p>
     <p>Binds <code>key</code> to <code>function</code> in the currently
@@ -443,7 +431,7 @@
       non-<code>nil</code>, the list is formatted in such a way that it can
       be made part of an inputrc file and re-read. If <code>filename</code>
       is supplied and it's a string or path, output will be redirected to
-      the file. <codd>append</codd> allows to append text to the file
+      the file. <code>append</code> allows to append text to the file
       instead of overwriting it.</p>
     <p><u>Function</u> <code><b>list-funmap-names</b> &amp;optinal filename
         append</code></p>
@@ -635,7 +623,7 @@
     <p>Clear the history list by deleting all of the entries.</p>
     <p>[<a href="#0">contents</a>]</p>
     <h2 id="14">14 Signal Handling</h2>
-    <p><u>Symbol macro</u> <code><b>*catch-signals*</b></code> &ndash
+    <p><u>Symbol macro</u> <code><b>*catch-signals*</b></code> &ndash;
         Boolean</p>
     <p>If this variable is non-<code>nil</code>, Readline will install
       signal handlers for SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM,
@@ -694,6 +682,84 @@
     <p><u>Function</u> <code><b>clear-signals</b></code></p>
     <p>Remove all of the Readline signal handlers installed by
       <code>set-signals</code>.</p>
+    <p>[<a href="#0">contents</a>]</p>
+    <h2 id="15">15 Example</h2>
+    <p>This program demonstrates some basic capacities of cl-readline. Note
+      that you should run it on terminal, not via SLIME.</p>
+    <pre>;;; Load some systems and define a package...
+
+(asdf:load-system :alexandria)
+(asdf:load-system :cl-readline)
+
+(cl:defpackage :example
+  (:use    #:common-lisp
+           #:alexandria)
+  (:export #:run-example))
+
+(in-package :example)
+
+;;; Now let's define lists of verbs and fruits:
+
+(defvar *verbs*  '("eat" "get" "throw" "quit"))
+(defvar *fruits* '("banana" "apple" "orange" "banana_two" "façon"))
+
+;;; Define and register function that does custom completion: if user enters
+;;; first word, it will be completed as a verb, second and later words will
+;;; be completed as fruits.
+
+(defun custom-complete (text start end)
+  (declare (ignore end))
+  (labels ((common-prefix (items)
+             (subseq
+              (car items) 0
+              (position
+               nil
+               (mapcar
+                (lambda (i)
+                  (every (lambda (x)
+                           (char= (char (car items) i)
+                                  (char x           i)))
+                         (cdr items)))
+                (iota (reduce #'min (mapcar #'length items)))))))
+           (select-completions (list)
+             (let ((els (remove-if-not (curry #'starts-with-subseq text)
+                                       list)))
+               (if (cdr els)
+                   (cons (common-prefix els) els)
+                   els))))
+    (if (zerop start)
+        (select-completions *verbs*)
+        (select-completions *fruits*))))
+
+(rl:register-function :complete #'custom-complete)
+
+;;; Let's also create a custom command and bind it to some key sequence so
+;;; user can invoke it. In this example user can automagically insert phrase
+;;; 'inserted text' pressing Control-o.
+
+(defun print-some-text (arg key)
+  (declare (ignore arg key))
+  (rl:insert-text "inserted text"))
+
+(rl:bind-keyseq "\\C-o" #'print-some-text)
+
+;;; Let's write novelty-check, so if the actual line is equal to the most
+;;; recent history line it will not be added to the history.
+
+(defun novelty-check (x y)
+  (string/= (string-trim " " x)
+            (string-trim " " y)))
+
+;;; Finally, this is our main function. To exit from the loop, enter 'quit'.
+
+(defun run-example ()
+  (do ((i 0 (1+ i))
+       (text ""))
+      ((string= "quit" (string-trim " " text)))
+    (setf text
+          (rl:readline :prompt (format nil "[~a]> " i)
+                       :add-history t
+                       :novelty-check #'novelty-check))))</pre>
     <p>[<a href="#0">contents</a>]</p>
   </body>
 </html>

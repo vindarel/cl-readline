@@ -20,31 +20,31 @@
 (in-package :cl-readline)
 
 (defvar +states+
-  '(:initializing  ; 0x0000001 initializing
-    :initialized   ; 0x0000002 initialization done
-    :termprepped   ; 0x0000004 terminal is prepped
-    :readcmd       ; 0x0000008 reading a command key
-    :metanext      ; 0x0000010 reading input after ESC
-    :dispatching   ; 0x0000020 dispatching to a command
-    :moreinput     ; 0x0000040 reading more input in a command function
-    :isearch       ; 0x0000080 doing incremental search
-    :nsearch       ; 0x0000100 doing non-incremental search
-    :search        ; 0x0000200 doing a history search
-    :numericarg    ; 0x0000400 reading numeric argument
-    :macroinput    ; 0x0000800 getting input from a macro
-    :macrodef      ; 0x0001000 defining keyboard macro
-    :overwrite     ; 0x0002000 overwrite mode
-    :completing    ; 0x0004000 doing completion
-    :sighandler    ; 0x0008000 in readline sighandler
-    :undoing       ; 0x0010000 doing an undo
-    :inputpending  ; 0x0020000 rl_execute_next called
-    :ttycsaved     ; 0x0040000 tty special chars saved
-    :callback      ; 0x0080000 using the callback interface
-    :vimotion      ; 0x0100000 reading vi motion arg
-    :multikey      ; 0x0200000 reading multiple-key command
-    :vicmdonce     ; 0x0400000 entered vi command mode at least once
-    :readisplaying ; 0x0800000 updating terminal display
-    :done)         ; 0x1000000 done; accepted line
+  '(:initializing ; 0x0000001 initializing
+    :initialized  ; 0x0000002 initialization done
+    :termprepped  ; 0x0000004 terminal is prepped
+    :readcmd      ; 0x0000008 reading a command key
+    :metanext     ; 0x0000010 reading input after ESC
+    :dispatching  ; 0x0000020 dispatching to a command
+    :moreinput    ; 0x0000040 reading more input in a command function
+    :isearch      ; 0x0000080 doing incremental search
+    :nsearch      ; 0x0000100 doing non-incremental search
+    :search       ; 0x0000200 doing a history search
+    :numericarg   ; 0x0000400 reading numeric argument
+    :macroinput   ; 0x0000800 getting input from a macro
+    :macrodef     ; 0x0001000 defining keyboard macro
+    :overwrite    ; 0x0002000 overwrite mode
+    :completing   ; 0x0004000 doing completion
+    :sighandler   ; 0x0008000 in readline sighandler
+    :undoing      ; 0x0010000 doing an undo
+    :inputpending ; 0x0020000 rl_execute_next called
+    :ttycsaved    ; 0x0040000 tty special chars saved
+    :callback     ; 0x0080000 using the callback interface
+    :vimotion     ; 0x0100000 reading vi motion arg
+    :multikey     ; 0x0200000 reading multiple-key command
+    :vicmdonce    ; 0x0400000 entered vi command mode at least once
+    :redisplaying ; 0x0800000 updating terminal display
+    :done)        ; 0x1000000 done; accepted line
   "Possible state values for +READLINE-STATE+.")
 
 (defvar *c-buffer-size* 256)

@@ -29,7 +29,7 @@
    #:*end*
    #:*mark*
    #:*done*
-   #:*dispatching*
+   #:+dispatching+
    #:+prompt+
    #:*display-prompt*
    #:+library-version+

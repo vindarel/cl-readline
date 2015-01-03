@@ -66,10 +66,10 @@ character bound to accept-line.")
   "Setting this to a value makes it the next keystroke read. This is a way
 to stuff a single character into the input stream.")
 
-(defcvar ("rl_dispatching" *dispatching*) :boolean
+(defcvar ("rl_dispatching" +dispatching+ :read-only t) :boolean
   "Set to a non-NIL value if a function is being called from a key binding;
 NIL otherwise. Application functions can test this to discover whether they
-were called directly or by Readline's dispatching mechanism. ")
+were called directly or by Readline's dispatching mechanism.")
 
 (defcvar ("rl_erase_empty_line" *erase-empty-line*) :boolean
   "Setting this to a non-NIL value causes Readline to completely erase the
@@ -181,15 +181,15 @@ rl_prep_term_function. By default, this is set to rl_deprep_terminal (see
 section 2.4.9 Terminal Management).")
 
 (defcvar ("rl_executing_keymap" +executing-keymap+ :read-only t) :pointer
-  "This variable is evaluated to the keymap in which the currently executing
-Readline function was found.")
+  "This symbol macro is evaluated to the keymap in which the currently
+executing Readline function was found.")
 
 (defcvar ("rl_binding_keymap" +binding-keymap+ :read-only t) :pointer
-  "This variable is evaluated to the keymap in which the last key binding
-occurred.")
+  "This symbol macro is evaluated to the keymap in which the last key
+binding occurred.")
 
 (defcvar ("rl_executing_macro" +executing-macro+ :read-only t) :string
-  "This variable is evaluated to the text of any currently-executing
+  "This symbol macro is evaluated to the text of any currently-executing
 macro.")
 
 (defcvar ("rl_executing_key" +executing-key+ :read-only t) int-char
@@ -200,7 +200,7 @@ function.")
   "The full key sequence that caused the dispatch to the currently-executing
 Readline function.")
 
-(defcvar ("rl_key_sequence_length" +key-sequence-length :read-only t) :int
+(defcvar ("rl_key_sequence_length" +key-sequence-length+ :read-only t) :int
   "The number of characters in +EXECUTING-KEYSEQ+.")
 
 (defcvar ("rl_readline_state" +readline-state+ :read-only t) state
@@ -217,8 +217,7 @@ the user before executing the current Readline function. Only valid in a
 bindable command function.")
 
 (defcvar ("rl_editing_mode" +editing-mode+ :read-only t) editing-mode
-  "Evaluated to keyword denoting actual editing mode: :EMACS, :VI,
-or :UNKNOWN.")
+  "Evaluated to keyword denoting actual editing mode: :EMACS or :VI.")
 
 (defcvar ("emacs_standard_keymap" +emacs-std-keymap+ :read-only t) :pointer
   "Emacs standard keymap - default keymap of Readline.")
@@ -293,7 +292,7 @@ COMPLETE-INTERNAL. The default list is the value of
 
 (defcvar ("rl_completion_query_items" *completion-query-items*) :int
   "Up to this many items will be displayed in response to a
-possible-completions call. After that, readline asks the user if she is sure
+POSSIBLE-COMPLETIONS call. After that, Readline asks the user if she is sure
 she wants to see them all. The default value is 100. A negative value
 indicates that Readline should never ask the user.")
 
@@ -368,7 +367,7 @@ character will be inserted as any other bound to self-insert.")
   "Get a line from user with editing. If PROMPT supplied (and it's a string
 designator), it will be printed before reading of input. Non-NIL value of
 ALREADY-PROMPTED will tell Readline that the application has printed prompt
-already. However PROMPT must be supplied in this case too, so redisplay
+already. However, PROMPT must be supplied in this case too, so redisplay
 functions can update the display properly. If NUM-CHARS argument is a
 positive number, Readline will return after accepting that many
 characters. If ERASE-EMPTY-LINE is not NIL, READLINE will completely erase
@@ -568,10 +567,11 @@ NIL, empty keymap will be returned."
                        :pointer)))
 
 (defcfun ("rl_copy_keymap" copy-keymap) :pointer
-  "Return a new keymap which is a copy of map.")
+  "Return a new keymap which is a copy of KEYMAP."
+  (keymap :pointer))
 
 (defcfun ("rl_free_keymap" free-keymap) :void
-  "Free all storage associated with keymap."
+  "Free all storage associated with KEYMAP."
   (keymap :pointer))
 
 (defcfun ("rl_get_keymap" get-keymap) :pointer
@@ -583,7 +583,8 @@ NIL, empty keymap will be returned."
 
 (defcfun ("rl_get_keymap_by_name" get-keymap-by-name) :pointer
   "Return the keymap matching NAME. NAME is one which would be supplied in a
-set keymap inputrc line.")
+set keymap inputrc line."
+  (name :string))
 
 (defcfun ("rl_get_keymap_name" get-keymap-name) :string
   "Return the name matching KEYMAP. Name is one which would be supplied in a
@@ -607,9 +608,10 @@ used to produce new keymap."
 
 (defun bind-key (key function &key keymap if-unbound)
   "Binds KEY to FUNCTION in the currently active keymap. If KEYMAP argument
-supplied, binding takes place in specified KEYMAP. If IF-UNBOUND is supplied
+supplied, binding takes place in specified keymap. If IF-UNBOUND is supplied
 and it's not NIL, KEY will be bound to FUNCTION only if it's not already
 bound."
+  (ensure-initialization)
   (let ((cb (produce-callback function :boolean (:int int-char))))
     (cond ((and keymap if-unbound)
            (foreign-funcall "rl_bind_key_if_unbound_in_map"
@@ -638,6 +640,7 @@ bound."
   "Unbind KEY in KEYMAP. If KEYMAP is not supplied or it's NIL, KEY will be
 unbound in currently active keymap. The function returns NIL on success and
 T on failure."
+  (ensure-initialization)
   (if keymap
       (foreign-funcall "rl_unbind_key_in_map"
                        int-char key
@@ -647,10 +650,13 @@ T on failure."
                        int-char key
                        :boolean)))
 
-(defcfun ("rl_unbind_command_in_map" unbind-command) :boolean
+(defun unbind-command (command keymap)
   "Unbind all keys that are bound to COMMAND in KEYMAP."
-  (command :string)
-  (keymap  :pointer))
+  (ensure-initialization)
+  (foreign-funcall "rl_unbind_command_in_map"
+                   :string command
+                   :pointer keymap
+                   :boolean))
 
 (defun bind-keyseq (keyseq function &key keymap if-unbound)
   "Bind the key sequence represented by the string KEYSEQ to the function
@@ -659,6 +665,7 @@ necessary. If KEYMAP supplied and it's not NIL, initial bindings are
 performed in KEYMAP. If IF-UNBOUND is supplied and it's not NIL, KEYSEQ will
 be bound to FUNCTION only if it's not already bound. The return value is T
 if KEYSEQ is invalid."
+  (ensure-initialization)
   (let ((cb (produce-callback function :boolean (:int int-char))))
     (cond ((and keymap if-unbound)
            (foreign-funcall "rl_bind_keyseq_if_unbound_in_map"
@@ -683,14 +690,20 @@ if KEYSEQ is invalid."
                             :pointer cb
                             :boolean)))))
 
-(defcfun ("rl_parse_and_bind" parse-and-bind) :boolean
+(defun parse-and-bind (line)
   "Parse LINE as if it had been read from the inputrc file and perform any
 key bindings and variable assignments found."
-  (line :string))
+  (ensure-initialization)
+  (foreign-funcall "rl_parse_and_bind"
+                   :string line
+                   :boolean))
 
-(defcfun ("rl_read_init_file" read-init-file) :boolean
+(defun read-init-file (filename)
   "Read keybindings and variable assignments from FILENAME."
-  (filename :string))
+  (ensure-initialization)
+  (foreign-funcall "rl_read_init_file"
+                   :string filename
+                   :boolean))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -700,7 +713,7 @@ key bindings and variable assignments found."
 
 (defun function-dumper (readable &optional filename append)
   "Print the Readline function names and the key sequences currently bound
-to them to stdout. If readable is non-NIL, the list is formatted in such a
+to them to stdout. If READABLE is non-NIL, the list is formatted in such a
 way that it can be made part of an inputrc file and re-read. If FILENAME is
 supplied and it's a string or path, output will be redirected to the
 file. APPEND allows to append text to the file instead of overwriting it."
@@ -833,8 +846,8 @@ it before clearing the message."
      (foreign-funcall "rl_clear_message" :boolean)))
 
 (defcfun ("rl_set_prompt" set-prompt) :boolean
-  "Make Readline use prompt for subsequent redisplay. This calls
-EXPAND-PROMPT to expand the prompt and sets PROMPT to the result."
+  "Make Readline use PROMPT for subsequent redisplay. This calls
+EXPAND-PROMPT to expand the prompt and sets +PROMPT+ to the result."
   (prompt :string))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -929,8 +942,8 @@ in KEYMAP."
   (keymap :pointer))
 
 (defcfun ("rl_reset_terminal" reset-terminal) :boolean
-  "Reinitialize Readline's idea of the terminal settings using terminal_name
-as the terminal type (e.g., vt100)."
+  "Reinitialize Readline's idea of the terminal settings using TERMINAL as
+the terminal type (e.g., vt100)."
   (terminal :string))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -941,7 +954,7 @@ as the terminal type (e.g., vt100)."
 
 (defcfun ("rl_replace_line" replace-line) :void
   "Replace the contents of *LINE-BUFFER* with TEXT. The point and mark are
-preserved, if possible. If CLEAR-UNDO is non-zero, the undo list associated
+preserved, if possible. If CLEAR-UNDO is non-NIL, the undo list associated
 with the current line is cleared."
   (text       :string)
   (clear-undo :boolean))
@@ -968,7 +981,7 @@ necessary to call this; READLINE calls it before reading any input.")
   "Print the key sequences bound to macros and their values, using the
 current keymap to stdout. If READABLE is non-NIL, the list is formatted in
 such a way that it can be made part of an inputrc file and re-read. If
-filename is supplied and it's a string or path, output will be redirected to
+FILENAME is supplied and it's a string or path, output will be redirected to
 the file. APPEND allows to append text to the file instead of overwriting
 it."
   (ensure-initialization)
@@ -988,7 +1001,7 @@ readline command 'set variable value' had been executed in an inputrc file."
 
 (defun variable-value (variable)
   "Return a string representing the value of the Readline variable
-VARIABLE. For boolean variables, this string is either 'on' or 'off'."
+VARIABLE. For Boolean variables, this string is either 'on' or 'off'."
   (ensure-initialization)
   (foreign-funcall "rl_variable_value"
                    :string variable
@@ -1008,7 +1021,7 @@ append text to the file instead of overwriting it."
 
 (defcfun ("rl_set_paren_blink_timeout" set-paren-blink-timeout) :int
   "Set the time interval (in microseconds) that Readline waits when showing
-a balancing character when blink-matching-paren has been enabled. The
+a balancing character when 'blink-matching-paren' has been enabled. The
 function returns previous value of the parameter."
   (micros :int))
 

@@ -2,9 +2,9 @@
 <html lang="en">
   <!--
   Documentation for cl-readline - bindings to GNU Readline library.
-  
+
   Copyright (c) 2014 Mark Karpov
-  
+
   Permission is granted to copy, distribute and/or modify this document
   under the terms of the GNU Free Documentation License, Version 1.3 or any
   later version published by the Free Software Foundation; with no Invariant
@@ -25,21 +25,9 @@
     <h2 id="0">Table of Contents</h2>
     <ul class="no-bullet">
       <li><a href="#1">1 Overview of cl-readline</a></li>
-      <li><a href="#2">2 Basic Functionality</a>
-        <ul class="no-bullet">
-          <li><a href="#2.1">2.1 Symbol Macros</a></li>
-          <li><a href="#2.2">2.2 Functions</a></li>
-      </ul></li>
-      <li><a href="#3">3 Hooks and Custom Functions</a>
-        <ul class="no-bullet">
-          <li><a href="#3.1">3.1 Symbol Macros</a></li>
-          <li><a href="#3.2">3.2 Functions</a></li>
-      </ul></li>
-      <li><a href="#4">4 Work with Keymaps</a>
-        <ul class="no-bullet">
-          <li><a href="#4.1">4.1 Symbol Macros</a></li>
-          <li><a href="#4.2">4.2 Functions</a></li>
-      </ul></li>
+      <li><a href="#2">2 Basic Functionality</a></li>
+      <li><a href="#3">3 Hooks and Custom Functions</a></li>
+      <li><a href="#4">4 Work with Keymaps</a></li>
       <li><a href="#5">5 Binding Keys</a></li>
       <li><a href="#6">6 Associating Function Names and Bindings</a></li>
       <li><a href="#7">7 Allowing Undoing</a></li>
@@ -49,11 +37,7 @@
       <li><a href="#11">11 Terminal Management</a></li>
       <li><a href="#12">12 Utility Functions</a></li>
       <li><a href="#13">13 Miscellaneous Functions</a></li>
-      <li><a href="#14">14 Signal Handling</a>
-        <ul class="no-bullet">
-          <li><a href="#14.1">14.1 Symbol Macros</a></li>
-          <li><a href="#14.2">14.2 Functions</a></li>
-      </ul></li>
+      <li><a href="#14">14 Signal Handling</a></li>
     </ul>
     <h2 id="1">1 Overview of cl-readline</h2>
     <p>cl-readline is bindings to GNU Readline library.</p>
@@ -71,10 +55,10 @@
     <p>cl-readline Copyright &copy; 2015 Mark Karpov.</p>
     <p>All contents here is copyright by the developer and is released under
       the <a href="http://www.gnu.org/copyleft/fdl.html"> GNU Free
-      Documentation License</a>.</p>
+        Documentation License</a>.</p>
     <p>cl-readline is licensed
       under <a href="http://www.gnu.org/copyleft/gpl.html">GNU General
-      Public License v.3</a>; it's free software.</p>
+        Public License v.3</a>; it's free software.</p>
     <p>[<a href="#0">contents</a>]</p>
     <h2 id="2">2 Basic Functionality</h2>
     <p>This sections describes most basic functions and symbol-macros that
@@ -84,53 +68,57 @@
       not (and, in fact, cannot) modify its value. Other symbol macros are
       setfable and you can set their values with <code>setf</code>
       macro.</p>
-    <p>[<a href="#0">contents</a>]</p>
-    <h3 id="2.1">2.1 Symbol Macros</h3>
     <p><u>Symbol macro</u> <code><b>*line-buffer*</b></code> &ndash;
-      string<br> This is the line gathered so far. You are welcome to modify
-      the contents of the line, but remember about undoing. The
+      string</p>
+    <p>This is the line gathered so far. You are welcome to modify the
+      contents of the line, but remember about undoing. The
       function <code>extend-line-buffer</code> is available to increase the
       memory allocated to <code>*line-buffer*</code>.</p>
-    <p><u>Symbol macro</u> <code><b>*point*</b></code> &ndash;
-      integer<br>The offset of the current cursor position
+    <p><u>Symbol macro</u> <code><b>*point*</b></code> &ndash; integer</p>
+    <p>The offset of the current cursor position
       in <code>*line-buffer*</code> (the point).</p>
-    <p><u>Symbol macro</u> <code><b>*end*</b></code> &ndash; integer<br>The
-      number of characters present
+    <p><u>Symbol macro</u> <code><b>*end*</b></code> &ndash; integer</p>
+    <p>The number of characters present
       in <code>*line-buffer*</code>. When <code>*point*</code> is at the end
       of the line, <code>*point*</code> and <code>*end*</code> are
       equal.</p>
-    <p><u>Symbol macro</u> <code><b>*mark*</b></code> &ndash; integer<br>The
-      mark (saved position) in the current line. If set, the mark and point
-      define a region.</p>
-    <p><u>Symbol macro</u> <code><b>*done</b></code> &ndash;
-      Boolean<br>Setting this to a non-<code>nil</code> value causes
-      Readline to return the current line immediately.</p>
-    <p><u>Symbol macro</u> <code><b>+prompt+</b></code> &ndash;
-      string<br>The prompt Readline uses. This is set from the argument
+    <p><u>Symbol macro</u> <code><b>*mark*</b></code> &ndash; integer</p>
+    <p>The mark (saved position) in the current line. If set, the mark and
+      point define a region.</p>
+    <p><u>Symbol macro</u> <code><b>*done</b></code> &ndash; Boolean</p>
+    <p>Setting this to a non-<code>nil</code> value causes Readline to
+      return the current line immediately.</p>
+    <p><u>Symbol macro</u> <code><b>+prompt+</b></code> &ndash; string</p>
+    <p>The prompt Readline uses. This is set from the argument
       to <code>readline</code>, and should not be assigned to
       directly. The <code>set-prompt</code> function may be used to modify
       the prompt string after calling
       <code>readline</code>.</p>
     <p><u>Symbol macro</u> <code><b>*display-prompt*</b></code> &ndash;
-      string<br>The string displayed as the prompt. This is usually
-      identical to <code>+prompt+</code>, but may be changed temporarily by
-      functions that use the prompt string as a message area, such as
-      incremental search.</p>
+      string</p>
+    <p>The string displayed as the prompt. This is usually identical
+      to <code>+prompt+</code>, but may be changed temporarily by functions
+      that use the prompt string as a message area, such as incremental
+      search.</p>
     <p><u>Symbol macro</u> <code><b>+library-version+</b></code> &ndash;
-      string<br>The version number of this revision of the library.</p>
+      string</p>
+    <p>The version number of this revision of the library.</p>
     <p><u>Symbol macro</u> <code><b>+readline-version+</b></code> &ndash;
-      two integer values<br>Major and minor version numbers of Readline
-      library.</p>
+      two integer values</p>
+    <p>Major and minor version numbers of Readline library.</p>
     <p><u>Symbol macro</u> <code><b>+gnu-readline-p+</b></code> &ndash;
-      Boolean<br> Always evaluated to <code>t</code>, denoting that this is
-      GNU readline rather than some emulation.</p>
+      Boolean</p>
+    <p> Always evaluated to <code>t</code>, denoting that this is GNU
+      readline rather than some emulation.</p>
     <p><u>Symbol macro</u> <code><b>*readline-name*</b></code> &ndash;
-      string<br>This symbol-macro should be set to a unique name by each
-      application using Readline. The value allows conditional parsing of
-      the inputrc file.</p>
+      string</p>
+    <p>This symbol-macro should be set to a unique name by each application
+      using Readline. The value allows conditional parsing of the inputrc
+      file.</p>
     <p><u>Symbol macro</u> <code><b>+readline-state+</b></code> &ndash; list
-      of keywords<br>This symbol macro is evaluated to a list containing
-      keywords that denote state of Readline. The following flags are used:
+      of keywords</p>
+    <p>This symbol macro is evaluated to a list containing keywords that
+      denote state of Readline. The following flags are used:
       <ul>
         <li><code>:initializing</code> &ndash; initializing;</li>
         <li><code>:initialized</code> &ndash; initialization done;</li>
@@ -167,10 +155,9 @@
       </ul>
     </p>
     <p><u>Symbol macro</u> <code><b>+editing-mode+</b></code> &ndash;
-      keyword<br>Evaluated to keyword denoting actual editing
+      keyword</p>
+    <p>Evaluated to keyword denoting actual editing
       mode: <code>:emacs</code> or <code>:vi</code>.</p>
-    <p>[<a href="#0">contents</a>]</p>
-    <h3 id="2.2">2.2 Functions</h3>
     <p><u>Function</u> <code><b>readline</b> &amp;key prompt
         already-prompted num-chars erase-empty-line add-history</code></p>
     <p>Get a line from user with editing. If <code>prompt</code> supplied
@@ -200,6 +187,513 @@
       take two arguments: integer representing its argument and character
       representing key that has invoked it.</p>
     <p>[<a href="#0">contents</a>]</p>
-    
+    <h2 id="3">3 Hooks and Custom Functions</h2>
+    <p>cl-readline provides ways to register custom functions, so you can
+      rewrite some parts of Readline library in Lisp.</p>
+    <p><u>Symbol macro</u> <code><b>*basic-word-break-characters*</b></code>
+      &ndash; string</p>
+    <p>The basic list of characters that signal a break between words for
+      the completer routine. The default value of this variable is the
+      characters which break words for completion in Bash.</p>
+    <p><u>Symbol macro</u> <code><b>*basic-quote-characters*</b></code>
+      &ndash; string</p>
+    <p>A list of quote characters which can cause a word break.</p>
+    <p><u>Symbol
+        macro</u> <code><b>*completer-word-break-characters*</b></code>
+        &ndash; string</p>
+    <p>The list of characters that signal a break between words
+      for <code>complete-internal</code>. The default list is the value
+      of <code>*basic-word-break-characters*</code>.</p>
+    <p><u>Symbol macro</u> <code><b>*completion-query-items*</b></code>
+      &ndash; integer</p>
+    <p>Up to this many items will be displayed in response to
+      a <code>possible-completions</code> call. After that, Readline asks
+      the user if she is sure she wants to see them all. The default value
+      is <code>100</code>. A negative value indicates that Readline should
+      never ask the user.</p>
+    <p><u>Symbol macro</u> <code><b>*completion-append-character*</b></code>
+      &ndash; character</p>
+    <p>When a single completion alternative matches at the end of the
+      command line, this character is appended to the inserted completion
+      text. The default is a space character. Setting this to the null
+      character prevents anything being appended automatically. This can be
+      changed in application-specific completion functions to provide the
+      'most sensible word separator character' according to an
+      application-specific command line syntax specification.</p>
+    <p><u>Symbol
+        macro</u> <code><b>*ignore-completion-duplicates*</b></code> &ndash;
+        Boolean</p>
+    <p>If non-<code>nil</code>, then duplicates in the matches are
+      removed. The default is <code>t</code>.</p>
+    <p><u>Symbol macro</u> <code><b>*sort-completion-matches*</b></code>
+      &ndash; Boolean</p>
+    <p>If an application sets this variable to <code>nil</code>, Readline
+      will not sort the list of completions (which implies that it cannot
+      remove any duplicate completions). The default value
+      is <code>t</code>, which means that Readline will sort the completions
+      and, depending on the value of
+      <code>*ignore-completion-duplicates*</code>, will attempt to remove
+      duplicate matches.</p>
+    <p><u>Symbol macro</u> <code><b>+completion-type+</b></code> &ndash;
+      keyword</p>
+    <p>Set to a keyword describing the type of completion Readline is
+      currently attempting. Acceptable values are:
+      <ul>
+        <li><code>:standard-completion</code> tells Readline to do standard
+          completion.</li>
+        <li><code>:display-and-perform</code> means to display all possible
+          completions if there is more than one, as well as performing
+          partial completion.</li>
+        <li><code>:insert-all</code> means insert all possible
+          completions.</li>
+        <li><code>:list-all</code> means list the possible completions.</li>
+        <li><code>:not-list-cmn-prefix</code> is similar to
+          <code>:display-and-perform</code> but possible completions are not
+          listed if the possible completions share a common prefix.</li>
+    </ul></p>
+    <p><u>Symbol macro</u> <code><b>*inhibit-completion*</b></code> &ndash;
+      Boolean</p>
+    <p>If this variable is non-<code>nil</code>, completion is
+      inhibited. The completion character will be inserted as any other
+      bound to self-insert.</p>
+    <p><u>Function</u> <code><b>register-hook</b> hook function</code></p>
+    <p>Register a hook. <code>function</code> must be a function that takes
+      no arguments and returns <code>nil</code> on success
+      and <code>t</code> on failure. If <code>function</code>
+      is <code>nil</code>, hook will be removed (or default function will be
+      used). <code>hook</code> should be a keyword, one of the following:
+      <ul>
+        <li><code>:startup</code> hook is called just
+          before <code>readline</code> prints the prompt.</li>
+        <li><code>:pre-input</code> hook is called after prompt has been
+          printed and just before <code>readline</code> starts reading input
+          characters.</li>
+        <li><code>:event</code> hook is called periodically when waiting for
+          terminal input. By default, this will be called at most ten times
+          a second if there is no keyboard input.</li>
+        <li><code>:signal</code> hook is called when a read system call is
+          interrupted when <code>readline</code> is reading terminal
+          input.</li>
+        <li><code>:inputp</code> hook is called when Readline need to
+          determine whether or not there is available input on the current
+          input source. If <code>function</code> returns <code>nil</code>,
+          it means that there is no available input.</li>
+        <li><code>:lsmatches</code> hook is called to display list of
+          completions. <code>function</code> must be able to take three
+          arguments: list of completions, length of the list, and length of
+          the longest completion in the list. It's up to the function how to
+          display these completions.</li>
+      </ul>
+      Other values of <code>hook</code> will be ignored.</p>
+    <p><u>Function</u> <code><b>register-function</b> func
+        function</code></p>
+    <p>Register a function. <code>function</code> must be a function,
+      if <code>function</code> is <code>nil</code>, result is
+      unpredictable. <code>func</code> should be a keyword, one of the
+      following:
+      <ul>
+        <li><code>:getc</code> function is used to get a character from the
+          input stream, thus <code>function</code> should take pointer to C
+          stream and return a character if this function is desired to be
+          registered. In general, an application that
+          registers <code>:getc</code> function should consider registering
+          <code>:inputp</code> hook as well
+          (see <code>register-hook</code>).</li>
+        <li><code>:redisplay</code> function is used to update the display
+          with the current contents of the editing buffer,
+          thus <code>function</code> should take no arguments and
+          return <code>nil</code> on success and non-<code>nil</code> of
+          failure. By default, it is set to <code>redisplay</code>, the
+          default Readline redisplay function.</li>
+        <li><code>:prep-term</code> function is used to initialize the
+          terminal, so <code>function</code> must be able to take one
+          argument, a flag that says whether or not to use eight-bit
+          characters. By default, <code>prep-terminal</code> is used.</li>
+        <li><code>:deprep-term</code> function is used to reset the
+          terminal. This function should undo the effects
+          of <code>:prep-term</code> function.</li>
+        <li><code>:complete</code> function is used to generate list of
+          possible completions for given partially entered word. The
+          function must be able to take three arguments: partially entered
+          word, start index of the word in <code>*line-buffer*</code>, and
+          end index of the word in the buffer. The function must return a
+          list where first element is the actual completion (or part of
+          completion if two or more completions share common prefix) and the
+          rest arguments are possible completions.</li>
+      </ul>
+      Other values of <code>func</code> will be ignored.</p>
+    <p>[<a href="#0">contents</a>]</p>
+    <h2 id="4">4 Work with Keymaps</h2>
+    <p>Keymaps tell Readline which function should it invoke when the user
+      presses certain key. Readline provides some pre-existing keymaps and
+      let you create your own and modify existing ones.</p>
+    <p><u>Symbol macro</u> <code><b>+executing-keymap+</b></code> &ndash; C
+      pointer</p>
+    <p>This symbol macro is evaluated to the keymap in which the currently
+      executing Readline function was found.</p>
+    <p><u>Symbol macro</u> <code><b>+binding-keymap+</b></code> &ndash; C
+      pointer</p>
+    <p>This symbol macro is evaluated to the keymap in which the last key
+      binding occurred.</p>
+    <p><u>Function</u> <code><b>make-keymap</b> &amp;optional
+        bare</code></p>
+    <p>Return a new keymap with self-inserting printing characters, the
+      lowercase Meta characters bound to run their equivalents, and the Meta
+      digits bound to produce numeric arguments. If <code>bare</code> is
+      supplied and it's not <code>nil</code>, empty keymap will be
+      returned.</p>
+    <p><u>Function</u> <code><b>copy-keymap</b> keymap</code></p>
+    <p>Return a new keymap which is a copy of <code>keymap</code>.</p>
+    <p><u>Function</u> <code><b>free-keymap</b> keymap</code></p>
+    <p>Free all storage associated with <code>keymap</code>.</p>
+    <p><u>Function</u> <code><b>get-keymap</b></code></p>
+    <p>Returns currently active keymap.</p>
+    <p><u>Function</u> <code><b>set-keymap</b> keymap</code></p>
+    <p>Makes <code>keymap</code> currently active keymap.</p>
+    <p><u>Functoin</u> <code><b>get-keymap-by-name</b> name</code></p>
+    <p>Return the keymap matching <code>name</code>. <code>name</code> is
+      one which would be supplied in a set keymap inputrc line.</p>
+    <p><u>Macro</u> <code><b>with-new-keymap</b> form &amp;body
+        body</code></p>
+    <p>Create new keymap evaluating <code>form</code>, bind
+      symbol <code>keymap</code> to the result, then free it when control
+      flow leaves <code>body</code>. <code>make-keymap</code>
+      and <code>copy-keymap</code> can be used to produce new keymap.</p>
+    <p>[<a href="#0">contents</a>]</p>
+    <h2 id="5">5 Binding Keys</h2>
+    <p>Key sequences are associate with functions through the
+      keymap. Readline has several internal keymaps (see below). You
+      should not modify these keymaps manually, but you can use special
+      functions to modify them.</p>
+    <p><u>Symbol macro</u> <code><b>+emacs-std-keymap+</b></code> &ndash; C
+      pointer</p>
+    <p>Emacs standard keymap - default keymap of Readline.</p>
+    <p><u>Symbol macro</u> <code><b>+emacs-meta-keymap+</b></code> &ndash; C
+      pointer</p>
+    <p>Emacs meta keymap.</p>
+    <p><u>Symbol macro</u> <code><b>+emacs-ctlx-keymap+</b></code> &ndash; C
+      pointer</p>
+    <p>Emacs Ctlx keymap.</p>
+    <p><u>Symbol macro</u> <code><b>+vi-insertion-keymap+</b></code> &ndash;
+      C pointer</p>
+    <p>Vi insertion keymap.</p>
+    <p><u>Symbol macro</u> <code><b>+vi-movement-keymap+</b></code> &ndash;
+      C pointer</p>
+    <p>Vi movement keymap.</p>
+    <p><u>Symbol macro</u> <code><b>+executing-macro+</b></code> &ndash;
+      string</p>
+    <p>This symbol macro is evaluated to the text of any currently-executing
+      macro.</p>
+    <p><u>Symbol macro</u> <code><b>+executing-key+</b></code> &ndash;
+      character</p>
+    <p>The key that caused the dispatch to the currently-executing Readline
+      function.</p>
+    <p><u>Symbol macro</u> <code><b>+executing-keyseq+</b></code> &ndash;
+      string</p>
+    <p>The full key sequence that caused the dispatch to the
+      currently-executing Readline function.</p>
+    <p><u>Symbol macro</u> <code><b>+key-sequence-length+</b></code> &ndash;
+      integer</p>
+    <p>The number of characters in <code>+executing-keyseq+</code>.</p>
+    <p><u>Symbol macro</u> <code><b>+dispatching+</b></code> &ndash;
+      Boolean</p>
+    <p>Set to a non-<code>nil</code> value if a function is being called
+      from a key binding; <code>nil</code> otherwise. Application functions
+      can test this to discover whether they were called directly or by
+      Readline's dispatching mechanism.</p>
+    <p><u>Function</u> <code><b>bind-key</b> key function &amp;key keymap
+        if-unbound</code></p>
+    <p>Binds <code>key</code> to <code>function</code> in the currently
+      active keymap. If <code>keymap</code> argument supplied, binding takes
+      place in specified keymap. If <code>if-unbound</code> is supplied and
+      it's not <code>nil</code>, <code>key</code> will be bound
+      to <code>function</code> only if it's not already bound.</p>
+    <p><u>Function</u> <code><b>unbind-key</b> key &amp;optional
+        keymap</code></p>
+    <p>Unbind <code>key</code>
+      in <code>keymap</code>. If <code>keymap</code> is not supplied or it's
+      <code>nil</code>, <code>key</code> will be unbound in currently active
+      keymap. The function returns <code>nil</code> on success
+      and <code>t</code> on failure.</p>
+    <p><u>Function</u> <code><b>unbind-command</b> command keymap</code></p>
+    <p>Unbind all keys that are bound to <code>command</code>
+      in <code>keymap</code>.</p>
+    <p><u>Function</u> <code><b>bind-keyseq</b> keyseq function &amp;key
+        keymap if-unbound</code></p>
+    <p>Bind the key sequence represented by the string <code>keyseq</code>
+      to the function <code>function</code>, beginning in the current
+      keymap. This makes new keymaps as necessary. If <code>keymap</code>
+      supplied and it's not <code>nil</code>, initial bindings are performed
+      in <code>keymap</code>. If <code>if-unbound</code> is supplied and
+      it's not <code>nil</code>, <code>keyseq</code> will be bound to
+      <code>function</code> only if it's not already bound. The return value
+      is <code>t</code> if <code>keyseq</code> is invalid.</p>
+    <p><u>Function</u> <code><b>parse-and-bind</b> line</code></p>
+    <p>Parse <code>line</code> as if it had been read from the inputrc file
+      and perform any key bindings and variable assignments found.</p>
+    <p><u>Function</u> <code><b>read-init-file</b></code></p>
+    <p>Read keybindings and variable assignments
+      from <code>filename</code>.</p>
+    <p>[<a href="#0">contents</a>]</p>
+    <h2 id="6">6 Associating Function Names and Bindings</h2>
+    <p><u>Function</u> <code><b>function-dumper</b> readable &amp;optional
+        filename append</code></p>
+    <p>Print the Readline function names and the key sequences currently
+      bound to them to stdout. If <code>readable</code> is
+      non-<code>nil</code>, the list is formatted in such a way that it can
+      be made part of an inputrc file and re-read. If <code>filename</code>
+      is supplied and it's a string or path, output will be redirected to
+      the file. <codd>append</codd> allows to append text to the file
+      instead of overwriting it.</p>
+    <p><u>Function</u> <code><b>list-funmap-names</b> &amp;optinal filename
+        append</code></p>
+    <p>Print the names of all bindable Readline functions to stdout. If
+      <code>filename</code> is supplied and it's a string or path, output
+      will be redirected to the file. <code>append</code> allows append text
+      to the file instead of overwriting it.</p>
+    <p><u>Function</u> <code><b>funmap-names</b></code></p>
+    <p>Return a list of known function names. The list is sorted.</p>
+    <p><u>Function</u> <code><b>add-funmap-entry</b> name
+        function</code></p>
+    <p>Add <code>name</code> to the list of bindable Readline command names,
+      and make <code>function</code> the function to be called when name is
+      invoked.</p>
+    <p>[<a href="#0">contents</a>]</p>
+    <h2 id="7">7 Allowing Undoing</h2>
+    <p><u>Function</u> <code><b>undo-group</b> &amp;body body</code></p>
+    <p>All insertion and deletion inside this macro will be grouped together
+      into one undo operation.</p>
+    <p><u>Function</u> <code><b>add-undo</b></code> what start end text</p>
+    <p>Remember how to undo an event (according to <code>what</code>). The
+      affected text runs from <code>start</code> to <code>end</code>, and
+      encompasses <code>text</code>. Possible values of <code>what</code>
+      include: <code>:undo-delete</code>, <code>:undo-insert</code>,
+      <code>:undo-begin</code>, and <code>:undo-end</code>.</p>
+    <p><u>Function</u> <code><b>free-undo-list</b></code></p>
+    <p>Free the existing undo list.</p>
+    <p><u>Function</u> <code><b>do-undo</b></code></p>
+    <p>Undo the first thing on the undo list. Returns <code>nil</code> if
+      there was nothing to undo, <code>t</code> if something was undone.</p>
+    <p><u>Function</u> <code><b>modifying</b> start end</code></p>
+    <p>Tell Readline to save the text between <code>start</code>
+      and <code>end</code> as a single undo unit. It is assumed that you
+      will subsequently modify that text.</p>
+    <p>[<a href="#0">contents</a>]</p>
+    <h2 id="8">8 Redisplay</h2>
+    <p><u>Function</u> <code><b>redisplay</b></code></p>
+    <p>Change what's displayed on the screen to reflect the current contents
+      of <code>*line-buffer*</code>.</p>
+    <p><u>Function</u> <code><b>forced-update-display</b></code></p>
+    <p>Force the line to be updated and redisplayed, whether or not Readline
+      thinks the screen display is correct.</p>
+    <p><u>Function</u> <code><b>on-new-line</b> &amp;optional
+        with-prompt</code></p>
+    <p>Tell the update functions that we have moved onto a new (empty) line,
+      usually after outputting a newline. When <code>with-prompt</code> is
+      <code>t</code>, Readline will think that prompt is already
+      displayed. This could be used by applications that want to output the
+      prompt string themselves, but still need Readline to know the prompt
+      string length for redisplay. This should be used together with
+      <code>:already-prompted</code> keyword argument
+      of <code>readline</code>.</p>
+    <p><u>Function</u> <code><b>reset-line-state</b></code></p>
+    <p>Reset the display state to a clean state and redisplay the current
+      line starting on a new line.</p>
+    <p><u>Function</u> <code><b>cflr</b></code></p>
+    <p>Move the cursor to the start of the next screen line.</p>
+    <p><u>Function</u> <code><b>show-char</b> char</code></p>
+    <p>Display character <code>char</code> on outstream. If Readline has not
+      been set to display meta characters directly, this will convert meta
+      characters to a meta-prefixed key sequence. This is intended for use
+      by applications which wish to do their own redisplay.</p>
+    <p><u>Function</u> <code><b>set-prompt</b> prompt</code></p>
+    <p>Make Readline use <code>prompt</code> for subsequent redisplay. This
+      calls
+      <code>expand-prompt</code> to expand the prompt and
+      sets <code>+prompt+</code> to the result.</p>
+    <p><u>Macro</u> <code><b>with-message</b> message save-prompt &amp;body
+        body</code></p>
+    <p>Show message <code>message</code> in the echo area while executing
+      <code>body</code>. If <code>save-prompt</code> is
+      not <code>nil</code>, save prompt before showing the message and
+      restore it before clearing the message.</p>
+    <p>[<a href="#0">contents</a>]</p>
+    <h2 id="9">9 Modifying Text</h2>
+    <p><u>Function</u> <code><b>insert-text</b> text</code></p>
+    <p>Insert <code>text</code> into the line at the current cursor
+      position. Returns the number of characters inserted.</p>
+    <p><u>Function</u> <code><b>delete-text</b> start end</code></p>
+    <p>Delete the text between <code>start</code> and <code>end</code> in
+      the current line. Returns the number of characters deleted.</p>
+    <p><u>Function</u> <code><b>kill-text</b> start end</code></p>
+    <p>Copy the text between <code>start</code> and <code>end</code> in the
+      current line to the kill ring, appending or prepending to the last
+      kill if the last command was a kill command. The text is deleted. If
+      <code>start</code> is less than <code>end</code>, the text is
+      appended, otherwise prepended. If the last command was not a kill, a
+      new kill ring slot is used.</p>
+    <p>[<a href="#0">contents</a>]</p>
+    <h2 id="10">10 Character Input</h2>
+    <p><u>Function</u> <code><b>read-key</b></code></p>
+    <p>Return the next character available from Readline's current input
+      stream.</p>
+    <p><u>Function</u> <code><b>stuff-char</b> char</code></p>
+    <p>Insert <code>char</code> into the Readline input stream. It will be
+      'read' before Readline attempts to read characters from the terminal
+      with <code>read-key</code>. Up to <code>512</code> characters may be
+      pushed back. <code>stuff-char</code> returns <code>t</code> if the
+      character was successfully inserted; <code>nil</code> otherwise.</p>
+    <p><u>Function</u> <code><b>execute-next</b> char</code></p>
+    <p>Make <code>char</code> be the next command to be executed when
+      <code>read-key</code> is called.</p>
+    <p><u>Function</u> <code><b>clear-pending-input</b></code></p>
+    <p>Negate the effect of any previous call
+      to <code>execute-next</code>. This works only if the pending input has
+      not already been read with <code>read-key</code>.</p>
+    <p><u>Function</u> <code><b>set-keyboard-input-timeout</b> u</code></p>
+    <p>While waiting for keyboard input in <code>read-key</code>, Readline
+      will wait for <code>u</code> microseconds for input before calling any
+      function assigned to <code>event-hook</code>. <code>u</code> must be
+      greater than or equal to zero (a zero-length timeout is equivalent to
+      a poll). The default waiting period is one-tenth of a second. Returns
+      the old timeout value.</p>
+    <p>[<a href="#0">contents</a>]</p>
+    <h2 id="11">11 Terminal Management</h2>
+    <p><u>Function</u> <code><b>prep-terminal</b> eight-bit-input</code></p>
+    <p>Modify the terminal settings for Readline's use,
+      so <code>readline</code> can read a single character at a time from
+      the keyboard. The <code>eight-bit-input</code> argument should be
+      non-<code>nil</code> if Readline should read eight-bit input.</p>
+    <p><u>Function</u> <code><b>deprep-terminal</b></code></p>
+    <p>Undo the effects of <code>prep-terminal</code>, leaving the terminal
+      in the state in which it was before the most recent call to
+      <code>prep-terminal</code>.</p>
+    <p><u>Function</u> <code><b>tty-set-default-bindings</b>
+        keymap</code></p>
+    <p>Read the operating system's terminal editing characters (as would be
+      displayed by stty) to their Readline equivalents. The bindings are
+      performed in <code>keymap</code>.</p>
+    <p><u>Function</u> <code><b>tty-unset-default-bindings</b>
+        keymap</code></p>
+    <p>Reset the bindings manipulated
+      by <code>tty-set-default-bindings</code> so that the terminal editing
+      characters are bound to <code>insert</code>. The bindings are
+      performed in <code>keymap</code>.</p>
+    <p><u>Function</u> <code><b>reset-terminal</b> terminal</code></p>
+    <p>Reinitialize Readline's idea of the terminal settings using
+      <code>terminal</code> as the terminal type (e.g., vt100).</p>
+    <p>[<a href="#0">contents</a>]</p>
+    <h2 id="12">12 Utility Functions</h2>
+    <p><u>Function</u> <code><b>replace-line</b> text clear-undo</code></p>
+    <p>Replace the contents of <code>*line-buffer*</code>
+      with <code>text</code>. The point and mark are preserved, if
+      possible. If <code>clear-undo</code> is non-<code>nil</code>, the undo
+      list associated with the current line is cleared.</p>
+    <p><u>Function</u> <code><b>extend-line-buffer</b> len</code></p>
+    <p>Ensure that line buffer has enough space to hold <code>len</code>
+      characters, possibly reallocating it if necessary.</p>
+    <p><u>Function</u> <code><b>initialize</b></code></p>
+    <p>Initialize or re-initialize Readline's internal state. It's not
+      strictly necessary to call this; <code>readline</code> calls it before
+      reading any input. cl-readline also makes sure that Readline is always
+      initialized when you use it.</p>
+    <p><u>Function</u> <code><b>ding</b></code></p>
+    <p>Ring the terminal bell, obeying the setting of bell-style.</p>
+    <p>[<a href="#0">contents</a>]</p>
+    <h2 id="13">13 Miscellaneous Functions</h2>
+    <p><u>Function</u> <code><b>macro-dumper</b> readable &amp;optional
+        filename append</code></p>
+    <p>Print the key sequences bound to macros and their values, using the
+      current keymap to stdout. If <code>readable</code> is
+      non-<code>nil</code>, the list is formatted in such a way that it can
+      be made part of an inputrc file and re-read. If <code>filename</code>
+      is supplied and it's a string or path, output will be redirected to
+      the file. <code>append</code> allows to append text to the file
+      instead of overwriting it.</p>
+    <p><u>Function</u> <code><b>variable-bind</b> variable value</code></p>
+    <p>Make the Readline variable <code>variable</code>
+      have <code>value</code>. This behaves as if the readline command 'set
+      variable value' had been executed in an inputrc file.</p>
+    <p><u>Function</u> <code><b>variable-value</b> variable</code></p>
+    <p>Return a string representing the value of the Readline variable
+      <code>variable</code>. For Boolean variables, this string is either
+      'on' or 'off'.</p>
+    <p><u>Function</u> <code><b>variable-dumper</b> readable &amp;optional
+        filename append</code></p>
+    <p>Print the readline variable names and their current values to
+      stdout. If readable is not <code>nil</code>, the list is formatted in
+      such a way that it can be made part of an inputrc file and re-read. If
+      <code>filename</code> is supplied and it's a string or path, output
+      will be redirected to the file. <code>append</code> allows to append
+      text to the file instead of overwriting it.</p>
+    <p><u>Function</u> <code><b>set-paren-blink-timeout</b>
+        micros</code></p>
+    <p>Set the time interval (in microseconds) that Readline waits when
+      showing a balancing character when 'blink-matching-paren' has been
+      enabled. The function returns previous value of the parameter.</p>
+    <p><u>Function</u> <code><b>clear-history</b></code></p>
+    <p>Clear the history list by deleting all of the entries.</p>
+    <p>[<a href="#0">contents</a>]</p>
+    <h2 id="14">14 Signal Handling</h2>
+    <p><u>Symbol macro</u> <code><b>*catch-signals*</b></code> &ndash
+        Boolean</p>
+    <p>If this variable is non-<code>nil</code>, Readline will install
+      signal handlers for SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM,
+      SIGTSTP, SIGTTIN, and SIGTTOU. The default value
+      of <code>*catch-signals*</code> is <code>t</code>.</p>
+    <p><u>Symbol macro</u> <code><b>*catch-sigwinch*</b></code></p>
+    <p>If this variable is set to a non-<code>nil</code> value, Readline
+      will install a signal handler for SIGWINCH. The default value
+      of <code>*catch-sigwinch*</code> is <code>t</code>.</p>
+    <p><u>Symbol macro</u> <code><b>*change-environment*</b></code></p>
+    <p>If this variable is set to a non-<code>nil</code> value, and Readline
+      is handling SIGWINCH, Readline will modify the LINES and COLUMNS
+      environment variables upon receipt of a SIGWINCH. The default value
+      of <code>*change-environment*</code> is <code>t</code>.</p>
+    <p><u>Function</u> <code><b>cleanup-after-signal</b></code></p>
+    <p>This function will reset the state of the terminal to what it was
+      before <code>readline</code> was called, and remove the Readline
+      signal handlers for all signals, depending on the values of
+      <code>*catch-signals*</code> and <code>*catch-sigwinch*</code>.</p>
+    <p><u>Function</u> <code><b>free-line-state</b></code></p>
+    <p>This will free any partial state associated with the current input
+      line (undo information, any partial history entry, any
+      partially-entered keyboard macro, and any partially-entered numeric
+      argument). This should be called
+      before <code>cleanup-after-signal</code>. The Readline signal handler
+      for SIGINT calls this to abort the current input line.</p>
+    <p><u>Function</u> <code><b>reset-after-signal</b></code></p>
+    <p>This will reinitialize the terminal and reinstall any Readline signal
+      handlers, depending on the values of <code>*catch-signals*</code> and
+      <code>*catch-sigwinch*</code>.</p>
+    <p><u>Function</u> <code><b>echo-signal-char</b> sig</code></p>
+    <p>If an application wishes to install its own signal handlers, but
+      still have readline display characters that generate signals, calling
+      this function with <code>SIG</code> set to <code>:sigint</code>,
+      <code>:sigquit</code>, or <code>:sigtstp</code> will display the
+      character generating that signal.</p>
+    <p><u>Function</u> <code><b>resize-terminal</b></code></p>
+    <p>Update Readline's internal screen size by reading values from the
+      kernel.</p>
+    <p><u>Function</u> <code><b>set-screen-size</b> rows cols</code></p>
+    <p>Set Readline's idea of the terminal size to <code>rows</code> rows
+      and <code>cols</code> columns. If either rows or columns is less than
+      or equal to <code>0</code>, Readline's idea of that terminal dimension
+      is unchanged.</p>
+    <p><u>Function</u> <code><b>get-screen-size</b></code></p>
+    <p>Return Readline's idea of the terminal's size. The function returns
+      multiple values: rows and cols.</p>
+    <p><u>Function</u> <code><b>reset-screen-size</b></code></p>
+    <p>Cause Readline to reobtain the screen size and recalculate its
+      dimensions.</p>
+    <p><u>Function</u> <code><b>set-signals</b></code></p>
+    <p>Install Readline's signal handler for SIGINT, SIGQUIT, SIGTERM,
+      SIGHUP, SIGALRM, SIGTSTP, SIGTTIN, SIGTTOU, and SIGWINCH, depending on
+      the values of <code>*catch-signals*</code>
+      and <code>*catch-sigwinch*</code>.</p>
+    <p><u>Function</u> <code><b>clear-signals</b></code></p>
+    <p>Remove all of the Readline signal handlers installed by
+      <code>set-signals</code>.</p>
+    <p>[<a href="#0">contents</a>]</p>
   </body>
 </html>

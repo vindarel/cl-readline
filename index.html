@@ -178,12 +178,11 @@
       beginning of the newly-blank line. If <code>add-history</code>
       supplied and its value is not <code>nil</code>, user's input will be
       added to history. However, blank lines don't get into history
-      anyway. If <code>novelty-check</code> is supplied, it must be a
-      predicate that takes two strings: the actual line and the most recent
-      history line. Only when the predicate evaluates to
-      non-<code>nil</code> value new line will be added to the
-      history. Return value on success is the actual string
-      and <code>nil</code> on failure.</p>
+      anyway. If <code>novelty-check</code> supplied, it must be a predicate
+      that takes two strings: the actual line and the most recent history
+      line. Only when the predicate evaluates to non-<code>nil</code> value
+      new line will be added to the history. Return value on success is the
+      actual string and <code>nil</code> on failure.</p>
     <p>[<a href="#0">contents</a>]</p>
     <h2 id="3">3 Hooks and Custom Functions</h2>
     <p>cl-readline provides ways to register custom functions, so you can
@@ -704,7 +703,7 @@
 ;;; Now let's define lists of verbs and fruits:
 
 (defvar *verbs*  '("eat" "get" "throw" "quit"))
-(defvar *fruits* '("banana" "apple" "orange" "banana_two" "façon"))
+(defvar *fruits* '("banana" "apple" "orange" "banana_two"))
 
 ;;; Define and register function that does custom completion: if user enters
 ;;; first word, it will be completed as a verb, second and later words will

@@ -48,11 +48,6 @@
    #:+explicit-arg+
    #:+numeric-arg+
    #:+editing-mode+
-   #:+emacs-std-keymap+
-   #:+emacs-meta-keymap+
-   #:+emacs-ctlx-keymap+
-   #:+vi-insertion-keymap+
-   #:+vi-movement-keymap+
    #:*catch-signals*
    #:*catch-sigwinch*
    #:*change-environment*

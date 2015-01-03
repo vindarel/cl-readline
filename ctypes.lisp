@@ -43,6 +43,11 @@ Readline and list of keywords.")
   :vi
   :emacs)
 
+(defcstruct history-entry
+  (line :pointer)
+  (time :pointer)
+  (data :pointer))
+
 (defcenum undo-code
   "This enumeration contains codes for various types of undo operations."
   :undo-delete

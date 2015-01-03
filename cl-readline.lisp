@@ -219,21 +219,6 @@ bindable command function.")
 (defcvar ("rl_editing_mode" +editing-mode+ :read-only t) editing-mode
   "Evaluated to keyword denoting actual editing mode: :EMACS or :VI.")
 
-(defcvar ("emacs_standard_keymap" +emacs-std-keymap+ :read-only t) :pointer
-  "Emacs standard keymap - default keymap of Readline.")
-
-(defcvar ("emacs_meta_keymap" +emacs-meta-keymap+ :read-only t) :pointer
-  "Emacs meta keymap.")
-
-(defcvar ("emacs_ctlx_keymap" +emacs-ctlx-keymap+ :read-only t) :pointer
-  "Emacs Ctlx keymap.")
-
-(defcvar ("vi_insertion_keymap" +vi-insertion-keymap+ :read-only t) :pointer
-  "Vi insertion keymap.")
-
-(defcvar ("vi_movement_keymap" +vi-movement-keymap+ :read-only t) :pointer
-  "Vi movement keymap.")
-
 (defcvar ("rl_catch_signals" *catch-signals*) :boolean
   "If this variable is non-NIL, Readline will install signal handlers for
 SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM, SIGTSTP, SIGTTIN, and
@@ -352,18 +337,41 @@ prefix.")
   "If this variable is non-NIL, completion is inhibited. The completion
 character will be inserted as any other bound to self-insert.")
 
+(defcvar ("history_base" +history-base+ :read-only t) :int
+  "The logical offset of the first entry in the history list.")
+
+(defcvar ("history_length" +history-length+ :read-only t) :int
+  "The number of entries currently stored in the history list.")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                          Basic Functionality                           ;;
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun recent-history-line-satisfies-p (predicate)
+  "Check if most recent history line satisfies given predicate
+PREDICATE. Return T if there is no history saved."
+    (if (zerop +history-length+)
+        t
+        (funcall predicate
+                 (foreign-string-to-lisp
+                  (with-foreign-slots
+                      ((line)
+                       (foreign-funcall "history_get"
+                                        :int (1- (+ +history-base+
+                                                    +history-length+))
+                                        :pointer)
+                       (:struct history-entry))
+                    line)))))
+
 (defun readline (&key
                    prompt
                    already-prompted
                    num-chars
                    erase-empty-line
-                   add-history)
+                   add-history
+                   novelty-check)
   "Get a line from user with editing. If PROMPT supplied (and it's a string
 designator), it will be printed before reading of input. Non-NIL value of
 ALREADY-PROMPTED will tell Readline that the application has printed prompt
@@ -375,8 +383,11 @@ the current line, including any prompt, any time a newline is typed as the
 only character on an otherwise-empty line. The cursor is moved to the
 beginning of the newly-blank line. If ADD-HISTORY supplied and its value is
 not NIL, user's input will be added to history. However, blank lines don't
-get into history anyway. Return value on success is the actual string and
-NIL on failure."
+get into history anyway. If NOVELTY-CHECK is supplied, it must be a
+predicate that takes two strings: the actual line and the most recent
+history line. Only when the predicate evaluates to non-NIL value new line
+will be added to the history. Return value on success is the actual string
+and NIL on failure."
   (setf *already-prompted*  already-prompted
         *num-chars-to-read* (if num-chars num-chars 0)
         *erase-empty-line*  erase-empty-line)
@@ -388,7 +399,10 @@ NIL on failure."
       (unwind-protect
            (let ((str (foreign-string-to-lisp ptr)))
              (when (and add-history
-                        (not (emptyp str)))
+                        (not (emptyp str))
+                        (or (not novelty-check)
+                            (recent-history-line-satisfies-p
+                             (curry novelty-check str))))
                (foreign-funcall "add_history"
                                 :string str
                                 :void))
@@ -402,20 +416,6 @@ NIL on failure."
 initialize it."
   (unless (find :initialized +readline-state+)
     (initialize)))
-
-(defun add-defun (name function &optional key)
-  "Add NAME to the list of named functions. Make FUNCTION be the function
-that gets called. If KEY is not NIL and it's a character, then bind it to
-function using BIND-KEY. FUNCTION must be able to take two arguments:
-integer representing its argument and character representing key that has
-invoked it."
-  (ensure-initialization)
-  (foreign-funcall "rl_add_defun"
-                   :string name
-                   :pointer (produce-callback function
-                                              :boolean
-                                              (:int int-char))
-                   :int (if key (char-code key) -1)))
 
 (defmacro with-possible-redirection (filename append &body body)
   "If FILENAME is not NIL, tries to create C file with name FILENAME,
@@ -441,8 +441,8 @@ failure."
                    (foreign-funcall "fclose"
                                     :pointer ,file-pointer
                                     :boolean)
-                   (setf *outstream* ,temp-outstream)))
-             (,body-fnc))))))
+                   (setf *outstream* ,temp-outstream))))
+           (,body-fnc)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
@@ -605,6 +605,20 @@ used to produce new keymap."
 ;;                              Binding Keys                              ;;
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun add-defun (name function &optional key)
+  "Add NAME to the list of named functions. Make FUNCTION be the function
+that gets called. If KEY is not NIL and it's a character, then bind it to
+function using BIND-KEY. FUNCTION must be able to take two arguments:
+integer representing its argument and character representing key that has
+invoked it."
+  (ensure-initialization)
+  (foreign-funcall "rl_add_defun"
+                   :string name
+                   :pointer (produce-callback function
+                                              :boolean
+                                              (:int int-char))
+                   :int (if key (char-code key) -1)))
 
 (defun bind-key (key function &key keymap if-unbound)
   "Binds KEY to FUNCTION in the currently active keymap. If KEYMAP argument

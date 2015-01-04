@@ -163,22 +163,22 @@
     <p><u>Function</u> <code><b>readline</b> &amp;key prompt
         already-prompted num-chars erase-empty-line add-history
         novelty-check</code></p>
-    <p>Get a line from user with editing. If <code>prompt</code> supplied
-      (and it's a string designator), it will be printed before reading of
-      input. Non-<code>nil</code> value of <code>already-prompted</code>
-      will tell Readline that the application has printed prompt
-      already. However, <code>prompt</code> must be supplied in this case
-      too, so redisplay functions can update the display properly. If
+    <p>Get a line from user with editing. <code>prompt</code>, if supplied,
+      is printed before reading of input. Non-<code>nil</code> value
+      of <code>already-prompted</code> will tell Readline that the
+      application has printed prompt already. However, <code>prompt</code>
+      must be supplied in this case too, so redisplay functions can update
+      the display properly. If
       <code>num-chars</code> argument is a positive number, Readline will
       return after accepting that many
       characters. If <code>erase-empty-line</code> is not <code>nil</code>,
       <code>readline</code> will completely erase the current line,
       including any prompt, any time a newline is typed as the only
       character on an otherwise-empty line. The cursor is moved to the
-      beginning of the newly-blank line. If <code>add-history</code>
-      supplied and its value is not <code>nil</code>, user's input will be
+      beginning of the newly-blank line. Supplying
+      <code>add-history</code> tells Readline that user's input should be
       added to history. However, blank lines don't get into history
-      anyway. If <code>novelty-check</code> supplied, it must be a predicate
+      anyway. <code>novelty-check</code>, if supplied, must be a predicate
       that takes two strings: the actual line and the most recent history
       line. Only when the predicate evaluates to non-<code>nil</code> value
       new line will be added to the history. Return value on success is the
@@ -412,7 +412,7 @@
         keymap if-unbound</code></p>
     <p>Bind the key sequence represented by the string <code>keyseq</code>
       to the function <code>function</code>, beginning in the current
-      keymap. This makes new keymaps as necessary. If <code>keymap</code>
+      keymap. This makes new keymaps as necessary. If <code>keymap</code> is
       supplied and it's not <code>nil</code>, initial bindings are performed
       in <code>keymap</code>. If <code>if-unbound</code> is supplied and
       it's not <code>nil</code>, <code>keyseq</code> will be bound to
@@ -479,8 +479,8 @@
     <p><u>Function</u> <code><b>on-new-line</b> &amp;optional
         with-prompt</code></p>
     <p>Tell the update functions that we have moved onto a new (empty) line,
-      usually after outputting a newline. When <code>with-prompt</code> is
-      <code>t</code>, Readline will think that prompt is already
+      usually after outputting a newline. When <code>with-prompt</code> is not
+      <code>nil</code>, Readline will think that prompt is already
       displayed. This could be used by applications that want to output the
       prompt string themselves, but still need Readline to know the prompt
       string length for redisplay. This should be used together with

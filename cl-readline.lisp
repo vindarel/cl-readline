@@ -350,7 +350,7 @@ character will be inserted as any other bound to self-insert.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun recent-history-line-satisfies-p (predicate)
-  "Check if most recent history line satisfies given predicate
+  "Check if the most recent history line satisfies given predicate
 PREDICATE. Return T if there is no history saved."
     (if (zerop +history-length+)
         t
@@ -372,22 +372,21 @@ PREDICATE. Return T if there is no history saved."
                    erase-empty-line
                    add-history
                    novelty-check)
-  "Get a line from user with editing. If PROMPT supplied (and it's a string
-designator), it will be printed before reading of input. Non-NIL value of
-ALREADY-PROMPTED will tell Readline that the application has printed prompt
-already. However, PROMPT must be supplied in this case too, so redisplay
-functions can update the display properly. If NUM-CHARS argument is a
-positive number, Readline will return after accepting that many
-characters. If ERASE-EMPTY-LINE is not NIL, READLINE will completely erase
-the current line, including any prompt, any time a newline is typed as the
-only character on an otherwise-empty line. The cursor is moved to the
-beginning of the newly-blank line. If ADD-HISTORY supplied and its value is
-not NIL, user's input will be added to history. However, blank lines don't
-get into history anyway. If NOVELTY-CHECK supplied, it must be a predicate
-that takes two strings: the actual line and the most recent history
-line. Only when the predicate evaluates to non-NIL value new line will be
-added to the history. Return value on success is the actual string and NIL
-on failure."
+  "Get a line from user with editing. PROMPT, if supplied, is printed before
+reading of input. Non-NIL value of ALREADY-PROMPTED will tell Readline that
+the application has printed prompt already. However, PROMPT must be supplied
+in this case too, so redisplay functions can update the display properly. If
+NUM-CHARS argument is a positive number, Readline will return after
+accepting that many characters. If ERASE-EMPTY-LINE is not NIL, READLINE
+will completely erase the current line, including any prompt, any time a
+newline is typed as the only character on an otherwise-empty line. The
+cursor is moved to the beginning of the newly-blank line. Supplying
+ADD-HISTORY tells Readline that user's input should be added to
+history. However, blank lines don't get into history anyway. NOVELTY-CHECK,
+if supplied, must be a predicate that takes two strings: the actual line and
+the most recent history line. Only when the predicate evaluates to non-NIL
+value new line will be added to the history. Return value on success is the
+actual string and NIL on failure."
   (setf *already-prompted*  already-prompted
         *num-chars-to-read* (if num-chars num-chars 0)
         *erase-empty-line*  erase-empty-line)
@@ -675,7 +674,7 @@ T on failure."
 (defun bind-keyseq (keyseq function &key keymap if-unbound)
   "Bind the key sequence represented by the string KEYSEQ to the function
 FUNCTION, beginning in the current keymap. This makes new keymaps as
-necessary. If KEYMAP supplied and it's not NIL, initial bindings are
+necessary. If KEYMAP is supplied and it's not NIL, initial bindings are
 performed in KEYMAP. If IF-UNBOUND is supplied and it's not NIL, KEYSEQ will
 be bound to FUNCTION only if it's not already bound. The return value is T
 if KEYSEQ is invalid."
@@ -820,11 +819,11 @@ thinks the screen display is correct.")
 
 (defun on-new-line (&optional with-prompt)
   "Tell the update functions that we have moved onto a new (empty) line,
-usually after outputting a newline. When WITH-PROMPT is T, Readline will
-think that prompt is already displayed. This could be used by applications
-that want to output the prompt string themselves, but still need Readline to
-know the prompt string length for redisplay. This should be used together
-with :ALREADY-PROMPTED keyword argument of READLINE."
+usually after outputting a newline. When WITH-PROMPT is not NIL, Readline
+will think that prompt is already displayed. This could be used by
+applications that want to output the prompt string themselves, but still
+need Readline to know the prompt string length for redisplay. This should be
+used together with :ALREADY-PROMPTED keyword argument of READLINE."
   (if with-prompt
       (foreign-funcall "rl_on_new_line_with_prompt" :boolean)
       (foreign-funcall "rl_on_new_line" :boolean)))

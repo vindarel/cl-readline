@@ -10,7 +10,7 @@ functions to maintain a list of previously-entered command lines, to recall
 and perhaps reedit those lines, and perform csh-like history expansion on
 previous commands.
 
-This bindings provide Lispy interface to GNU Readline somewhat reducing its
+These bindings provide Lispy interface to GNU Readline somewhat reducing its
 hair. Some minor features are omitted, they may be added by request. Open an
 issue if you have any propositions.
 

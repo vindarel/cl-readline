@@ -20,6 +20,12 @@ Download or clone the repository and put it into some place where ASDF can
 find it. Note that `cl-readline` depends on CFFI and Alexandria, so you
 should have installed them.
 
+Via Quicklisp:
+
+```
+(ql:quickload "cl-readline")
+```
+
 ## Documentation
 
 See contents of directory `doc`. Documentation is also available online:

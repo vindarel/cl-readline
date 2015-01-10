@@ -320,14 +320,14 @@ the completions and, depending on the value of
   "Set to a keyword describing the type of completion Readline is currently
 attempting. Acceptable values are:
 
-:STANDARD-COMPLETION tells Readline to do standard completion.
+:STANDARD-COMPLETION tells Readline to do standard completion;
 
 :DISPLAY-AND-PERFORM means to display all possible completions if there is
-more than one, as well as performing partial completion.
+more than one, as well as performing partial completion;
 
-:INSERT-ALL means insert all possible completions.
+:INSERT-ALL means insert all possible completions;
 
-:LIST-ALL means list the possible completions.
+:LIST-ALL means list the possible completions;
 
 :NOT-LIST-CMN-PREFIX is similar to :DISPLAY-AND-PERFORM but possible
 completions are not listed if the possible completions share a common

@@ -66,7 +66,7 @@
         Public License v.3</a>; it's free software.</p>
     <p>[<a href="#0">contents</a>]</p>
     <h2 id="2">2 Basic Functionality</h2>
-    <p>This sections describes most basic functions and symbol-macros that
+    <p>This section describes most basic functions and symbol-macros that
       represent underlying C variables. For every symbol macro we give data
       type it evaluates to. If name of a symbol macro is enclosed in plus
       signs (for example, <code>+prompt+</code>), it means that you should
@@ -90,7 +90,7 @@
     <p><u>Symbol macro</u> <code><b>*mark*</b></code> &ndash; integer</p>
     <p>The mark (saved position) in the current line. If set, the mark and
       point define a region.</p>
-    <p><u>Symbol macro</u> <code><b>*done</b></code> &ndash; Boolean</p>
+    <p><u>Symbol macro</u> <code><b>*done*</b></code> &ndash; Boolean</p>
     <p>Setting this to a non-<code>nil</code> value causes Readline to
       return the current line immediately.</p>
     <p><u>Symbol macro</u> <code><b>+prompt+</b></code> &ndash; string</p>
@@ -239,13 +239,13 @@
       currently attempting. Acceptable values are:</p>
     <ul>
       <li><code>:standard-completion</code> tells Readline to do standard
-        completion.</li>
+        completion;</li>
       <li><code>:display-and-perform</code> means to display all possible
         completions if there is more than one, as well as performing
-        partial completion.</li>
+        partial completion;</li>
       <li><code>:insert-all</code> means insert all possible
-        completions.</li>
-      <li><code>:list-all</code> means list the possible completions.</li>
+        completions;</li>
+      <li><code>:list-all</code> means list the possible completions;</li>
       <li><code>:not-list-cmn-prefix</code> is similar to
         <code>:display-and-perform</code> but possible completions are not
         listed if the possible completions share a common prefix.</li>
@@ -360,9 +360,9 @@
       and <code>copy-keymap</code> can be used to produce new keymap.</p>
     <p>[<a href="#0">contents</a>]</p>
     <h2 id="5">5 Binding Keys</h2>
-    <p>Key sequences are associate with functions through the
-      keymap. Here are the function that may be of interest when working
-      with keymaps.</p>
+    <p>Key sequences are associated with functions through the keymap. Here
+      are the function that may be of interest when working with
+      keymaps.</p>
     <p><u>Symbol macro</u> <code><b>+executing-macro+</b></code> &ndash;
       string</p>
     <p>This symbol macro is evaluated to the text of any currently-executing
@@ -423,12 +423,12 @@
     <p><u>Function</u> <code><b>parse-and-bind</b> line</code></p>
     <p>Parse <code>line</code> as if it had been read from the inputrc file
       and perform any key bindings and variable assignments found.</p>
-    <p><u>Function</u> <code><b>read-init-file</b></code></p>
+    <p><u>Function</u> <code><b>read-init-file</b> filename</code></p>
     <p>Read keybindings and variable assignments
       from <code>filename</code>.</p>
     <p>[<a href="#0">contents</a>]</p>
     <h2 id="6">6 Associating Function Names and Bindings</h2>
-    <p>Note that this sections is stripped-down. Many functions are
+    <p>Note that this section is stripped-down. Many functions are
       missing. It's because C functions take addresses of other functions as
       arguments. In cl-readline we use dynamic generation of callbacks, so
       once you have registered a new function, it's tricky to get its
@@ -464,9 +464,6 @@
     <p>If you do multiple insertions or multiple deletions, or any
       combination of these operations, you should group them together into
       one operation. This is done with <code>undo-group</code> macro.</p>
-    <p><u>Function</u> <code><b>undo-group</b> &amp;body body</code></p>
-    <p>All insertion and deletion inside this macro will be grouped together
-      into one undo operation.</p>
     <p><u>Function</u> <code><b>add-undo</b></code> what start end text</p>
     <p>Remember how to undo an event (according to <code>what</code>). The
       affected text runs from <code>start</code> to <code>end</code>, and
@@ -482,6 +479,9 @@
     <p>Tell Readline to save the text between <code>start</code>
       and <code>end</code> as a single undo unit. It is assumed that you
       will subsequently modify that text.</p>
+    <p><u>Macro</u> <code><b>undo-group</b> &amp;body body</code></p>
+    <p>All insertion and deletion inside this macro will be grouped together
+      into one undo operation.</p>
     <p>[<a href="#0">contents</a>]</p>
     <h2 id="8">8 Redisplay</h2>
     <p><u>Function</u> <code><b>redisplay</b></code></p>
@@ -585,7 +585,8 @@
       performed in <code>keymap</code>.</p>
     <p><u>Function</u> <code><b>reset-terminal</b> terminal</code></p>
     <p>Reinitialize Readline's idea of the terminal settings using
-      <code>terminal</code> as the terminal type (e.g., vt100).</p>
+      <code>terminal</code> as the terminal type
+      (e.g., <code>"vt100"</code>).</p>
     <p>[<a href="#0">contents</a>]</p>
     <h2 id="12">12 Utility Functions</h2>
     <p><u>Function</u> <code><b>replace-line</b> text clear-undo</code></p>

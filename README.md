@@ -11,7 +11,7 @@ and perhaps reedit those lines, and perform csh-like history expansion on
 previous commands.
 
 These bindings provide Lispy interface to GNU Readline somewhat reducing its
-hair. Some minor features are omitted, they may be added by request. Open an
+hair. Some minor features are omitted, they may be added on request. Open an
 issue if you have any propositions.
 
 ## Installation

@@ -4,12 +4,12 @@
 ;;;
 ;;; Copyright (c) 2015 Mark Karpov
 ;;;
-;;; This program is free software: you can redistribute it and/or modify it
+;;; cl-readline is free software: you can redistribute it and/or modify it
 ;;; under the terms of the GNU General Public License as published by the
 ;;; Free Software Foundation, either version 3 of the License, or (at your
 ;;; option) any later version.
 ;;;
-;;; This program is distributed in the hope that it will be useful, but
+;;; cl-readline is distributed in the hope that it will be useful, but
 ;;; WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
 ;;; Public License for more details.
@@ -318,7 +318,7 @@ the completions and, depending on the value of
 
 (defcvar ("rl_completion_type" +completion-type+ :read-only t) completion-type
   "Set to a keyword describing the type of completion Readline is currently
-attempting. Acceptable values are:
+attempting. Possible values are:
 
 :STANDARD-COMPLETION tells Readline to do standard completion;
 
@@ -574,10 +574,10 @@ NIL, empty keymap will be returned."
   (keymap :pointer))
 
 (defcfun ("rl_get_keymap" get-keymap) :pointer
-  "Returns currently active keymap.")
+  "Return currently active keymap.")
 
 (defcfun ("rl_set_keymap" set-keymap) :void
-  "Makes KEYMAP the currently active keymap."
+  "Make KEYMAP the currently active keymap."
   (keymap :pointer))
 
 (defcfun ("rl_get_keymap_by_name" get-keymap-by-name) :pointer
@@ -677,7 +677,7 @@ FUNCTION, beginning in the current keymap. This makes new keymaps as
 necessary. If KEYMAP is supplied and it's not NIL, initial bindings are
 performed in KEYMAP. If IF-UNBOUND is supplied and it's not NIL, KEYSEQ will
 be bound to FUNCTION only if it's not already bound. The return value is T
-if KEYSEQ is invalid."
+if KEYSEQ is invalid and NIL otherwise."
   (ensure-initialization)
   (let ((cb (produce-callback function :boolean (:int int-char))))
     (cond ((and keymap if-unbound)

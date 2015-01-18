@@ -1,0 +1,1040 @@
+\input texinfo    @c -*-texinfo-*-
+@comment %**start of header (This is for running Texinfo on a region.)
+@setfilename cl-readline.info
+@settitle cl-readline Library
+@set EDITION 0.1.0
+@set VERSION 0.1.0
+@set UPDATED 18 January 2015
+@set UPDATED-MONTH January 2015
+@set LASTCHANGE Sat Jan 18 21:03:13 EST 2015
+
+@comment %**end of header (This is for running Texinfo on a region.)
+@synindex vr fn
+
+@copying
+This manual describes the cl-readline Library (version
+@value{VERSION}, @value{UPDATED}), bindings to GNU Readline Library.
+
+This documentation is derived from original GNU Readline documentation
+by Brian Fox and Chet Ramey.
+
+Copyright @copyright{} 2015 Mark Karpov, Brian Fox, Chet Ramey
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.  A
+copy of the license is included in the section entitled ``GNU Free
+Documentation License''.
+
+@end quotation
+@end copying
+
+@dircategory Libraries
+@direntry
+* cl-readline: (cl-readline).       cl-readline library API.
+@end direntry
+
+@titlepage
+@title cl-readline Library
+@subtitle Edition @value{EDITION}, for @code{cl-readline Library} Version @value{VERSION}.
+@subtitle @value{UPDATED-MONTH}
+@author Mark Karpov, Brian Fox, Chet Ramey
+
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top cl-readline Library
+
+This document describes cl-readline library, bindings to GNU Readline
+library. This program is distributed under GNU General Public License,
+version 3.
+
+All symbols described in this document live in @code{cl-readline}
+package, it has the following nicknames: @code{rl}.
+
+@menu
+* Basic Functionality:: Most basic functions and symbol macros.
+* Hooks and Custom Functions:: How to change behavior of cl-readline.
+* Work with Keymaps:: Modify existing keymaps and create new ones.
+* Binding Keys:: How to change keymaps.
+* Associating Function Names and Bindings:: Translate function names
+to key sequences.
+* Allowing Undoing:: How to make your functions undoable.
+* Redisplay:: Functions to control line display.
+* Modifying Text:: Functions to modify @var{*line-buffer*}.
+* Character Input:: Functions to read keyboard input.
+* Terminal Management:: Functions to manage terminal settings.
+* Utility Functions:: Generally useful functions.
+* Miscellaneous Functions:: Functions that don't fall into any
+category.
+* Signal Handling:: How Readline behaves when it receives signals.
+* Example:: A complete example of cl-readline use.
+* GNU Free Documentation License:: License for copying this manual.
+* Concept Index:: Index of concepts described in this manual.
+* Function and Variable Index::	Index of externally visible functions
+and variables.
+@end menu
+@end ifnottex
+
+@node Basic Functionality
+@chapter Basic Functionality
+
+This section describes most basic functions and symbol-macros that
+represent underlying C variables. For every symbol macro we give data
+type it evaluates to. If name of a symbol macro is enclosed in plus
+signs (for example, @var{+prompt+}), it means that you should not
+(and, in fact, cannot) modify its value. Other symbol macros are
+setfable and you can set their values with @code{setf} macro.
+
+@defvr {Symbol Macro} *line-buffer*
+String. This is the line gathered so far. You are welcome to modify
+the contents of the line, but remember about undoing (@pxref{Allowing
+Undoing}). The function @code{extend-line-buffer} is available to
+increase the memory allocated to @var{*line-buffer*}.
+@end defvr
+
+@defvr {Symbol Macro} *point*
+Integer. The offset of the current cursor position in
+@var{*line-buffer*} (the point).
+@end defvr
+
+@defvr {Symbol Macro} *mark*
+Integer. The mark (saved position) in the current line. If set, the
+mark and point define a region.
+@end defvr
+
+@defvr {Symbol Macro} *done*
+Boolean. Setting this to a non-@code{nil} value causes Readline to
+return the current line immediately.
+@end defvr
+
+@defvr {Symbol Macro} +prompt+
+String. The prompt Readline uses. This is set from the argument to
+@code{readline}, and should not be assigned to directly. The
+@code{set-prompt} function may be used to modify the prompt string
+after calling @code{readline}.
+@end defvr
+
+@defvr {Symbol Macro} +display-prompt+
+String. The string displayed as the prompt. This is usually identical
+to @var{+prompt+}, but may be changed temporarily by functions that
+use the prompt string as a message area, such as incremental search.
+@end defvr
+
+@defvr {Symbol Macro} +library-version+
+String. The version number of this revision of the library.
+@end defvr
+
+@defvr {Symbol Macro} +readline-version+
+Two integer values. Major and minor version numbers of Readline
+library.
+@end defvr
+
+@defvr {Symbol Macro} +gnu-readline-p+
+Boolean. Always evaluated to @code{t}, denoting that this is GNU
+readline rather than some emulation.
+@end defvr
+
+@defvr {Symbol Macro} *readline-name*
+String. This symbol-macro should be set to a unique name by each
+application using Readline. The value allows conditional parsing of
+the inputrc file.
+@end defvr
+
+@cindex readline state
+
+@defvr {Symbol Macro} +readline-state+
+List of keywords. This symbol macro is evaluated to a list containing
+keywords that denote state of Readline. The following flags are used:
+@itemize
+@item
+@code{:initializing} -- initializing;
+@item
+@code{:initialized} -- initialization done;
+@item
+@code{:termprepped} -- terminal is prepped;
+@item
+@code{:readcmd} -- reading a command key;
+@item
+@code{:metanext} -- reading input after ESC;
+@item
+@code{:dispatching} -- dispatching to a command;
+@item
+@code{:moreinput} -- reading more input in a command function;
+@item
+@code{:isearch} -- doing incremental search;
+@item
+@code{:nsearch} -- doing non-incremental search;
+@item
+@code{:search} -- doing a history search;
+@item
+@code{:numericarg} -- reading numeric argument;
+@item
+@code{:macroinput} -- getting input from a macro;
+@item
+@code{:macrodef} -- defining keyboard macro;
+@item
+@code{:overwrite} -- overwrite mode;
+@item
+@code{:completing} -- doing completion;
+@item
+@code{:sighandler} -- in readline sighandler;
+@item
+@code{:undoing} -- doing a undo;
+@item
+@code{:inputpending} -- @code{execute-next} called;
+@item
+@code{:ttycsaved} -- tty special chars saved;
+@item
+@code{:callback} -- using the callback interface;
+@item
+@code{:vimotion} -- reading vi motion argument;
+@item
+@code{:multikey} -- reading multiple-key command;
+@item
+@code{:vicmdonce} -- entered vi command at least once;
+@item
+@code{:redisplaying} -- undating terminal display;
+@item
+@code{:done} -- done; accepted line.
+@end itemize
+@end defvr
+
+@defvr {Symbol macro} +editing-mode+
+Keyword. Evaluated to keyword denoting actual editing mode:
+@code{:emacs} or @code{:vi}.
+@end defvr
+
+@cindex readline, function
+
+@defun readline @code{&key} prompt already-prompted num-chars erase-empty-line add-history novelty-check
+Get a line from user with editing. @var{prompt}, if supplied, is
+printed before reading of input. Non-@code{nil} value of
+@var{already-prompted} will tell Readline that the application has
+printed prompt already. However, @var{prompt} must be supplied in this
+case too, so redisplay functions can update the display properly. If
+@var{num-chars} argument is a positive number, Readline will return
+after accepting that many characters. If @var{erase-empty-line} is not
+@code{nil}, @code{readline} will completely erase the current line,
+including any prompt, any time a newline is typed as the only
+character on an otherwise-empty line. The cursor is moved to the
+beginning of the newly-blank line. Supplying @var{add-history} tells
+Readline that user's input should be added to history. However, blank
+lines don't get into history anyway. @var{novelty-check}, if supplied,
+must be a predicate that takes two strings: the actual line and the
+most recent history line. Only when the predicate evaluates to
+non-@code{nil} value new line will be added to the history. Return
+value on success is the actual string and @code{nil} on failure.
+@end defun
+
+@node Hooks and Custom Functions
+@chapter Hooks and Custom Functions
+
+cl-readline provides ways to register custom functions, so you can
+rewrite some parts of Readline library in Lisp.
+
+@defvr {Symbol macro} *basic-word-break-characters*
+String. The basic list of characters that signal a break between words
+for the completer routine. The default value of this variable is the
+characters which break words for completion in Bash.
+@end defvr
+
+@defvr {Symbol macro} *basic-quote-characters*
+String. A list of quote characters which can cause a word break.
+@end defvr
+
+@defvr {Symbol macro} *completer-word-break-characters*
+String. The list of characters that signal a break between words for
+@code{complete-internal}. The default list is the value of
+@var{*basic-word-break-characters*}.
+@end defvr
+
+@defvr {Symbol macro} *completion-query-items*
+Up to this many items will be displayed in response to a
+@code{possible-completions} call. After that, Readline asks the user
+if she is sure she wants to see them all. The default value is
+@code{100}. A negative value indicates that Readline should never ask
+the user.
+@end defvr
+
+@defvr {Symbol macro} *completion-append-character*
+Character. When a single completion alternative matches at the end of
+the command line, this character is appended to the inserted
+completion text. The default is a space character. Setting this to the
+null character prevents anything being appended automatically. This
+can be changed in application-specific completion functions to provide
+the 'most sensible word separator character' according to an
+application-specific command line syntax specification.
+@end defvr
+
+@defvr {Symbol macro} *ignore-completion-duplicates*
+Boolean. If non-@code{nil}, then duplicates in the matches are
+removed. The default is @code{t}.
+@end defvr
+
+@defvr {Symbol macro} *sort-completion-matches*
+Boolean. If an application sets this variable to @code{nil}, Readline
+will not sort the list of completions (which implies that it cannot
+remove any duplicate completions). The default value is @code{t},
+which means that Readline will sort the completions and, depending on
+the value of @var{*ignore-completion-duplicates*}, will attempt to
+remove duplicate matches.
+@end defvr
+
+@cindex completion types
+
+@defvr {Symbol macro} +completion-type+
+Keyword. Set to a keyword describing the type of completion Readline
+is currently attempting. Possible values are:
+@itemize
+@item
+@code{:standard-completion} tells Readline to do standard completion;
+@item
+@code{:display-and-perform} means to display all possible completions
+if there is more than one, as well as performing partial completion;
+@item
+@code{:insert-all} means insert all possible completions;
+@item
+@code{:list-all} means list the possible completions;
+@item
+@code{:not-list-cmn-prefix} is similar to @code{:display-and-perform}
+but possible completions are not listed if the possible completions
+share a common prefix.
+@end itemize
+@end defvr
+
+@defvr {Symbol macro} *inhibit-completion*
+Boolean. If this variable is non-@code{nil}, completion is
+inhibited. The completion character will be inserted as any other
+bound to self-insert.
+@end defvr
+
+@cindex hooks
+
+@defun register-hook hook function
+Register a hook. @var{function} must be a function that takes no
+arguments and returns @code{nil} on success and @code{t} on
+failure. If @var{function} is @code{nil}, hook will be removed (or
+default function will be used). @var{hook} should be a keyword, one of
+the following:
+@itemize
+@item
+@code{:startup} hook is called just before @code{readline} prints the
+prompt.
+@item
+@code{:pre-input} hook is called after prompt has been printed and
+just before @code{readline} starts reading input characters.
+@item
+@code{:event} hook is called periodically when waiting for terminal
+input. By default, this will be called at most ten times a second if
+there is no keyboard input.
+@item
+@code{:signal} hook is called when a read system call is interrupted
+when @code{readline} is reading terminal input.
+@item
+@code{:inputp} hook is called when Readline need to determine whether
+or not there is available input on the current input source. If
+@var{function} returns @code{nil}, it means that there is no available
+input.
+@item
+@code{:lsmatches} hook is called to display list of
+completions. @var{function} must be able to take three arguments: list
+of completions, length of the list, and length of the longest
+completion in the list. It's up to the function how to display these
+completions.
+@end itemize
+Other values of @var{hook} will be ignored.
+@end defun
+
+@cindex custom functions
+
+@defun register-function func function
+Register a function. @var{function} must be a function, if
+@var{function} is @code{nil}, result is unpredictable. @var{func}
+should be a keyword, one of the following:
+@itemize
+@item
+@code{:getc} function is used to get a character from the input
+stream, thus @var{function} should take pointer to C stream and return
+a character if this function is desired to be registered. In general,
+an application that registers @code{:getc} function should consider
+registering @code{:inputp} hook as well (see @code{register-hook}).
+@item
+@code{:redisplay} function is used to update the display with the
+current contents of the editing buffer, thus @var{function} should
+take no arguments and return @code{nil} on success and non-@code{nil}
+of failure. By default, it is set to @code{redisplay}, the default
+Readline redisplay function.
+@item
+@code{:prep-term} function is used to initialize the terminal, so
+@var{function} must be able to take one argument, a flag that says
+whether or not to use eight-bit characters. By default,
+@code{prep-terminal} is used.
+@item
+@code{:deprep-term} function is used to reset the terminal. This
+function should undo the effects of @code{:prep-term} function.
+@item
+@code{:complete} function is used to generate list of possible
+completions for given partially entered word. The function must be
+able to take three arguments: partially entered word, start index of
+the word in @var{*line-buffer*}, and end index of the word in the
+buffer. The function must return a list where first element is the
+actual completion (or part of completion if two or more completions
+share common prefix) and the rest arguments are possible completions.
+@end itemize
+Other values of @var{func} will be ignored.
+@end defun
+
+@node Work with Keymaps
+@chapter Work with Keymaps
+
+@cindex keymaps
+
+Keymaps tell Readline which function should it invoke when the user
+presses certain key. Readline provides some pre-existing keymaps and
+let you create your own and modify existing ones.
+
+@defvr {Symbol macro} +executing-keymap+
+C pointer. This symbol macro is evaluated to the keymap in which the
+currently executing Readline function was found.
+@end defvr
+
+@defvr {Symbol macro} +binding-keymap+
+C pointer. This symbol macro is evaluated to the keymap in which the
+last key binding occurred.
+@end defvr
+
+@defun make-keymap @code{&optional} bare
+Return a new keymap with self-inserting printing characters, the
+lowercase Meta characters bound to run their equivalents, and the Meta
+digits bound to produce numeric arguments. If @var{bare} is supplied
+and it's not @code{nil}, empty keymap will be returned.
+@end defun
+
+@defun copy-keymap keymap
+Return a new keymap which is a copy of @var{keymap}.
+@end defun
+
+@defun free-keymap keymap
+Free all storage associated with @var{keymap}.
+@end defun
+
+@defun get-keymap
+Return currently active keymap.
+@end defun
+
+@defun set-keymap keymap
+Make @var{keymap} currently active keymap.
+@end defun
+
+@defun get-keymap-by-name name
+Return the keymap matching @var{name}. @var{name} is one which would
+be supplied in a set keymap inputrc line.
+@end defun
+
+@defmac with-new-keymap form @code{&body} body
+Create new keymap evaluating @var{form}, bind symbol @code{keymap} to
+the result, then free it when control flow leaves
+@var{body}. @code{make-keymap} and @code{copy-keymap} can be used to
+produce new keymap.
+@end defmac
+
+@node Binding Keys
+@chapter Binding Keys
+
+Key sequences are associated with functions through the keymap. Here
+are the functions that may be of interest when working with keymaps.
+
+@defvr {Symbol macro} +executing-macro+
+String. This symbol macro is evaluated to the text of any
+currently-executing macro.
+@end defvr
+
+@defvr {Symbol macro} +executing-key+
+Character. The key that caused the dispatch to the currently-executing
+Readline function.
+@end defvr
+
+@defvr {Symbol macro} +executing-keyseq+
+String. The full key sequence that caused the dispatch to the
+currently-executing Readline function.
+@end defvr
+
+@defvr {Symbol macro} +key-sequence-length+
+Integer. The number of characters in @var{+executing-keyseq+}.
+@end defvr
+
+@defvr {Symbol macro} +dispatching+
+Boolean. Set to a non-@code{nil} value if a function is being called
+from a key binding; @code{nil} otherwise. Application functions can
+test this to discover whether they were called directly or by
+Readline's dispatching mechanism.
+@end defvr
+
+@defun add-defun name function @code{&optional} key
+Add @var{name} to the list of named functions. Make @var{function} be
+the function that gets called. If @var{key} is not @code{nil} and it's
+a character, then bind it to function using
+@code{bind-key}. @var{function} must be able to take two arguments:
+integer representing its argument and character representing key that
+has invoked it.
+@end defun
+
+@defun bind-key key function @code{&key} keymap if-unbound
+Binds @var{key} to @var{function} in the currently active keymap. If
+@var{keymap} argument supplied, binding takes place in specified
+keymap. If @var{if-unbound} is supplied and it's not @code{nil},
+@var{key} will be bound to @var{function} only if it's not already
+bound.
+@end defun
+
+@defun unbind-key key @code{&optional} keymap
+Unbind @var{key} in @var{keymap}. If @var{keymap} is not supplied or
+it's @code{nil}, @var{key} will be unbound in currently active
+keymap. The function returns @code{nil} on success and @code{t} on
+failure.
+@end defun
+
+@defun unbind-command command keymap
+Unbind all keys that are bound to @var{command} in @var{keymap}.
+@end defun
+
+@defun bind-keyseq keyseq function @code{&key} keymap if-unbound
+Bind the key sequence represented by the string @var{keyseq} to the
+function @var{function}, beginning in the current keymap. This makes
+new keymaps as necessary. If @var{keymap} is supplied and it's not
+@code{nil}, initial bindings are performed in @var{keymap}. If
+@var{if-unbound} is supplied and it's not @code{nil}, @var{keyseq}
+will be bound to @var{function} only if it's not already bound. The
+return value is @code{t} if @var{keyseq} is invalid and @code{nil}
+otherwise.
+@end defun
+
+@defun parse-and-bind line
+Parse @var{line} as if it had been read from the inputrc file and
+perform any key bindings and variable assignments found.
+@end defun
+
+@defun read-init-file filename
+Read keybindings and variable assignments from @var{filename}.
+@end defun
+
+@node Associating Function Names and Bindings
+@chapter Associating Function Names and Bindings
+
+Note that this section is stripped-down. Many functions are
+missing. It's because C functions take addresses of other functions as
+arguments. In cl-readline we use dynamic generation of callbacks, so
+once you have registered a new function, it's tricky to get its
+identity. Note that this problem is solvable, but not without certain
+hair. However, it shouldn't be a problem in most cases.
+
+@defun function-dumper readable @code{&optional} filename append
+Print the Readline function names and the key sequences currently
+bound to them to stdout. If @var{readable} is non-@code{nil}, the list
+is formatted in such a way that it can be made part of an inputrc file
+and re-read. If @var{filename} is supplied and it's a string or path,
+output will be redirected to the file. @var{append} allows to append
+text to the file instead of overwriting it.
+@end defun
+
+@defun list-funmap-names @code{&optional} filename append
+Print the names of all bindable Readline functions to stdout. If
+@var{filename} is supplied and it's a string or path, output will be
+redirected to the file. @var{append} allows append text to the file
+instead of overwriting it.
+@end defun
+
+@defun funmap-names
+Return a list of known function names. The list is sorted.
+@end defun
+
+@defun add-funmap-entry name function
+Add @var{name} to the list of bindable Readline command names, and
+make @var{function} the function to be called when name is invoked.
+@end defun
+
+@node Allowing Undoing
+@chapter Allowing Undoing
+
+@cindex undoing
+
+If your function simply inserts text once, or deletes text once, and
+uses @code{insert-text} or @code{delete-text} to do it, then undoing
+is already done for you automatically.
+
+If you do multiple insertions or multiple deletions, or any
+combination of these operations, you should group them together into
+one operation. This is done with @code{undo-group} macro.
+
+@defun add-undo what start end text
+Remember how to undo an event (according to @var{what}). The affected
+text runs from @var{start} to @var{end}, and encompasses
+@var{text}. Possible values of @var{what} include:
+@code{:undo-delete}, @code{:undo-insert}, @code{:undo-begin}, and
+@code{:undo-end}
+@end defun
+
+@defun free-undo-list
+Free the existing undo list.
+@end defun
+
+@defun do-undo
+Undo the first thing on the undo list. Returns @code{nil} if there was
+nothing to undo, @code{t} if something was undone.
+@end defun
+
+@defun modifying start end
+Tell Readline to save the text between @var{start} and @var{end} as a
+single undo unit. It is assumed that you will subsequently modify that
+text.
+@end defun
+
+@defmac undo-group @code{&body} body
+All insertion and deletion inside this macro will be grouped together
+into one undo operation.
+@end defmac
+
+@node Redisplay
+@chapter Redisplay
+
+@defun redisplay
+Change what's displayed on the screen to reflect the current contents
+of @var{*line-buffer*}.
+@end defun
+
+@defun forced-update-display
+Force the line to be updated and redisplayed, whether or not Readline
+thinks the screen display is correct.
+@end defun
+
+@defun on-new-line @code{&optional} with-prompt
+Tell the update functions that we have moved onto a new (empty) line,
+usually after outputting a newline. When @var{with-prompt} is not
+@code{nil}, Readline will think that prompt is already displayed. This
+could be used by applications that want to output the prompt string
+themselves, but still need Readline to know the prompt string length
+for redisplay. This should be used together with
+@code{:already-prompted} keyword argument of @code{readline}.
+@end defun
+
+@defun reset-line-state
+Reset the display state to a clean state and redisplay the current
+line starting on a new line.
+@end defun
+
+@defun cflr
+Move the cursor to the start of the next screen line.
+@end defun
+
+@defun show-char char
+Display character @var{char} on outstream. If Readline has not been
+set to display meta characters directly, this will convert meta
+characters to a meta-prefixed key sequence. This is intended for use
+by applications which wish to do their own redisplay.
+@end defun
+
+@defun set-prompt prompt
+Make Readline use @var{prompt} for subsequent redisplay. This calls
+@code{expand-prompt} to expand the prompt and sets @var{+prompt+} to
+the result.
+@end defun
+
+@defmac with-message message save-prompt @code{&body} body
+Show message @var{message} in the echo area while executing
+@var{body}. If @var{save-prompt} is not @code{nil}, save prompt before
+showing the message and restore it before clearing the message.
+@end defmac
+
+@node Modifying Text
+@chapter Modifying Text
+
+@defun insert-text text
+Insert @var{text} into the line at the current cursor
+position. Returns the number of characters inserted.
+@end defun
+
+@defun delete-text start end
+Delete the text between @var{start} and @var{end} in the current
+line. Returns the number of characters deleted.
+@end defun
+
+@defun kill-text start end
+Copy the text between @var{start} and @var{end} in the current line to
+the kill ring, appending or prepending to the last kill if the last
+command was a kill command. The text is deleted. If @var{start} is
+less than @var{end}, the text is appended, otherwise prepended. If the
+last command was not a kill, a new kill ring slot is used.
+@end defun
+
+@node Character Input
+@chapter Character Input
+
+@defun read-key
+Return the next character available from Readline's current input
+stream.
+@end defun
+
+@defun stuff-char char
+Insert @var{char} into the Readline input stream. It will be 'read'
+before Readline attempts to read characters from the terminal with
+@code{read-key}. Up to @code{512} characters may be pushed
+back. @code{stuff-char} returns @code{t} if the character was
+successfully inserted; @code{nil} otherwise.
+@end defun
+
+@defun execute-next char
+Make @var{char} be the next command to be executed when
+@code{read-key} is called.
+@end defun
+
+@defun clear-pending-input
+Negate the effect of any previous call to @code{execute-next}. This
+works only if the pending input has not already been read with
+@code{read-key}.
+@end defun
+
+@defun set-keyboard-input-timeout u
+While waiting for keyboard input in @code{read-key}, Readline will
+wait for @var{u} microseconds for input before calling any function
+assigned to @code{event-hook}. @var{u} must be greater than or equal
+to zero (a zero-length timeout is equivalent to a poll). The default
+waiting period is one-tenth of a second. Returns the old timeout
+value.
+@end defun
+
+@node Terminal Management
+@chapter Terminal Management
+
+@defun prep-terminal eight-bit-input
+Modify the terminal settings for Readline's use, so @code{readline}
+can read a single character at a time from the keyboard. The
+@code{eight-bit-input} argument should be non-@code{nil} if Readline
+should read eight-bit input.
+@end defun
+
+@defun deprep-terminal
+Undo the effects of @code{prep-terminal}, leaving the terminal in the
+state in which it was before the most recent call to
+@code{prep-terminal}.
+@end defun
+
+@defun tty-set-default-bindings keymap
+Read the operating system's terminal editing characters (as would be
+displayed by stty) to their Readline equivalents. The bindings are
+performed in @var{keymap}.
+@end defun
+
+@defun tty-unset-default-bindings keymap
+Reset the bindings manipulated by @code{tty-set-default-bindings} so
+that the terminal editing characters are bound to @code{insert}. The
+bindings are performed in @var{keymap}.
+@end defun
+
+@defun reset-terminal terminal
+Reinitialize Readline's idea of the terminal settings using
+@var{terminal} as the terminal type (e.g., @code{"vt100"}).
+@end defun
+
+@node Utility Functions
+@chapter Utility Functions
+
+@defun replace-line text clear-undo
+Replace the contents of @var{*line-buffer*} with @var{text}. The point
+and mark are preserved, if possible. If @var{clear-undo} is
+non-@code{nil}, the undo list associated with the current line is
+cleared.
+@end defun
+
+@defun extend-line-buffer len
+Ensure that line buffer has enough space to hold @var{len} characters,
+possibly reallocating it if necessary.
+@end defun
+
+@defun initialize
+Initialize or re-initialize Readline's internal state. It's not
+strictly necessary to call this; @code{readline} calls it before
+reading any input. cl-readline also makes sure that Readline is always
+initialized when you use it.
+@end defun
+
+@defun ding
+Ring the terminal bell, obeying the setting of bell-style.
+@end defun
+
+@node Miscellaneous Functions
+@chapter Miscellaneous Functions
+
+@defun macro-dumper readable @code{&optional} filename append
+Print the key sequences bound to macros and their values, using the
+current keymap to stdout. If @code{readable} is non-@code{nil}, the
+list is formatted in such a way that it can be made part of an inputrc
+file and re-read. If @code{filename} is supplied and it's a string or
+path, output will be redirected to the file. @code{append} allows to
+append text to the file instead of overwriting it.
+@end defun
+
+@defun variable-bind variable value
+Make the Readline variable @var{variable} have @var{value}. This
+behaves as if the readline command @code{set variable value} had been
+executed in an inputrc file.
+@end defun
+
+@defun variable-value variable
+Return a string representing the value of the Readline variable
+@var{variable}. For Boolean variables, this string is either 'on' or
+'off'.
+@end defun
+
+@defun variable-dumper readable @code{&optional} filename append
+Print the readline variable names and their current values to
+stdout. If readable is not @code{nil}, the list is formatted in such a
+way that it can be made part of an inputrc file and re-read. If
+@var{filename} is supplied and it's a string or path, output will be
+redirected to the file. @var{append} allows to append text to the file
+instead of overwriting it.
+@end defun
+
+@defun set-paren-blink-timeout micros
+Set the time interval (in microseconds) that Readline waits when
+showing a balancing character when @code{blink-matching-paren} has
+been enabled. The function returns previous value of the parameter.
+@end defun
+
+@defun clear-history
+Clear the history list by deleting all of the entries.
+@end defun
+
+@node Signal Handling
+@chapter Signal Handling
+
+@cindex signals
+
+Signals are asynchronous events sent to a process by the Unix kernel,
+sometimes on behalf of another process. They are intended to indicate
+exceptional events, like a user pressing the interrupt key on his
+terminal, or a network connection being broken. There is a class of
+signals that can be sent to the process currently reading input from
+the keyboard. Since Readline changes the terminal attributes when it
+is called, it needs to perform special processing when such a signal
+is received in order to restore the terminal to a sane state, or
+provide application writers with functions to do so manually.
+
+Readline contains an internal signal handler that is installed for a
+number of signals (SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM, SIGTSTP,
+SIGTTIN, and SIGTTOU). When one of these signals is received, the
+signal handler will reset the terminal attributes to those that were
+in effect before @code{readline} was called, reset the signal handling
+to what it was before @code{readline} was called, and resend the
+signal to the calling application. If and when the calling
+application's signal handler returns, Readline will reinitialize the
+terminal and continue to accept input. When a SIGINT is received, the
+Readline signal handler performs some additional work, which will
+cause any partially-entered line to be aborted (see the description of
+@code{free-line-state} below).
+
+There is an additional Readline signal handler, for SIGWINCH, which
+the kernel sends to a process whenever the terminal's size changes
+(for example, if a user resizes an xterm). The Readline SIGWINCH
+handler updates Readline's internal screen size information, and then
+calls any SIGWINCH signal handler the calling application has
+installed. Readline calls the application's SIGWINCH signal handler
+without resetting the terminal to its original state. If the
+application's signal handler does more than update its idea of the
+terminal size and return (for example, a longjmp back to a main
+processing loop), it must call @code{cleanup-after-signal} (described
+below), to restore the terminal state.
+
+Readline provides two variables that allow application writers to
+control whether or not it will catch certain signals and act on them
+when they are received. It is important that applications change the
+values of these variables only when calling @code{readline}, not in a
+signal handler, so Readline's internal signal state is not corrupted.
+
+@defvr {Symbol macro} *catch-signals*
+Boolean. If this variable is non-@code{nil}, Readline will install
+signal handlers for SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM,
+SIGTSTP, SIGTTIN, and SIGTTOU. The default value of
+@var{*catch-signals*} is @code{t}.
+@end defvr
+
+@defvr {Symbol macro} *catch-sigwinch*
+If this variable is set to a non-@code{nil} value, Readline will
+install a signal handler for SIGWINCH. The default value of
+@var{*catch-sigwinch*} is @code{t}.
+@end defvr
+
+@defvr {Symbol macro} *change-environment*
+If this variable is set to a non-@code{nil} value, and Readline is
+handling SIGWINCH, Readline will modify the LINES and COLUMNS
+environment variables upon receipt of a SIGWINCH. The default value of
+@var{*change-environment*} is @code{t}.
+@end defvr
+
+@defun cleanup-after-signal
+This function will reset the state of the terminal to what it was
+before @code{readline} was called, and remove the Readline signal
+handlers for all signals, depending on the values of
+@var{*catch-signals*} and @var{*catch-sigwinch*}.
+@end defun
+
+@defun free-line-state
+This will free any partial state associated with the current input
+line (undo information, any partial history entry, any
+partially-entered keyboard macro, and any partially-entered numeric
+argument). This should be called before
+@code{cleanup-after-signal}. The Readline signal handler for SIGINT
+calls this to abort the current input line.
+@end defun
+
+@defun reset-after-signal
+This will reinitialize the terminal and reinstall any Readline signal
+handlers, depending on the values of @var{*catch-signals*} and
+@var{*catch-sigwinch*}.
+@end defun
+
+@defun echo-signal-char sig
+If an application wishes to install its own signal handlers, but still
+have readline display characters that generate signals, calling this
+function with @var{sig} set to @code{:sigint}, @code{:sigquit}, or
+@code{:sigtstp} will display the character generating that signal.
+@end defun
+
+@defun resize-terminal
+Update Readline's internal screen size by reading values from the
+kernel.
+@end defun
+
+@defun set-screen-size rows cols
+Set Readline's idea of the terminal size to @var{rows} rows and
+@var{cols} columns. If either rows or columns is less than or equal to
+@code{0}, Readline's idea of that terminal dimension is unchanged.
+@end defun
+
+@defun get-screen-size
+Return Readline's idea of the terminal's size. The function returns
+multiple values: rows and cols.
+@end defun
+
+@defun reset-screen-size
+Cause Readline to reobtain the screen size and recalculate its
+dimensions.
+@end defun
+
+@defun set-signals
+Install Readline's signal handler for SIGINT, SIGQUIT, SIGTERM,
+SIGHUP, SIGALRM, SIGTSTP, SIGTTIN, SIGTTOU, and SIGWINCH, depending on
+the values of @var{*catch-signals*} and @var{*catch-sigwinch*}.
+@end defun
+
+@defun clear-signals
+Remove all of the Readline signal handlers installed by
+@code{set-signals}.
+@end defun
+
+@node Example
+@chapter Example
+
+This program demonstrates some basic capacities of cl-readline. Note
+that you should run it on terminal, not via SLIME.
+
+@example
+;;; Load some systems and define a package...
+
+(asdf:load-system :alexandria)
+(asdf:load-system :cl-readline)
+
+(cl:defpackage :example
+  (:use    #:common-lisp
+           #:alexandria)
+  (:export #:run-example))
+
+(in-package :example)
+
+;;; Now let's define lists of verbs and fruits:
+
+(defvar *verbs*  '("eat" "get" "throw" "quit"))
+(defvar *fruits* '("banana" "apple" "orange" "banana_two"))
+
+;;; Define and register function that does custom completion: if user enters
+;;; first word, it will be completed as a verb, second and later words will
+;;; be completed as fruits.
+
+(defun custom-complete (text start end)
+  (declare (ignore end))
+  (labels ((common-prefix (items)
+             (subseq
+              (car items) 0
+              (position
+               nil
+               (mapcar
+                (lambda (i)
+                  (every (lambda (x)
+                           (char= (char (car items) i)
+                                  (char x           i)))
+                         (cdr items)))
+                (iota (reduce #'min (mapcar #'length items)))))))
+           (select-completions (list)
+             (let ((els (remove-if-not (curry #'starts-with-subseq text)
+                                       list)))
+               (if (cdr els)
+                   (cons (common-prefix els) els)
+                   els))))
+    (if (zerop start)
+        (select-completions *verbs*)
+        (select-completions *fruits*))))
+
+(rl:register-function :complete #'custom-complete)
+
+;;; Let's also create a custom command and bind it to some key sequence so
+;;; user can invoke it. In this example user can automagically insert phrase
+;;; 'inserted text' pressing Control-o.
+
+(defun print-some-text (arg key)
+  (declare (ignore arg key))
+  (rl:insert-text "inserted text"))
+
+(rl:bind-keyseq "\\C-o" #'print-some-text)
+
+;;; Let's write novelty-check, so if the actual line is equal to the most
+;;; recent history line it will not be added to the history.
+
+(defun novelty-check (x y)
+  (string/= (string-trim " " x)
+            (string-trim " " y)))
+
+;;; Finally, this is our main function. To exit from the loop, enter 'quit'.
+
+(defun run-example ()
+  (do ((i 0 (1+ i))
+       (text ""))
+      ((string= "quit" (string-trim " " text)))
+    (setf text
+          (rl:readline :prompt (format nil "[~a]> " i)
+                       :add-history t
+                       :novelty-check #'novelty-check))))
+@end example
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+
+@include fdl.texi
+
+@node Concept Index
+@unnumbered Concept Index
+@printindex cp
+
+@node Function and Variable Index
+@unnumbered Function and Variable Index
+@printindex fn
+
+@bye

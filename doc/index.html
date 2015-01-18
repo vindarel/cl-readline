@@ -1,747 +1,1354 @@
-<!doctype html>
-<html lang="en">
-  <!--
-  Documentation for cl-readline - bindings to GNU Readline library.
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- This manual describes the cl-readline Library (version
+0.1.0, 18 January 2015), bindings to GNU Readline Library.
 
-  Copyright (c) 2015 Mark Karpov
+This documentation is derived from original GNU Readline documentation
+by Brian Fox and Chet Ramey.
 
-  Permission is granted to copy, distribute and/or modify this document
-  under the terms of the GNU Free Documentation License, Version 1.3 or any
-  later version published by the Free Software Foundation; with no Invariant
-  Sections, no Front-Cover Texts, and no Back-Cover Texts.  A copy of the
-  license is included in the section entitled "GNU Free Documentation
-  License".  -->
-  <head>
-    <meta charset="utf-8">
-    <meta name="description"    content="cl-readline documentation">
-    <meta name="author"         content="Mark Karpov">
-    <meta name="dcterms.rights" content="(c) 2015 Mark Karpov">
-    <meta name="keywords"       content="GNU Readline, Common Lisp">
-    <title>cl-readline</title>
-    <link href="ascetic.css" rel="stylesheet" type="text/css">
-  </head>
-  <body>
-    <h1>cl-readline</h1>
-    <h2 id="0">Table of Contents</h2>
-    <ul class="no-bullet">
-      <li><a href="#1">1 Overview of cl-readline</a></li>
-      <li><a href="#2">2 Basic Functionality</a></li>
-      <li><a href="#3">3 Hooks and Custom Functions</a></li>
-      <li><a href="#4">4 Work with Keymaps</a></li>
-      <li><a href="#5">5 Binding Keys</a></li>
-      <li><a href="#6">6 Associating Function Names and Bindings</a></li>
-      <li><a href="#7">7 Allowing Undoing</a></li>
-      <li><a href="#8">8 Redisplay</a></li>
-      <li><a href="#9">9 Modifying Text</a></li>
-      <li><a href="#10">10 Character Input</a></li>
-      <li><a href="#11">11 Terminal Management</a></li>
-      <li><a href="#12">12 Utility Functions</a></li>
-      <li><a href="#13">13 Miscellaneous Functions</a></li>
-      <li><a href="#14">14 Signal Handling</a></li>
-      <li><a href="#15">15 Example</a></li>
-    </ul>
-    <h2 id="1">1 Overview of cl-readline</h2>
-    <p>cl-readline is bindings
-      to <a href="http://directory.fsf.org/wiki/Readline">GNU Readline
-      library</a>.</p>
-    <p>The Readline library provides a set of functions for use by
-      applications that allow users to edit command lines as they are typed
-      in. Both Emacs and vi editing modes are available. The Readline
-      library includes additional functions to maintain a list of
-      previously-entered command lines, to recall and perhaps reedit those
-      lines, and perform csh-like history expansion on previous
-      commands.</p>
-    <p>These bindings provide Lispy interface to GNU Readline somewhat
-      reducing its hair. Some minor features are omitted, they may be added
-      on request. Open an issue if you have any propositions.</p>
-    <p>Manual Copyright &copy; 2015 Mark Karpov, Brian Fox, Chet Ramey.</p>
-    <p>This documentation is derived from original GNU Readline
-      documentation by Brian Fox and Chet Ramey.</p>
-    <p>cl-readline Copyright &copy; 2015 Mark Karpov.</p>
-    <p>All contents here is copyright by the developers and is released
-      under the <a href="http://www.gnu.org/copyleft/fdl.html"> GNU Free
-      Documentation License</a>.</p>
-    <p>cl-readline is licensed
-      under <a href="http://www.gnu.org/copyleft/gpl.html">GNU General
-        Public License v.3</a>; it's free software.</p>
-    <p>[<a href="#0">contents</a>]</p>
-    <h2 id="2">2 Basic Functionality</h2>
-    <p>This section describes most basic functions and symbol-macros that
-      represent underlying C variables. For every symbol macro we give data
-      type it evaluates to. If name of a symbol macro is enclosed in plus
-      signs (for example, <code>+prompt+</code>), it means that you should
-      not (and, in fact, cannot) modify its value. Other symbol macros are
-      setfable and you can set their values with <code>setf</code>
-      macro.</p>
-    <p><u>Symbol macro</u> <code><b>*line-buffer*</b></code> &ndash;
-      string</p>
-    <p>This is the line gathered so far. You are welcome to modify the
-      contents of the line, but remember about undoing. The
-      function <code>extend-line-buffer</code> is available to increase the
-      memory allocated to <code>*line-buffer*</code>.</p>
-    <p><u>Symbol macro</u> <code><b>*point*</b></code> &ndash; integer</p>
-    <p>The offset of the current cursor position
-      in <code>*line-buffer*</code> (the point).</p>
-    <p><u>Symbol macro</u> <code><b>*end*</b></code> &ndash; integer</p>
-    <p>The number of characters present
-      in <code>*line-buffer*</code>. When <code>*point*</code> is at the end
-      of the line, <code>*point*</code> and <code>*end*</code> are
-      equal.</p>
-    <p><u>Symbol macro</u> <code><b>*mark*</b></code> &ndash; integer</p>
-    <p>The mark (saved position) in the current line. If set, the mark and
-      point define a region.</p>
-    <p><u>Symbol macro</u> <code><b>*done*</b></code> &ndash; Boolean</p>
-    <p>Setting this to a non-<code>nil</code> value causes Readline to
-      return the current line immediately.</p>
-    <p><u>Symbol macro</u> <code><b>+prompt+</b></code> &ndash; string</p>
-    <p>The prompt Readline uses. This is set from the argument
-      to <code>readline</code>, and should not be assigned to
-      directly. The <code>set-prompt</code> function may be used to modify
-      the prompt string after calling
-      <code>readline</code>.</p>
-    <p><u>Symbol macro</u> <code><b>*display-prompt*</b></code> &ndash;
-      string</p>
-    <p>The string displayed as the prompt. This is usually identical
-      to <code>+prompt+</code>, but may be changed temporarily by functions
-      that use the prompt string as a message area, such as incremental
-      search.</p>
-    <p><u>Symbol macro</u> <code><b>+library-version+</b></code> &ndash;
-      string</p>
-    <p>The version number of this revision of the library.</p>
-    <p><u>Symbol macro</u> <code><b>+readline-version+</b></code> &ndash;
-      two integer values</p>
-    <p>Major and minor version numbers of Readline library.</p>
-    <p><u>Symbol macro</u> <code><b>+gnu-readline-p+</b></code> &ndash;
-      Boolean</p>
-    <p> Always evaluated to <code>t</code>, denoting that this is GNU
-      readline rather than some emulation.</p>
-    <p><u>Symbol macro</u> <code><b>*readline-name*</b></code> &ndash;
-      string</p>
-    <p>This symbol-macro should be set to a unique name by each application
-      using Readline. The value allows conditional parsing of the inputrc
-      file.</p>
-    <p><u>Symbol macro</u> <code><b>+readline-state+</b></code> &ndash; list
-      of keywords</p>
-    <p>This symbol macro is evaluated to a list containing keywords that
-      denote state of Readline. The following flags are used:</p>
-    <ul>
-      <li><code>:initializing</code> &ndash; initializing;</li>
-      <li><code>:initialized</code> &ndash; initialization done;</li>
-      <li><code>:termprepped</code> &ndash; terminal is prepped;</li>
-      <li><code>:readcmd</code> &ndash; reading a command key;</li>
-      <li><code>:metanext</code> &ndash; reading input after ESC;</li>
-      <li><code>:dispatching</code> &ndash; dispatching to a command;</li>
-      <li><code>:moreinput</code> &ndash; reading more input in a command
-        function</li>
-      <li><code>:isearch</code> &ndash; doing incremental search;</li>
-      <li><code>:nsearch</code> &ndash; doing non-incremental search;</li>
-      <li><code>:search</code> &ndash; doing a history search;</li>
-      <li><code>:numericarg</code> &ndash; reading numeric argument;</li>
-      <li><code>:macroinput</code> &ndash; getting input from a
-        macro;</li>
-      <li><code>:macrodef</code> &ndash; defining keyboard macro;</li>
-      <li><code>:overwrite</code> &ndash; overwrite mode;</li>
-      <li><code>:completing</code> &ndash; doing completion;</li>
-      <li><code>:sighandler</code> &ndash; in readline sighandler;</li>
-      <li><code>:undoing</code> &ndash; doing a undo;</li>
-      <li><code>:inputpending</code> &ndash; <code>execute-next</code>
-        called;</li>
-      <li><code>:ttycsaved</code> &ndash; tty special chars saved;</li>
-      <li><code>:callback</code> &ndash; using the callback
-        interface;</li>
-      <li><code>:vimotion</code> &ndash; reading vi motion argument;</li>
-      <li><code>:multikey</code> &ndash; reading multiple-key
-        command;</li>
-      <li><code>:vicmdonce</code> &ndash; entered vi command at least
-        once;</li>
-      <li><code>:redisplaying</code> &ndash; undating terminal
-        display;</li>
-      <li><code>:done</code> &ndash; done; accepted line.</li>
-    </ul>
-    <p><u>Symbol macro</u> <code><b>+editing-mode+</b></code> &ndash;
-      keyword</p>
-    <p>Evaluated to keyword denoting actual editing
-      mode: <code>:emacs</code> or <code>:vi</code>.</p>
-    <p><u>Function</u> <code><b>readline</b> &amp;key prompt
-        already-prompted num-chars erase-empty-line add-history
-        novelty-check</code></p>
-    <p>Get a line from user with editing. <code>prompt</code>, if supplied,
-      is printed before reading of input. Non-<code>nil</code> value
-      of <code>already-prompted</code> will tell Readline that the
-      application has printed prompt already. However, <code>prompt</code>
-      must be supplied in this case too, so redisplay functions can update
-      the display properly. If
-      <code>num-chars</code> argument is a positive number, Readline will
-      return after accepting that many
-      characters. If <code>erase-empty-line</code> is not <code>nil</code>,
-      <code>readline</code> will completely erase the current line,
-      including any prompt, any time a newline is typed as the only
-      character on an otherwise-empty line. The cursor is moved to the
-      beginning of the newly-blank line. Supplying
-      <code>add-history</code> tells Readline that user's input should be
-      added to history. However, blank lines don't get into history
-      anyway. <code>novelty-check</code>, if supplied, must be a predicate
-      that takes two strings: the actual line and the most recent history
-      line. Only when the predicate evaluates to non-<code>nil</code> value
-      new line will be added to the history. Return value on success is the
-      actual string and <code>nil</code> on failure.</p>
-    <p>[<a href="#0">contents</a>]</p>
-    <h2 id="3">3 Hooks and Custom Functions</h2>
-    <p>cl-readline provides ways to register custom functions, so you can
-      rewrite some parts of Readline library in Lisp.</p>
-    <p><u>Symbol macro</u> <code><b>*basic-word-break-characters*</b></code>
-      &ndash; string</p>
-    <p>The basic list of characters that signal a break between words for
-      the completer routine. The default value of this variable is the
-      characters which break words for completion in Bash.</p>
-    <p><u>Symbol macro</u> <code><b>*basic-quote-characters*</b></code>
-      &ndash; string</p>
-    <p>A list of quote characters which can cause a word break.</p>
-    <p><u>Symbol
-        macro</u> <code><b>*completer-word-break-characters*</b></code>
-        &ndash; string</p>
-    <p>The list of characters that signal a break between words
-      for <code>complete-internal</code>. The default list is the value
-      of <code>*basic-word-break-characters*</code>.</p>
-    <p><u>Symbol macro</u> <code><b>*completion-query-items*</b></code>
-      &ndash; integer</p>
-    <p>Up to this many items will be displayed in response to
-      a <code>possible-completions</code> call. After that, Readline asks
-      the user if she is sure she wants to see them all. The default value
-      is <code>100</code>. A negative value indicates that Readline should
-      never ask the user.</p>
-    <p><u>Symbol macro</u> <code><b>*completion-append-character*</b></code>
-      &ndash; character</p>
-    <p>When a single completion alternative matches at the end of the
-      command line, this character is appended to the inserted completion
-      text. The default is a space character. Setting this to the null
-      character prevents anything being appended automatically. This can be
-      changed in application-specific completion functions to provide the
-      'most sensible word separator character' according to an
-      application-specific command line syntax specification.</p>
-    <p><u>Symbol
-        macro</u> <code><b>*ignore-completion-duplicates*</b></code> &ndash;
-        Boolean</p>
-    <p>If non-<code>nil</code>, then duplicates in the matches are
-      removed. The default is <code>t</code>.</p>
-    <p><u>Symbol macro</u> <code><b>*sort-completion-matches*</b></code>
-      &ndash; Boolean</p>
-    <p>If an application sets this variable to <code>nil</code>, Readline
-      will not sort the list of completions (which implies that it cannot
-      remove any duplicate completions). The default value
-      is <code>t</code>, which means that Readline will sort the completions
-      and, depending on the value of
-      <code>*ignore-completion-duplicates*</code>, will attempt to remove
-      duplicate matches.</p>
-    <p><u>Symbol macro</u> <code><b>+completion-type+</b></code> &ndash;
-      keyword</p>
-    <p>Set to a keyword describing the type of completion Readline is
-      currently attempting. Acceptable values are:</p>
-    <ul>
-      <li><code>:standard-completion</code> tells Readline to do standard
-        completion;</li>
-      <li><code>:display-and-perform</code> means to display all possible
-        completions if there is more than one, as well as performing
-        partial completion;</li>
-      <li><code>:insert-all</code> means insert all possible
-        completions;</li>
-      <li><code>:list-all</code> means list the possible completions;</li>
-      <li><code>:not-list-cmn-prefix</code> is similar to
-        <code>:display-and-perform</code> but possible completions are not
-        listed if the possible completions share a common prefix.</li>
-    </ul>
-    <p><u>Symbol macro</u> <code><b>*inhibit-completion*</b></code> &ndash;
-      Boolean</p>
-    <p>If this variable is non-<code>nil</code>, completion is
-      inhibited. The completion character will be inserted as any other
-      bound to self-insert.</p>
-    <p><u>Function</u> <code><b>register-hook</b> hook function</code></p>
-    <p>Register a hook. <code>function</code> must be a function that takes
-      no arguments and returns <code>nil</code> on success
-      and <code>t</code> on failure. If <code>function</code>
-      is <code>nil</code>, hook will be removed (or default function will be
-      used). <code>hook</code> should be a keyword, one of the following:</p>
-    <ul>
-      <li><code>:startup</code> hook is called just
-        before <code>readline</code> prints the prompt.</li>
-      <li><code>:pre-input</code> hook is called after prompt has been
-        printed and just before <code>readline</code> starts reading input
-        characters.</li>
-      <li><code>:event</code> hook is called periodically when waiting for
-        terminal input. By default, this will be called at most ten times
-        a second if there is no keyboard input.</li>
-      <li><code>:signal</code> hook is called when a read system call is
-        interrupted when <code>readline</code> is reading terminal
-        input.</li>
-      <li><code>:inputp</code> hook is called when Readline need to
-        determine whether or not there is available input on the current
-        input source. If <code>function</code> returns <code>nil</code>,
-        it means that there is no available input.</li>
-      <li><code>:lsmatches</code> hook is called to display list of
-        completions. <code>function</code> must be able to take three
-        arguments: list of completions, length of the list, and length of
-        the longest completion in the list. It's up to the function how to
-        display these completions.</li>
-    </ul>
-    <p>Other values of <code>hook</code> will be ignored.</p>
-    <p><u>Function</u> <code><b>register-function</b> func
-        function</code></p>
-    <p>Register a function. <code>function</code> must be a function,
-      if <code>function</code> is <code>nil</code>, result is
-      unpredictable. <code>func</code> should be a keyword, one of the
-      following:</p>
-    <ul>
-      <li><code>:getc</code> function is used to get a character from the
-        input stream, thus <code>function</code> should take pointer to C
-        stream and return a character if this function is desired to be
-        registered. In general, an application that
-        registers <code>:getc</code> function should consider registering
-        <code>:inputp</code> hook as well
-        (see <code>register-hook</code>).</li>
-      <li><code>:redisplay</code> function is used to update the display
-        with the current contents of the editing buffer,
-        thus <code>function</code> should take no arguments and
-        return <code>nil</code> on success and non-<code>nil</code> of
-        failure. By default, it is set to <code>redisplay</code>, the
-        default Readline redisplay function.</li>
-      <li><code>:prep-term</code> function is used to initialize the
-        terminal, so <code>function</code> must be able to take one
-        argument, a flag that says whether or not to use eight-bit
-        characters. By default, <code>prep-terminal</code> is used.</li>
-      <li><code>:deprep-term</code> function is used to reset the
-        terminal. This function should undo the effects
-        of <code>:prep-term</code> function.</li>
-      <li><code>:complete</code> function is used to generate list of
-        possible completions for given partially entered word. The
-        function must be able to take three arguments: partially entered
-        word, start index of the word in <code>*line-buffer*</code>, and
-        end index of the word in the buffer. The function must return a
-        list where first element is the actual completion (or part of
-        completion if two or more completions share common prefix) and the
-        rest arguments are possible completions.</li>
-    </ul>
-    <p>Other values of <code>func</code> will be ignored.</p>
-    <p>[<a href="#0">contents</a>]</p>
-    <h2 id="4">4 Work with Keymaps</h2>
-    <p>Keymaps tell Readline which function should it invoke when the user
-      presses certain key. Readline provides some pre-existing keymaps and
-      let you create your own and modify existing ones.</p>
-    <p><u>Symbol macro</u> <code><b>+executing-keymap+</b></code> &ndash; C
-      pointer</p>
-    <p>This symbol macro is evaluated to the keymap in which the currently
-      executing Readline function was found.</p>
-    <p><u>Symbol macro</u> <code><b>+binding-keymap+</b></code> &ndash; C
-      pointer</p>
-    <p>This symbol macro is evaluated to the keymap in which the last key
-      binding occurred.</p>
-    <p><u>Function</u> <code><b>make-keymap</b> &amp;optional
-        bare</code></p>
-    <p>Return a new keymap with self-inserting printing characters, the
-      lowercase Meta characters bound to run their equivalents, and the Meta
-      digits bound to produce numeric arguments. If <code>bare</code> is
-      supplied and it's not <code>nil</code>, empty keymap will be
-      returned.</p>
-    <p><u>Function</u> <code><b>copy-keymap</b> keymap</code></p>
-    <p>Return a new keymap which is a copy of <code>keymap</code>.</p>
-    <p><u>Function</u> <code><b>free-keymap</b> keymap</code></p>
-    <p>Free all storage associated with <code>keymap</code>.</p>
-    <p><u>Function</u> <code><b>get-keymap</b></code></p>
-    <p>Returns currently active keymap.</p>
-    <p><u>Function</u> <code><b>set-keymap</b> keymap</code></p>
-    <p>Makes <code>keymap</code> currently active keymap.</p>
-    <p><u>Functoin</u> <code><b>get-keymap-by-name</b> name</code></p>
-    <p>Return the keymap matching <code>name</code>. <code>name</code> is
-      one which would be supplied in a set keymap inputrc line.</p>
-    <p><u>Macro</u> <code><b>with-new-keymap</b> form &amp;body
-        body</code></p>
-    <p>Create new keymap evaluating <code>form</code>, bind
-      symbol <code>keymap</code> to the result, then free it when control
-      flow leaves <code>body</code>. <code>make-keymap</code>
-      and <code>copy-keymap</code> can be used to produce new keymap.</p>
-    <p>[<a href="#0">contents</a>]</p>
-    <h2 id="5">5 Binding Keys</h2>
-    <p>Key sequences are associated with functions through the keymap. Here
-      are the function that may be of interest when working with
-      keymaps.</p>
-    <p><u>Symbol macro</u> <code><b>+executing-macro+</b></code> &ndash;
-      string</p>
-    <p>This symbol macro is evaluated to the text of any currently-executing
-      macro.</p>
-    <p><u>Symbol macro</u> <code><b>+executing-key+</b></code> &ndash;
-      character</p>
-    <p>The key that caused the dispatch to the currently-executing Readline
-      function.</p>
-    <p><u>Symbol macro</u> <code><b>+executing-keyseq+</b></code> &ndash;
-      string</p>
-    <p>The full key sequence that caused the dispatch to the
-      currently-executing Readline function.</p>
-    <p><u>Symbol macro</u> <code><b>+key-sequence-length+</b></code> &ndash;
-      integer</p>
-    <p>The number of characters in <code>+executing-keyseq+</code>.</p>
-    <p><u>Symbol macro</u> <code><b>+dispatching+</b></code> &ndash;
-      Boolean</p>
-    <p>Set to a non-<code>nil</code> value if a function is being called
-      from a key binding; <code>nil</code> otherwise. Application functions
-      can test this to discover whether they were called directly or by
-      Readline's dispatching mechanism.</p>
-    <p><u>Function</u> <code><b>add-defun</b> name function &amp;optional
-        key</code></p>
-    <p>Add <code>name</code> to the list of named
-      functions. Make <code>function</code> be the function that gets
-      called. If <code>key</code> is not <code>nil</code> and it's a
-      character, then bind it to function
-      using <code>bind-key</code>. <code>function</code> must be able to
-      take two arguments: integer representing its argument and character
-      representing key that has invoked it.</p>
-    <p><u>Function</u> <code><b>bind-key</b> key function &amp;key keymap
-        if-unbound</code></p>
-    <p>Binds <code>key</code> to <code>function</code> in the currently
-      active keymap. If <code>keymap</code> argument supplied, binding takes
-      place in specified keymap. If <code>if-unbound</code> is supplied and
-      it's not <code>nil</code>, <code>key</code> will be bound
-      to <code>function</code> only if it's not already bound.</p>
-    <p><u>Function</u> <code><b>unbind-key</b> key &amp;optional
-        keymap</code></p>
-    <p>Unbind <code>key</code>
-      in <code>keymap</code>. If <code>keymap</code> is not supplied or it's
-      <code>nil</code>, <code>key</code> will be unbound in currently active
-      keymap. The function returns <code>nil</code> on success
-      and <code>t</code> on failure.</p>
-    <p><u>Function</u> <code><b>unbind-command</b> command keymap</code></p>
-    <p>Unbind all keys that are bound to <code>command</code>
-      in <code>keymap</code>.</p>
-    <p><u>Function</u> <code><b>bind-keyseq</b> keyseq function &amp;key
-        keymap if-unbound</code></p>
-    <p>Bind the key sequence represented by the string <code>keyseq</code>
-      to the function <code>function</code>, beginning in the current
-      keymap. This makes new keymaps as necessary. If <code>keymap</code> is
-      supplied and it's not <code>nil</code>, initial bindings are performed
-      in <code>keymap</code>. If <code>if-unbound</code> is supplied and
-      it's not <code>nil</code>, <code>keyseq</code> will be bound to
-      <code>function</code> only if it's not already bound. The return value
-      is <code>t</code> if <code>keyseq</code> is invalid.</p>
-    <p><u>Function</u> <code><b>parse-and-bind</b> line</code></p>
-    <p>Parse <code>line</code> as if it had been read from the inputrc file
-      and perform any key bindings and variable assignments found.</p>
-    <p><u>Function</u> <code><b>read-init-file</b> filename</code></p>
-    <p>Read keybindings and variable assignments
-      from <code>filename</code>.</p>
-    <p>[<a href="#0">contents</a>]</p>
-    <h2 id="6">6 Associating Function Names and Bindings</h2>
-    <p>Note that this section is stripped-down. Many functions are
-      missing. It's because C functions take addresses of other functions as
-      arguments. In cl-readline we use dynamic generation of callbacks, so
-      once you have registered a new function, it's tricky to get its
-      identity. Note that this problem is solvable, but not without certain
-      hair. However, it shouldn't be a problem in most cases.</p>
-    <p><u>Function</u> <code><b>function-dumper</b> readable &amp;optional
-        filename append</code></p>
-    <p>Print the Readline function names and the key sequences currently
-      bound to them to stdout. If <code>readable</code> is
-      non-<code>nil</code>, the list is formatted in such a way that it can
-      be made part of an inputrc file and re-read. If <code>filename</code>
-      is supplied and it's a string or path, output will be redirected to
-      the file. <code>append</code> allows to append text to the file
-      instead of overwriting it.</p>
-    <p><u>Function</u> <code><b>list-funmap-names</b> &amp;optinal filename
-        append</code></p>
-    <p>Print the names of all bindable Readline functions to stdout. If
-      <code>filename</code> is supplied and it's a string or path, output
-      will be redirected to the file. <code>append</code> allows append text
-      to the file instead of overwriting it.</p>
-    <p><u>Function</u> <code><b>funmap-names</b></code></p>
-    <p>Return a list of known function names. The list is sorted.</p>
-    <p><u>Function</u> <code><b>add-funmap-entry</b> name
-        function</code></p>
-    <p>Add <code>name</code> to the list of bindable Readline command names,
-      and make <code>function</code> the function to be called when name is
-      invoked.</p>
-    <p>[<a href="#0">contents</a>]</p>
-    <h2 id="7">7 Allowing Undoing</h2>
-    <p>If your function simply inserts text once, or deletes text once, and
-      uses <code>insert-text</code> or <code>delete-text</code> to do it,
-      then undoing is already done for you automatically.</p>
-    <p>If you do multiple insertions or multiple deletions, or any
-      combination of these operations, you should group them together into
-      one operation. This is done with <code>undo-group</code> macro.</p>
-    <p><u>Function</u> <code><b>add-undo</b></code> what start end text</p>
-    <p>Remember how to undo an event (according to <code>what</code>). The
-      affected text runs from <code>start</code> to <code>end</code>, and
-      encompasses <code>text</code>. Possible values of <code>what</code>
-      include: <code>:undo-delete</code>, <code>:undo-insert</code>,
-      <code>:undo-begin</code>, and <code>:undo-end</code>.</p>
-    <p><u>Function</u> <code><b>free-undo-list</b></code></p>
-    <p>Free the existing undo list.</p>
-    <p><u>Function</u> <code><b>do-undo</b></code></p>
-    <p>Undo the first thing on the undo list. Returns <code>nil</code> if
-      there was nothing to undo, <code>t</code> if something was undone.</p>
-    <p><u>Function</u> <code><b>modifying</b> start end</code></p>
-    <p>Tell Readline to save the text between <code>start</code>
-      and <code>end</code> as a single undo unit. It is assumed that you
-      will subsequently modify that text.</p>
-    <p><u>Macro</u> <code><b>undo-group</b> &amp;body body</code></p>
-    <p>All insertion and deletion inside this macro will be grouped together
-      into one undo operation.</p>
-    <p>[<a href="#0">contents</a>]</p>
-    <h2 id="8">8 Redisplay</h2>
-    <p><u>Function</u> <code><b>redisplay</b></code></p>
-    <p>Change what's displayed on the screen to reflect the current contents
-      of <code>*line-buffer*</code>.</p>
-    <p><u>Function</u> <code><b>forced-update-display</b></code></p>
-    <p>Force the line to be updated and redisplayed, whether or not Readline
-      thinks the screen display is correct.</p>
-    <p><u>Function</u> <code><b>on-new-line</b> &amp;optional
-        with-prompt</code></p>
-    <p>Tell the update functions that we have moved onto a new (empty) line,
-      usually after outputting a newline. When <code>with-prompt</code> is not
-      <code>nil</code>, Readline will think that prompt is already
-      displayed. This could be used by applications that want to output the
-      prompt string themselves, but still need Readline to know the prompt
-      string length for redisplay. This should be used together with
-      <code>:already-prompted</code> keyword argument
-      of <code>readline</code>.</p>
-    <p><u>Function</u> <code><b>reset-line-state</b></code></p>
-    <p>Reset the display state to a clean state and redisplay the current
-      line starting on a new line.</p>
-    <p><u>Function</u> <code><b>cflr</b></code></p>
-    <p>Move the cursor to the start of the next screen line.</p>
-    <p><u>Function</u> <code><b>show-char</b> char</code></p>
-    <p>Display character <code>char</code> on outstream. If Readline has not
-      been set to display meta characters directly, this will convert meta
-      characters to a meta-prefixed key sequence. This is intended for use
-      by applications which wish to do their own redisplay.</p>
-    <p><u>Function</u> <code><b>set-prompt</b> prompt</code></p>
-    <p>Make Readline use <code>prompt</code> for subsequent redisplay. This
-      calls
-      <code>expand-prompt</code> to expand the prompt and
-      sets <code>+prompt+</code> to the result.</p>
-    <p><u>Macro</u> <code><b>with-message</b> message save-prompt &amp;body
-        body</code></p>
-    <p>Show message <code>message</code> in the echo area while executing
-      <code>body</code>. If <code>save-prompt</code> is
-      not <code>nil</code>, save prompt before showing the message and
-      restore it before clearing the message.</p>
-    <p>[<a href="#0">contents</a>]</p>
-    <h2 id="9">9 Modifying Text</h2>
-    <p><u>Function</u> <code><b>insert-text</b> text</code></p>
-    <p>Insert <code>text</code> into the line at the current cursor
-      position. Returns the number of characters inserted.</p>
-    <p><u>Function</u> <code><b>delete-text</b> start end</code></p>
-    <p>Delete the text between <code>start</code> and <code>end</code> in
-      the current line. Returns the number of characters deleted.</p>
-    <p><u>Function</u> <code><b>kill-text</b> start end</code></p>
-    <p>Copy the text between <code>start</code> and <code>end</code> in the
-      current line to the kill ring, appending or prepending to the last
-      kill if the last command was a kill command. The text is deleted. If
-      <code>start</code> is less than <code>end</code>, the text is
-      appended, otherwise prepended. If the last command was not a kill, a
-      new kill ring slot is used.</p>
-    <p>[<a href="#0">contents</a>]</p>
-    <h2 id="10">10 Character Input</h2>
-    <p><u>Function</u> <code><b>read-key</b></code></p>
-    <p>Return the next character available from Readline's current input
-      stream.</p>
-    <p><u>Function</u> <code><b>stuff-char</b> char</code></p>
-    <p>Insert <code>char</code> into the Readline input stream. It will be
-      'read' before Readline attempts to read characters from the terminal
-      with <code>read-key</code>. Up to <code>512</code> characters may be
-      pushed back. <code>stuff-char</code> returns <code>t</code> if the
-      character was successfully inserted; <code>nil</code> otherwise.</p>
-    <p><u>Function</u> <code><b>execute-next</b> char</code></p>
-    <p>Make <code>char</code> be the next command to be executed when
-      <code>read-key</code> is called.</p>
-    <p><u>Function</u> <code><b>clear-pending-input</b></code></p>
-    <p>Negate the effect of any previous call
-      to <code>execute-next</code>. This works only if the pending input has
-      not already been read with <code>read-key</code>.</p>
-    <p><u>Function</u> <code><b>set-keyboard-input-timeout</b> u</code></p>
-    <p>While waiting for keyboard input in <code>read-key</code>, Readline
-      will wait for <code>u</code> microseconds for input before calling any
-      function assigned to <code>event-hook</code>. <code>u</code> must be
-      greater than or equal to zero (a zero-length timeout is equivalent to
-      a poll). The default waiting period is one-tenth of a second. Returns
-      the old timeout value.</p>
-    <p>[<a href="#0">contents</a>]</p>
-    <h2 id="11">11 Terminal Management</h2>
-    <p><u>Function</u> <code><b>prep-terminal</b> eight-bit-input</code></p>
-    <p>Modify the terminal settings for Readline's use,
-      so <code>readline</code> can read a single character at a time from
-      the keyboard. The <code>eight-bit-input</code> argument should be
-      non-<code>nil</code> if Readline should read eight-bit input.</p>
-    <p><u>Function</u> <code><b>deprep-terminal</b></code></p>
-    <p>Undo the effects of <code>prep-terminal</code>, leaving the terminal
-      in the state in which it was before the most recent call to
-      <code>prep-terminal</code>.</p>
-    <p><u>Function</u> <code><b>tty-set-default-bindings</b>
-        keymap</code></p>
-    <p>Read the operating system's terminal editing characters (as would be
-      displayed by stty) to their Readline equivalents. The bindings are
-      performed in <code>keymap</code>.</p>
-    <p><u>Function</u> <code><b>tty-unset-default-bindings</b>
-        keymap</code></p>
-    <p>Reset the bindings manipulated
-      by <code>tty-set-default-bindings</code> so that the terminal editing
-      characters are bound to <code>insert</code>. The bindings are
-      performed in <code>keymap</code>.</p>
-    <p><u>Function</u> <code><b>reset-terminal</b> terminal</code></p>
-    <p>Reinitialize Readline's idea of the terminal settings using
-      <code>terminal</code> as the terminal type
-      (e.g., <code>"vt100"</code>).</p>
-    <p>[<a href="#0">contents</a>]</p>
-    <h2 id="12">12 Utility Functions</h2>
-    <p><u>Function</u> <code><b>replace-line</b> text clear-undo</code></p>
-    <p>Replace the contents of <code>*line-buffer*</code>
-      with <code>text</code>. The point and mark are preserved, if
-      possible. If <code>clear-undo</code> is non-<code>nil</code>, the undo
-      list associated with the current line is cleared.</p>
-    <p><u>Function</u> <code><b>extend-line-buffer</b> len</code></p>
-    <p>Ensure that line buffer has enough space to hold <code>len</code>
-      characters, possibly reallocating it if necessary.</p>
-    <p><u>Function</u> <code><b>initialize</b></code></p>
-    <p>Initialize or re-initialize Readline's internal state. It's not
-      strictly necessary to call this; <code>readline</code> calls it before
-      reading any input. cl-readline also makes sure that Readline is always
-      initialized when you use it.</p>
-    <p><u>Function</u> <code><b>ding</b></code></p>
-    <p>Ring the terminal bell, obeying the setting of bell-style.</p>
-    <p>[<a href="#0">contents</a>]</p>
-    <h2 id="13">13 Miscellaneous Functions</h2>
-    <p><u>Function</u> <code><b>macro-dumper</b> readable &amp;optional
-        filename append</code></p>
-    <p>Print the key sequences bound to macros and their values, using the
-      current keymap to stdout. If <code>readable</code> is
-      non-<code>nil</code>, the list is formatted in such a way that it can
-      be made part of an inputrc file and re-read. If <code>filename</code>
-      is supplied and it's a string or path, output will be redirected to
-      the file. <code>append</code> allows to append text to the file
-      instead of overwriting it.</p>
-    <p><u>Function</u> <code><b>variable-bind</b> variable value</code></p>
-    <p>Make the Readline variable <code>variable</code>
-      have <code>value</code>. This behaves as if the readline command 'set
-      variable value' had been executed in an inputrc file.</p>
-    <p><u>Function</u> <code><b>variable-value</b> variable</code></p>
-    <p>Return a string representing the value of the Readline variable
-      <code>variable</code>. For Boolean variables, this string is either
-      'on' or 'off'.</p>
-    <p><u>Function</u> <code><b>variable-dumper</b> readable &amp;optional
-        filename append</code></p>
-    <p>Print the readline variable names and their current values to
-      stdout. If readable is not <code>nil</code>, the list is formatted in
-      such a way that it can be made part of an inputrc file and re-read. If
-      <code>filename</code> is supplied and it's a string or path, output
-      will be redirected to the file. <code>append</code> allows to append
-      text to the file instead of overwriting it.</p>
-    <p><u>Function</u> <code><b>set-paren-blink-timeout</b>
-        micros</code></p>
-    <p>Set the time interval (in microseconds) that Readline waits when
-      showing a balancing character when 'blink-matching-paren' has been
-      enabled. The function returns previous value of the parameter.</p>
-    <p><u>Function</u> <code><b>clear-history</b></code></p>
-    <p>Clear the history list by deleting all of the entries.</p>
-    <p>[<a href="#0">contents</a>]</p>
-    <h2 id="14">14 Signal Handling</h2>
-    <p>Signals are asynchronous events sent to a process by the Unix kernel,
-      sometimes on behalf of another process. They are intended to indicate
-      exceptional events, like a user pressing the interrupt key on his
-      terminal, or a network connection being broken. There is a class of
-      signals that can be sent to the process currently reading input from
-      the keyboard. Since Readline changes the terminal attributes when it
-      is called, it needs to perform special processing when such a signal
-      is received in order to restore the terminal to a sane state, or
-      provide application writers with functions to do so manually.</p>
-    <p>Readline contains an internal signal handler that is installed for a
-      number of signals (SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM, SIGTSTP,
-      SIGTTIN, and SIGTTOU). When one of these signals is received, the
-      signal handler will reset the terminal attributes to those that were
-      in effect before <code>readline</code> was called, reset the signal
-      handling to what it was before <code>readline</code> was called, and
-      resend the signal to the calling application. If and when the calling
-      application's signal handler returns, Readline will reinitialize the
-      terminal and continue to accept input. When a SIGINT is received, the
-      Readline signal handler performs some additional work, which will
-      cause any partially-entered line to be aborted (see the description of
-      <code>free-line-state</code> below).</p>
-    <p>There is an additional Readline signal handler, for SIGWINCH, which
-      the kernel sends to a process whenever the terminal's size changes
-      (for example, if a user resizes an xterm). The Readline SIGWINCH
-      handler updates Readline's internal screen size information, and then
-      calls any SIGWINCH signal handler the calling application has
-      installed. Readline calls the application's SIGWINCH signal handler
-      without resetting the terminal to its original state. If the
-      application's signal handler does more than update its idea of the
-      terminal size and return (for example, a longjmp back to a main
-      processing loop), it must call <code>cleanup-after-signal</code>
-      (described below), to restore the terminal state.</p>
-    <p>Readline provides two variables that allow application writers to
-      control whether or not it will catch certain signals and act on them
-      when they are received. It is important that applications change the
-      values of these variables only when calling <code>readline</code>, not
-      in a signal handler, so Readline's internal signal state is not
-      corrupted.</p>
-    <p><u>Symbol macro</u> <code><b>*catch-signals*</b></code> &ndash;
-        Boolean</p>
-    <p>If this variable is non-<code>nil</code>, Readline will install
-      signal handlers for SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM,
-      SIGTSTP, SIGTTIN, and SIGTTOU. The default value
-      of <code>*catch-signals*</code> is <code>t</code>.</p>
-    <p><u>Symbol macro</u> <code><b>*catch-sigwinch*</b></code></p>
-    <p>If this variable is set to a non-<code>nil</code> value, Readline
-      will install a signal handler for SIGWINCH. The default value
-      of <code>*catch-sigwinch*</code> is <code>t</code>.</p>
-    <p><u>Symbol macro</u> <code><b>*change-environment*</b></code></p>
-    <p>If this variable is set to a non-<code>nil</code> value, and Readline
-      is handling SIGWINCH, Readline will modify the LINES and COLUMNS
-      environment variables upon receipt of a SIGWINCH. The default value
-      of <code>*change-environment*</code> is <code>t</code>.</p>
-    <p><u>Function</u> <code><b>cleanup-after-signal</b></code></p>
-    <p>This function will reset the state of the terminal to what it was
-      before <code>readline</code> was called, and remove the Readline
-      signal handlers for all signals, depending on the values of
-      <code>*catch-signals*</code> and <code>*catch-sigwinch*</code>.</p>
-    <p><u>Function</u> <code><b>free-line-state</b></code></p>
-    <p>This will free any partial state associated with the current input
-      line (undo information, any partial history entry, any
-      partially-entered keyboard macro, and any partially-entered numeric
-      argument). This should be called
-      before <code>cleanup-after-signal</code>. The Readline signal handler
-      for SIGINT calls this to abort the current input line.</p>
-    <p><u>Function</u> <code><b>reset-after-signal</b></code></p>
-    <p>This will reinitialize the terminal and reinstall any Readline signal
-      handlers, depending on the values of <code>*catch-signals*</code> and
-      <code>*catch-sigwinch*</code>.</p>
-    <p><u>Function</u> <code><b>echo-signal-char</b> sig</code></p>
-    <p>If an application wishes to install its own signal handlers, but
-      still have readline display characters that generate signals, calling
-      this function with <code>SIG</code> set to <code>:sigint</code>,
-      <code>:sigquit</code>, or <code>:sigtstp</code> will display the
-      character generating that signal.</p>
-    <p><u>Function</u> <code><b>resize-terminal</b></code></p>
-    <p>Update Readline's internal screen size by reading values from the
-      kernel.</p>
-    <p><u>Function</u> <code><b>set-screen-size</b> rows cols</code></p>
-    <p>Set Readline's idea of the terminal size to <code>rows</code> rows
-      and <code>cols</code> columns. If either rows or columns is less than
-      or equal to <code>0</code>, Readline's idea of that terminal dimension
-      is unchanged.</p>
-    <p><u>Function</u> <code><b>get-screen-size</b></code></p>
-    <p>Return Readline's idea of the terminal's size. The function returns
-      multiple values: rows and cols.</p>
-    <p><u>Function</u> <code><b>reset-screen-size</b></code></p>
-    <p>Cause Readline to reobtain the screen size and recalculate its
-      dimensions.</p>
-    <p><u>Function</u> <code><b>set-signals</b></code></p>
-    <p>Install Readline's signal handler for SIGINT, SIGQUIT, SIGTERM,
-      SIGHUP, SIGALRM, SIGTSTP, SIGTTIN, SIGTTOU, and SIGWINCH, depending on
-      the values of <code>*catch-signals*</code>
-      and <code>*catch-sigwinch*</code>.</p>
-    <p><u>Function</u> <code><b>clear-signals</b></code></p>
-    <p>Remove all of the Readline signal handlers installed by
-      <code>set-signals</code>.</p>
-    <p>[<a href="#0">contents</a>]</p>
-    <h2 id="15">15 Example</h2>
-    <p>This program demonstrates some basic capacities of cl-readline. Note
-      that you should run it on terminal, not via SLIME.</p>
-    <pre>;;; Load some systems and define a package...
+Copyright (C) 2015 Mark Karpov, Brian Fox, Chet Ramey
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License".
+
+
+ -->
+<!-- Created on January 18, 2015 by texi2html 5.0
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>cl-readline Library</title>
+
+<meta name="description" content="cl-readline Library">
+<meta name="keywords" content="cl-readline Library">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 5.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:pre}
+span.nolinebreak {white-space:pre}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<h1>cl-readline Library</h1>
+<h3 align="right">Edition 0.1.0, for <code>cl-readline Library</code> Version 0.1.0.</h3>
+<h3 align="right">January 2015</h3>
+<strong>Mark Karpov, Brian Fox, Chet Ramey</strong><br>
+
+
+<p>This manual describes the cl-readline Library (version
+0.1.0, 18 January 2015), bindings to GNU Readline Library.
+</p>
+<p>This documentation is derived from original GNU Readline documentation
+by Brian Fox and Chet Ramey.
+</p>
+<p>Copyright &copy; 2015 Mark Karpov, Brian Fox, Chet Ramey
+</p>
+<blockquote>
+<p>Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.  A
+copy of the license is included in the section entitled &ldquo;GNU Free
+Documentation License&rdquo;.
+</p>
+</blockquote>
+
+<hr>
+<a name="Top"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[ &lt; ]</td>
+<td valign="middle" align="left">[<a href="#Basic-Functionality" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="cl_002dreadline-Library"></a>
+<h1 class="top">cl-readline Library</h1>
+
+<p>This document describes cl-readline library, bindings to GNU Readline
+library. This program is distributed under GNU General Public License,
+version 3.
+</p>
+<p>All symbols described in this document live in <code>cl-readline</code>
+package, it has the following nicknames: <code>rl</code>.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> Most basic functions and symbol macros.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> How to change behavior of cl-readline.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Work-with-Keymaps">3 Work with Keymaps</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> Modify existing keymaps and create new ones.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Binding-Keys">4 Binding Keys</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> How to change keymaps.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Associating-Function-Names-and-Bindings">5 Associating Function Names and Bindings</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> Translate function names
+to key sequences.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Allowing-Undoing">6 Allowing Undoing</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> How to make your functions undoable.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Redisplay">7 Redisplay</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> Functions to control line display.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Modifying-Text">8 Modifying Text</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> Functions to modify <var>*line-buffer*</var>.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Character-Input">9 Character Input</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> Functions to read keyboard input.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Terminal-Management">10 Terminal Management</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> Functions to manage terminal settings.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Utility-Functions">11 Utility Functions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> Generally useful functions.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Miscellaneous-Functions">12 Miscellaneous Functions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> Functions that don&rsquo;t fall into any
+category.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Signal-Handling">13 Signal Handling</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> How Readline behaves when it receives signals.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Example">14 Example</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> A complete example of cl-readline use.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#GNU-Free-Documentation-License">Appendix A GNU Free Documentation License</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> License for copying this manual.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Concept-Index">Concept Index</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top"> Index of concepts described in this manual.
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Function-and-Variable-Index">Function and Variable Index</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">	Index of externally visible functions
+and variables.
+</td></tr>
+</table>
+
+<hr size="6">
+<a name="Basic-Functionality"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Top" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Hooks-and-Custom-Functions" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Hooks-and-Custom-Functions" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Basic-Functionality-1"></a>
+<h1 class="chapter">1 Basic Functionality</h1>
+
+<p>This section describes most basic functions and symbol-macros that
+represent underlying C variables. For every symbol macro we give data
+type it evaluates to. If name of a symbol macro is enclosed in plus
+signs (for example, <var>+prompt+</var>), it means that you should not
+(and, in fact, cannot) modify its value. Other symbol macros are
+setfable and you can set their values with <code>setf</code> macro.
+</p>
+<dl>
+<dt><a name="index-_002aline_002dbuffer_002a"></a>Symbol Macro: <strong>*line-buffer*</strong></dt>
+<dd><p>String. This is the line gathered so far. You are welcome to modify
+the contents of the line, but remember about undoing (see section <a href="#Allowing-Undoing">Allowing Undoing</a>). The function <code>extend-line-buffer</code> is available to
+increase the memory allocated to <var>*line-buffer*</var>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002apoint_002a"></a>Symbol Macro: <strong>*point*</strong></dt>
+<dd><p>Integer. The offset of the current cursor position in
+<var>*line-buffer*</var> (the point).
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002amark_002a"></a>Symbol Macro: <strong>*mark*</strong></dt>
+<dd><p>Integer. The mark (saved position) in the current line. If set, the
+mark and point define a region.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002adone_002a"></a>Symbol Macro: <strong>*done*</strong></dt>
+<dd><p>Boolean. Setting this to a non-<code>nil</code> value causes Readline to
+return the current line immediately.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002bprompt_002b"></a>Symbol Macro: <strong>+prompt+</strong></dt>
+<dd><p>String. The prompt Readline uses. This is set from the argument to
+<code>readline</code>, and should not be assigned to directly. The
+<code>set-prompt</code> function may be used to modify the prompt string
+after calling <code>readline</code>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002bdisplay_002dprompt_002b"></a>Symbol Macro: <strong>+display-prompt+</strong></dt>
+<dd><p>String. The string displayed as the prompt. This is usually identical
+to <var>+prompt+</var>, but may be changed temporarily by functions that
+use the prompt string as a message area, such as incremental search.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002blibrary_002dversion_002b"></a>Symbol Macro: <strong>+library-version+</strong></dt>
+<dd><p>String. The version number of this revision of the library.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002breadline_002dversion_002b"></a>Symbol Macro: <strong>+readline-version+</strong></dt>
+<dd><p>Two integer values. Major and minor version numbers of Readline
+library.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002bgnu_002dreadline_002dp_002b"></a>Symbol Macro: <strong>+gnu-readline-p+</strong></dt>
+<dd><p>Boolean. Always evaluated to <code>t</code>, denoting that this is GNU
+readline rather than some emulation.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002areadline_002dname_002a"></a>Symbol Macro: <strong>*readline-name*</strong></dt>
+<dd><p>String. This symbol-macro should be set to a unique name by each
+application using Readline. The value allows conditional parsing of
+the inputrc file.
+</p></dd></dl>
+
+<a name="index-readline-state"></a>
+
+<dl>
+<dt><a name="index-_002breadline_002dstate_002b"></a>Symbol Macro: <strong>+readline-state+</strong></dt>
+<dd><p>List of keywords. This symbol macro is evaluated to a list containing
+keywords that denote state of Readline. The following flags are used:
+</p><ul>
+<li>
+<code>:initializing</code> &ndash; initializing;
+</li><li>
+<code>:initialized</code> &ndash; initialization done;
+</li><li>
+<code>:termprepped</code> &ndash; terminal is prepped;
+</li><li>
+<code>:readcmd</code> &ndash; reading a command key;
+</li><li>
+<code>:metanext</code> &ndash; reading input after ESC;
+</li><li>
+<code>:dispatching</code> &ndash; dispatching to a command;
+</li><li>
+<code>:moreinput</code> &ndash; reading more input in a command function;
+</li><li>
+<code>:isearch</code> &ndash; doing incremental search;
+</li><li>
+<code>:nsearch</code> &ndash; doing non-incremental search;
+</li><li>
+<code>:search</code> &ndash; doing a history search;
+</li><li>
+<code>:numericarg</code> &ndash; reading numeric argument;
+</li><li>
+<code>:macroinput</code> &ndash; getting input from a macro;
+</li><li>
+<code>:macrodef</code> &ndash; defining keyboard macro;
+</li><li>
+<code>:overwrite</code> &ndash; overwrite mode;
+</li><li>
+<code>:completing</code> &ndash; doing completion;
+</li><li>
+<code>:sighandler</code> &ndash; in readline sighandler;
+</li><li>
+<code>:undoing</code> &ndash; doing a undo;
+</li><li>
+<code>:inputpending</code> &ndash; <code>execute-next</code> called;
+</li><li>
+<code>:ttycsaved</code> &ndash; tty special chars saved;
+</li><li>
+<code>:callback</code> &ndash; using the callback interface;
+</li><li>
+<code>:vimotion</code> &ndash; reading vi motion argument;
+</li><li>
+<code>:multikey</code> &ndash; reading multiple-key command;
+</li><li>
+<code>:vicmdonce</code> &ndash; entered vi command at least once;
+</li><li>
+<code>:redisplaying</code> &ndash; undating terminal display;
+</li><li>
+<code>:done</code> &ndash; done; accepted line.
+</li></ul>
+</dd></dl>
+
+<dl>
+<dt><a name="index-_002bediting_002dmode_002b"></a>Symbol macro: <strong>+editing-mode+</strong></dt>
+<dd><p>Keyword. Evaluated to keyword denoting actual editing mode:
+<code>:emacs</code> or <code>:vi</code>.
+</p></dd></dl>
+
+<a name="index-readline_002c-function"></a>
+
+<dl>
+<dt><a name="index-readline"></a>Function: <strong>readline</strong><em> <code>&amp;key</code> prompt already-prompted num-chars erase-empty-line add-history novelty-check</em></dt>
+<dd><p>Get a line from user with editing. <var>prompt</var>, if supplied, is
+printed before reading of input. Non-<code>nil</code> value of
+<var>already-prompted</var> will tell Readline that the application has
+printed prompt already. However, <var>prompt</var> must be supplied in this
+case too, so redisplay functions can update the display properly. If
+<var>num-chars</var> argument is a positive number, Readline will return
+after accepting that many characters. If <var>erase-empty-line</var> is not
+<code>nil</code>, <code>readline</code> will completely erase the current line,
+including any prompt, any time a newline is typed as the only
+character on an otherwise-empty line. The cursor is moved to the
+beginning of the newly-blank line. Supplying <var>add-history</var> tells
+Readline that user&rsquo;s input should be added to history. However, blank
+lines don&rsquo;t get into history anyway. <var>novelty-check</var>, if supplied,
+must be a predicate that takes two strings: the actual line and the
+most recent history line. Only when the predicate evaluates to
+non-<code>nil</code> value new line will be added to the history. Return
+value on success is the actual string and <code>nil</code> on failure.
+</p></dd></dl>
+
+<hr>
+<a name="Hooks-and-Custom-Functions"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Basic-Functionality" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Basic-Functionality" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Work-with-Keymaps" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Work-with-Keymaps" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Hooks-and-Custom-Functions-1"></a>
+<h1 class="chapter">2 Hooks and Custom Functions</h1>
+
+<p>cl-readline provides ways to register custom functions, so you can
+rewrite some parts of Readline library in Lisp.
+</p>
+<dl>
+<dt><a name="index-_002abasic_002dword_002dbreak_002dcharacters_002a"></a>Symbol macro: <strong>*basic-word-break-characters*</strong></dt>
+<dd><p>String. The basic list of characters that signal a break between words
+for the completer routine. The default value of this variable is the
+characters which break words for completion in Bash.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002abasic_002dquote_002dcharacters_002a"></a>Symbol macro: <strong>*basic-quote-characters*</strong></dt>
+<dd><p>String. A list of quote characters which can cause a word break.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002acompleter_002dword_002dbreak_002dcharacters_002a"></a>Symbol macro: <strong>*completer-word-break-characters*</strong></dt>
+<dd><p>String. The list of characters that signal a break between words for
+<code>complete-internal</code>. The default list is the value of
+<var>*basic-word-break-characters*</var>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002acompletion_002dquery_002ditems_002a"></a>Symbol macro: <strong>*completion-query-items*</strong></dt>
+<dd><p>Up to this many items will be displayed in response to a
+<code>possible-completions</code> call. After that, Readline asks the user
+if she is sure she wants to see them all. The default value is
+<code>100</code>. A negative value indicates that Readline should never ask
+the user.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002acompletion_002dappend_002dcharacter_002a"></a>Symbol macro: <strong>*completion-append-character*</strong></dt>
+<dd><p>Character. When a single completion alternative matches at the end of
+the command line, this character is appended to the inserted
+completion text. The default is a space character. Setting this to the
+null character prevents anything being appended automatically. This
+can be changed in application-specific completion functions to provide
+the &rsquo;most sensible word separator character&rsquo; according to an
+application-specific command line syntax specification.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002aignore_002dcompletion_002dduplicates_002a"></a>Symbol macro: <strong>*ignore-completion-duplicates*</strong></dt>
+<dd><p>Boolean. If non-<code>nil</code>, then duplicates in the matches are
+removed. The default is <code>t</code>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002asort_002dcompletion_002dmatches_002a"></a>Symbol macro: <strong>*sort-completion-matches*</strong></dt>
+<dd><p>Boolean. If an application sets this variable to <code>nil</code>, Readline
+will not sort the list of completions (which implies that it cannot
+remove any duplicate completions). The default value is <code>t</code>,
+which means that Readline will sort the completions and, depending on
+the value of <var>*ignore-completion-duplicates*</var>, will attempt to
+remove duplicate matches.
+</p></dd></dl>
+
+<a name="index-completion-types"></a>
+
+<dl>
+<dt><a name="index-_002bcompletion_002dtype_002b"></a>Symbol macro: <strong>+completion-type+</strong></dt>
+<dd><p>Keyword. Set to a keyword describing the type of completion Readline
+is currently attempting. Possible values are:
+</p><ul>
+<li>
+<code>:standard-completion</code> tells Readline to do standard completion;
+</li><li>
+<code>:display-and-perform</code> means to display all possible completions
+if there is more than one, as well as performing partial completion;
+</li><li>
+<code>:insert-all</code> means insert all possible completions;
+</li><li>
+<code>:list-all</code> means list the possible completions;
+</li><li>
+<code>:not-list-cmn-prefix</code> is similar to <code>:display-and-perform</code>
+but possible completions are not listed if the possible completions
+share a common prefix.
+</li></ul>
+</dd></dl>
+
+<dl>
+<dt><a name="index-_002ainhibit_002dcompletion_002a"></a>Symbol macro: <strong>*inhibit-completion*</strong></dt>
+<dd><p>Boolean. If this variable is non-<code>nil</code>, completion is
+inhibited. The completion character will be inserted as any other
+bound to self-insert.
+</p></dd></dl>
+
+<a name="index-hooks"></a>
+
+<dl>
+<dt><a name="index-register_002dhook"></a>Function: <strong>register-hook</strong><em> hook function</em></dt>
+<dd><p>Register a hook. <var>function</var> must be a function that takes no
+arguments and returns <code>nil</code> on success and <code>t</code> on
+failure. If <var>function</var> is <code>nil</code>, hook will be removed (or
+default function will be used). <var>hook</var> should be a keyword, one of
+the following:
+</p><ul>
+<li>
+<code>:startup</code> hook is called just before <code>readline</code> prints the
+prompt.
+</li><li>
+<code>:pre-input</code> hook is called after prompt has been printed and
+just before <code>readline</code> starts reading input characters.
+</li><li>
+<code>:event</code> hook is called periodically when waiting for terminal
+input. By default, this will be called at most ten times a second if
+there is no keyboard input.
+</li><li>
+<code>:signal</code> hook is called when a read system call is interrupted
+when <code>readline</code> is reading terminal input.
+</li><li>
+<code>:inputp</code> hook is called when Readline need to determine whether
+or not there is available input on the current input source. If
+<var>function</var> returns <code>nil</code>, it means that there is no available
+input.
+</li><li>
+<code>:lsmatches</code> hook is called to display list of
+completions. <var>function</var> must be able to take three arguments: list
+of completions, length of the list, and length of the longest
+completion in the list. It&rsquo;s up to the function how to display these
+completions.
+</li></ul>
+<p>Other values of <var>hook</var> will be ignored.
+</p></dd></dl>
+
+<a name="index-custom-functions"></a>
+
+<dl>
+<dt><a name="index-register_002dfunction"></a>Function: <strong>register-function</strong><em> func function</em></dt>
+<dd><p>Register a function. <var>function</var> must be a function, if
+<var>function</var> is <code>nil</code>, result is unpredictable. <var>func</var>
+should be a keyword, one of the following:
+</p><ul>
+<li>
+<code>:getc</code> function is used to get a character from the input
+stream, thus <var>function</var> should take pointer to C stream and return
+a character if this function is desired to be registered. In general,
+an application that registers <code>:getc</code> function should consider
+registering <code>:inputp</code> hook as well (see <code>register-hook</code>).
+</li><li>
+<code>:redisplay</code> function is used to update the display with the
+current contents of the editing buffer, thus <var>function</var> should
+take no arguments and return <code>nil</code> on success and non-<code>nil</code>
+of failure. By default, it is set to <code>redisplay</code>, the default
+Readline redisplay function.
+</li><li>
+<code>:prep-term</code> function is used to initialize the terminal, so
+<var>function</var> must be able to take one argument, a flag that says
+whether or not to use eight-bit characters. By default,
+<code>prep-terminal</code> is used.
+</li><li>
+<code>:deprep-term</code> function is used to reset the terminal. This
+function should undo the effects of <code>:prep-term</code> function.
+</li><li>
+<code>:complete</code> function is used to generate list of possible
+completions for given partially entered word. The function must be
+able to take three arguments: partially entered word, start index of
+the word in <var>*line-buffer*</var>, and end index of the word in the
+buffer. The function must return a list where first element is the
+actual completion (or part of completion if two or more completions
+share common prefix) and the rest arguments are possible completions.
+</li></ul>
+<p>Other values of <var>func</var> will be ignored.
+</p></dd></dl>
+
+<hr>
+<a name="Work-with-Keymaps"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Hooks-and-Custom-Functions" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Hooks-and-Custom-Functions" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Binding-Keys" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Binding-Keys" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Work-with-Keymaps-1"></a>
+<h1 class="chapter">3 Work with Keymaps</h1>
+
+<a name="index-keymaps"></a>
+
+<p>Keymaps tell Readline which function should it invoke when the user
+presses certain key. Readline provides some pre-existing keymaps and
+let you create your own and modify existing ones.
+</p>
+<dl>
+<dt><a name="index-_002bexecuting_002dkeymap_002b"></a>Symbol macro: <strong>+executing-keymap+</strong></dt>
+<dd><p>C pointer. This symbol macro is evaluated to the keymap in which the
+currently executing Readline function was found.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002bbinding_002dkeymap_002b"></a>Symbol macro: <strong>+binding-keymap+</strong></dt>
+<dd><p>C pointer. This symbol macro is evaluated to the keymap in which the
+last key binding occurred.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-make_002dkeymap"></a>Function: <strong>make-keymap</strong><em> <code>&amp;optional</code> bare</em></dt>
+<dd><p>Return a new keymap with self-inserting printing characters, the
+lowercase Meta characters bound to run their equivalents, and the Meta
+digits bound to produce numeric arguments. If <var>bare</var> is supplied
+and it&rsquo;s not <code>nil</code>, empty keymap will be returned.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-copy_002dkeymap"></a>Function: <strong>copy-keymap</strong><em> keymap</em></dt>
+<dd><p>Return a new keymap which is a copy of <var>keymap</var>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-free_002dkeymap"></a>Function: <strong>free-keymap</strong><em> keymap</em></dt>
+<dd><p>Free all storage associated with <var>keymap</var>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-get_002dkeymap"></a>Function: <strong>get-keymap</strong></dt>
+<dd><p>Return currently active keymap.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-set_002dkeymap"></a>Function: <strong>set-keymap</strong><em> keymap</em></dt>
+<dd><p>Make <var>keymap</var> currently active keymap.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-get_002dkeymap_002dby_002dname"></a>Function: <strong>get-keymap-by-name</strong><em> name</em></dt>
+<dd><p>Return the keymap matching <var>name</var>. <var>name</var> is one which would
+be supplied in a set keymap inputrc line.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-with_002dnew_002dkeymap"></a>Macro: <strong>with-new-keymap</strong><em> form <code>&amp;body</code> body</em></dt>
+<dd><p>Create new keymap evaluating <var>form</var>, bind symbol <code>keymap</code> to
+the result, then free it when control flow leaves
+<var>body</var>. <code>make-keymap</code> and <code>copy-keymap</code> can be used to
+produce new keymap.
+</p></dd></dl>
+
+<hr>
+<a name="Binding-Keys"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Work-with-Keymaps" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Work-with-Keymaps" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Associating-Function-Names-and-Bindings" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Associating-Function-Names-and-Bindings" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Binding-Keys-1"></a>
+<h1 class="chapter">4 Binding Keys</h1>
+
+<p>Key sequences are associated with functions through the keymap. Here
+are the functions that may be of interest when working with keymaps.
+</p>
+<dl>
+<dt><a name="index-_002bexecuting_002dmacro_002b"></a>Symbol macro: <strong>+executing-macro+</strong></dt>
+<dd><p>String. This symbol macro is evaluated to the text of any
+currently-executing macro.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002bexecuting_002dkey_002b"></a>Symbol macro: <strong>+executing-key+</strong></dt>
+<dd><p>Character. The key that caused the dispatch to the currently-executing
+Readline function.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002bexecuting_002dkeyseq_002b"></a>Symbol macro: <strong>+executing-keyseq+</strong></dt>
+<dd><p>String. The full key sequence that caused the dispatch to the
+currently-executing Readline function.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002bkey_002dsequence_002dlength_002b"></a>Symbol macro: <strong>+key-sequence-length+</strong></dt>
+<dd><p>Integer. The number of characters in <var>+executing-keyseq+</var>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002bdispatching_002b"></a>Symbol macro: <strong>+dispatching+</strong></dt>
+<dd><p>Boolean. Set to a non-<code>nil</code> value if a function is being called
+from a key binding; <code>nil</code> otherwise. Application functions can
+test this to discover whether they were called directly or by
+Readline&rsquo;s dispatching mechanism.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-add_002ddefun"></a>Function: <strong>add-defun</strong><em> name function <code>&amp;optional</code> key</em></dt>
+<dd><p>Add <var>name</var> to the list of named functions. Make <var>function</var> be
+the function that gets called. If <var>key</var> is not <code>nil</code> and it&rsquo;s
+a character, then bind it to function using
+<code>bind-key</code>. <var>function</var> must be able to take two arguments:
+integer representing its argument and character representing key that
+has invoked it.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-bind_002dkey"></a>Function: <strong>bind-key</strong><em> key function <code>&amp;key</code> keymap if-unbound</em></dt>
+<dd><p>Binds <var>key</var> to <var>function</var> in the currently active keymap. If
+<var>keymap</var> argument supplied, binding takes place in specified
+keymap. If <var>if-unbound</var> is supplied and it&rsquo;s not <code>nil</code>,
+<var>key</var> will be bound to <var>function</var> only if it&rsquo;s not already
+bound.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-unbind_002dkey"></a>Function: <strong>unbind-key</strong><em> key <code>&amp;optional</code> keymap</em></dt>
+<dd><p>Unbind <var>key</var> in <var>keymap</var>. If <var>keymap</var> is not supplied or
+it&rsquo;s <code>nil</code>, <var>key</var> will be unbound in currently active
+keymap. The function returns <code>nil</code> on success and <code>t</code> on
+failure.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-unbind_002dcommand"></a>Function: <strong>unbind-command</strong><em> command keymap</em></dt>
+<dd><p>Unbind all keys that are bound to <var>command</var> in <var>keymap</var>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-bind_002dkeyseq"></a>Function: <strong>bind-keyseq</strong><em> keyseq function <code>&amp;key</code> keymap if-unbound</em></dt>
+<dd><p>Bind the key sequence represented by the string <var>keyseq</var> to the
+function <var>function</var>, beginning in the current keymap. This makes
+new keymaps as necessary. If <var>keymap</var> is supplied and it&rsquo;s not
+<code>nil</code>, initial bindings are performed in <var>keymap</var>. If
+<var>if-unbound</var> is supplied and it&rsquo;s not <code>nil</code>, <var>keyseq</var>
+will be bound to <var>function</var> only if it&rsquo;s not already bound. The
+return value is <code>t</code> if <var>keyseq</var> is invalid and <code>nil</code>
+otherwise.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-parse_002dand_002dbind"></a>Function: <strong>parse-and-bind</strong><em> line</em></dt>
+<dd><p>Parse <var>line</var> as if it had been read from the inputrc file and
+perform any key bindings and variable assignments found.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-read_002dinit_002dfile"></a>Function: <strong>read-init-file</strong><em> filename</em></dt>
+<dd><p>Read keybindings and variable assignments from <var>filename</var>.
+</p></dd></dl>
+
+<hr>
+<a name="Associating-Function-Names-and-Bindings"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Binding-Keys" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Binding-Keys" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Allowing-Undoing" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Allowing-Undoing" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Associating-Function-Names-and-Bindings-1"></a>
+<h1 class="chapter">5 Associating Function Names and Bindings</h1>
+
+<p>Note that this section is stripped-down. Many functions are
+missing. It&rsquo;s because C functions take addresses of other functions as
+arguments. In cl-readline we use dynamic generation of callbacks, so
+once you have registered a new function, it&rsquo;s tricky to get its
+identity. Note that this problem is solvable, but not without certain
+hair. However, it shouldn&rsquo;t be a problem in most cases.
+</p>
+<dl>
+<dt><a name="index-function_002ddumper"></a>Function: <strong>function-dumper</strong><em> readable <code>&amp;optional</code> filename append</em></dt>
+<dd><p>Print the Readline function names and the key sequences currently
+bound to them to stdout. If <var>readable</var> is non-<code>nil</code>, the list
+is formatted in such a way that it can be made part of an inputrc file
+and re-read. If <var>filename</var> is supplied and it&rsquo;s a string or path,
+output will be redirected to the file. <var>append</var> allows to append
+text to the file instead of overwriting it.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-list_002dfunmap_002dnames"></a>Function: <strong>list-funmap-names</strong><em> <code>&amp;optional</code> filename append</em></dt>
+<dd><p>Print the names of all bindable Readline functions to stdout. If
+<var>filename</var> is supplied and it&rsquo;s a string or path, output will be
+redirected to the file. <var>append</var> allows append text to the file
+instead of overwriting it.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-funmap_002dnames"></a>Function: <strong>funmap-names</strong></dt>
+<dd><p>Return a list of known function names. The list is sorted.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-add_002dfunmap_002dentry"></a>Function: <strong>add-funmap-entry</strong><em> name function</em></dt>
+<dd><p>Add <var>name</var> to the list of bindable Readline command names, and
+make <var>function</var> the function to be called when name is invoked.
+</p></dd></dl>
+
+<hr>
+<a name="Allowing-Undoing"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Associating-Function-Names-and-Bindings" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Associating-Function-Names-and-Bindings" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Redisplay" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Redisplay" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Allowing-Undoing-1"></a>
+<h1 class="chapter">6 Allowing Undoing</h1>
+
+<a name="index-undoing"></a>
+
+<p>If your function simply inserts text once, or deletes text once, and
+uses <code>insert-text</code> or <code>delete-text</code> to do it, then undoing
+is already done for you automatically.
+</p>
+<p>If you do multiple insertions or multiple deletions, or any
+combination of these operations, you should group them together into
+one operation. This is done with <code>undo-group</code> macro.
+</p>
+<dl>
+<dt><a name="index-add_002dundo"></a>Function: <strong>add-undo</strong><em> what start end text</em></dt>
+<dd><p>Remember how to undo an event (according to <var>what</var>). The affected
+text runs from <var>start</var> to <var>end</var>, and encompasses
+<var>text</var>. Possible values of <var>what</var> include:
+<code>:undo-delete</code>, <code>:undo-insert</code>, <code>:undo-begin</code>, and
+<code>:undo-end</code>
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-free_002dundo_002dlist"></a>Function: <strong>free-undo-list</strong></dt>
+<dd><p>Free the existing undo list.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-do_002dundo"></a>Function: <strong>do-undo</strong></dt>
+<dd><p>Undo the first thing on the undo list. Returns <code>nil</code> if there was
+nothing to undo, <code>t</code> if something was undone.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-modifying"></a>Function: <strong>modifying</strong><em> start end</em></dt>
+<dd><p>Tell Readline to save the text between <var>start</var> and <var>end</var> as a
+single undo unit. It is assumed that you will subsequently modify that
+text.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-undo_002dgroup"></a>Macro: <strong>undo-group</strong><em> <code>&amp;body</code> body</em></dt>
+<dd><p>All insertion and deletion inside this macro will be grouped together
+into one undo operation.
+</p></dd></dl>
+
+<hr>
+<a name="Redisplay"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Allowing-Undoing" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Allowing-Undoing" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Modifying-Text" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Modifying-Text" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Redisplay-1"></a>
+<h1 class="chapter">7 Redisplay</h1>
+
+<dl>
+<dt><a name="index-redisplay"></a>Function: <strong>redisplay</strong></dt>
+<dd><p>Change what&rsquo;s displayed on the screen to reflect the current contents
+of <var>*line-buffer*</var>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-forced_002dupdate_002ddisplay"></a>Function: <strong>forced-update-display</strong></dt>
+<dd><p>Force the line to be updated and redisplayed, whether or not Readline
+thinks the screen display is correct.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-on_002dnew_002dline"></a>Function: <strong>on-new-line</strong><em> <code>&amp;optional</code> with-prompt</em></dt>
+<dd><p>Tell the update functions that we have moved onto a new (empty) line,
+usually after outputting a newline. When <var>with-prompt</var> is not
+<code>nil</code>, Readline will think that prompt is already displayed. This
+could be used by applications that want to output the prompt string
+themselves, but still need Readline to know the prompt string length
+for redisplay. This should be used together with
+<code>:already-prompted</code> keyword argument of <code>readline</code>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-reset_002dline_002dstate"></a>Function: <strong>reset-line-state</strong></dt>
+<dd><p>Reset the display state to a clean state and redisplay the current
+line starting on a new line.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-cflr"></a>Function: <strong>cflr</strong></dt>
+<dd><p>Move the cursor to the start of the next screen line.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-show_002dchar"></a>Function: <strong>show-char</strong><em> char</em></dt>
+<dd><p>Display character <var>char</var> on outstream. If Readline has not been
+set to display meta characters directly, this will convert meta
+characters to a meta-prefixed key sequence. This is intended for use
+by applications which wish to do their own redisplay.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-set_002dprompt"></a>Function: <strong>set-prompt</strong><em> prompt</em></dt>
+<dd><p>Make Readline use <var>prompt</var> for subsequent redisplay. This calls
+<code>expand-prompt</code> to expand the prompt and sets <var>+prompt+</var> to
+the result.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-with_002dmessage"></a>Macro: <strong>with-message</strong><em> message save-prompt <code>&amp;body</code> body</em></dt>
+<dd><p>Show message <var>message</var> in the echo area while executing
+<var>body</var>. If <var>save-prompt</var> is not <code>nil</code>, save prompt before
+showing the message and restore it before clearing the message.
+</p></dd></dl>
+
+<hr>
+<a name="Modifying-Text"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Redisplay" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Redisplay" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Character-Input" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Character-Input" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Modifying-Text-1"></a>
+<h1 class="chapter">8 Modifying Text</h1>
+
+<dl>
+<dt><a name="index-insert_002dtext"></a>Function: <strong>insert-text</strong><em> text</em></dt>
+<dd><p>Insert <var>text</var> into the line at the current cursor
+position. Returns the number of characters inserted.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-delete_002dtext"></a>Function: <strong>delete-text</strong><em> start end</em></dt>
+<dd><p>Delete the text between <var>start</var> and <var>end</var> in the current
+line. Returns the number of characters deleted.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-kill_002dtext"></a>Function: <strong>kill-text</strong><em> start end</em></dt>
+<dd><p>Copy the text between <var>start</var> and <var>end</var> in the current line to
+the kill ring, appending or prepending to the last kill if the last
+command was a kill command. The text is deleted. If <var>start</var> is
+less than <var>end</var>, the text is appended, otherwise prepended. If the
+last command was not a kill, a new kill ring slot is used.
+</p></dd></dl>
+
+<hr>
+<a name="Character-Input"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Modifying-Text" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Modifying-Text" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Terminal-Management" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Terminal-Management" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Character-Input-1"></a>
+<h1 class="chapter">9 Character Input</h1>
+
+<dl>
+<dt><a name="index-read_002dkey"></a>Function: <strong>read-key</strong></dt>
+<dd><p>Return the next character available from Readline&rsquo;s current input
+stream.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-stuff_002dchar"></a>Function: <strong>stuff-char</strong><em> char</em></dt>
+<dd><p>Insert <var>char</var> into the Readline input stream. It will be &rsquo;read&rsquo;
+before Readline attempts to read characters from the terminal with
+<code>read-key</code>. Up to <code>512</code> characters may be pushed
+back. <code>stuff-char</code> returns <code>t</code> if the character was
+successfully inserted; <code>nil</code> otherwise.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-execute_002dnext"></a>Function: <strong>execute-next</strong><em> char</em></dt>
+<dd><p>Make <var>char</var> be the next command to be executed when
+<code>read-key</code> is called.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-clear_002dpending_002dinput"></a>Function: <strong>clear-pending-input</strong></dt>
+<dd><p>Negate the effect of any previous call to <code>execute-next</code>. This
+works only if the pending input has not already been read with
+<code>read-key</code>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-set_002dkeyboard_002dinput_002dtimeout"></a>Function: <strong>set-keyboard-input-timeout</strong><em> u</em></dt>
+<dd><p>While waiting for keyboard input in <code>read-key</code>, Readline will
+wait for <var>u</var> microseconds for input before calling any function
+assigned to <code>event-hook</code>. <var>u</var> must be greater than or equal
+to zero (a zero-length timeout is equivalent to a poll). The default
+waiting period is one-tenth of a second. Returns the old timeout
+value.
+</p></dd></dl>
+
+<hr>
+<a name="Terminal-Management"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Character-Input" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Character-Input" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Utility-Functions" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Utility-Functions" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Terminal-Management-1"></a>
+<h1 class="chapter">10 Terminal Management</h1>
+
+<dl>
+<dt><a name="index-prep_002dterminal"></a>Function: <strong>prep-terminal</strong><em> eight-bit-input</em></dt>
+<dd><p>Modify the terminal settings for Readline&rsquo;s use, so <code>readline</code>
+can read a single character at a time from the keyboard. The
+<code>eight-bit-input</code> argument should be non-<code>nil</code> if Readline
+should read eight-bit input.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-deprep_002dterminal"></a>Function: <strong>deprep-terminal</strong></dt>
+<dd><p>Undo the effects of <code>prep-terminal</code>, leaving the terminal in the
+state in which it was before the most recent call to
+<code>prep-terminal</code>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-tty_002dset_002ddefault_002dbindings"></a>Function: <strong>tty-set-default-bindings</strong><em> keymap</em></dt>
+<dd><p>Read the operating system&rsquo;s terminal editing characters (as would be
+displayed by stty) to their Readline equivalents. The bindings are
+performed in <var>keymap</var>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-tty_002dunset_002ddefault_002dbindings"></a>Function: <strong>tty-unset-default-bindings</strong><em> keymap</em></dt>
+<dd><p>Reset the bindings manipulated by <code>tty-set-default-bindings</code> so
+that the terminal editing characters are bound to <code>insert</code>. The
+bindings are performed in <var>keymap</var>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-reset_002dterminal"></a>Function: <strong>reset-terminal</strong><em> terminal</em></dt>
+<dd><p>Reinitialize Readline&rsquo;s idea of the terminal settings using
+<var>terminal</var> as the terminal type (e.g., <code>&quot;vt100&quot;</code>).
+</p></dd></dl>
+
+<hr>
+<a name="Utility-Functions"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Terminal-Management" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Terminal-Management" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Miscellaneous-Functions" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Miscellaneous-Functions" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Utility-Functions-1"></a>
+<h1 class="chapter">11 Utility Functions</h1>
+
+<dl>
+<dt><a name="index-replace_002dline"></a>Function: <strong>replace-line</strong><em> text clear-undo</em></dt>
+<dd><p>Replace the contents of <var>*line-buffer*</var> with <var>text</var>. The point
+and mark are preserved, if possible. If <var>clear-undo</var> is
+non-<code>nil</code>, the undo list associated with the current line is
+cleared.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-extend_002dline_002dbuffer"></a>Function: <strong>extend-line-buffer</strong><em> len</em></dt>
+<dd><p>Ensure that line buffer has enough space to hold <var>len</var> characters,
+possibly reallocating it if necessary.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-initialize"></a>Function: <strong>initialize</strong></dt>
+<dd><p>Initialize or re-initialize Readline&rsquo;s internal state. It&rsquo;s not
+strictly necessary to call this; <code>readline</code> calls it before
+reading any input. cl-readline also makes sure that Readline is always
+initialized when you use it.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-ding"></a>Function: <strong>ding</strong></dt>
+<dd><p>Ring the terminal bell, obeying the setting of bell-style.
+</p></dd></dl>
+
+<hr>
+<a name="Miscellaneous-Functions"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Utility-Functions" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Utility-Functions" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Signal-Handling" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Signal-Handling" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Miscellaneous-Functions-1"></a>
+<h1 class="chapter">12 Miscellaneous Functions</h1>
+
+<dl>
+<dt><a name="index-macro_002ddumper"></a>Function: <strong>macro-dumper</strong><em> readable <code>&amp;optional</code> filename append</em></dt>
+<dd><p>Print the key sequences bound to macros and their values, using the
+current keymap to stdout. If <code>readable</code> is non-<code>nil</code>, the
+list is formatted in such a way that it can be made part of an inputrc
+file and re-read. If <code>filename</code> is supplied and it&rsquo;s a string or
+path, output will be redirected to the file. <code>append</code> allows to
+append text to the file instead of overwriting it.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-variable_002dbind"></a>Function: <strong>variable-bind</strong><em> variable value</em></dt>
+<dd><p>Make the Readline variable <var>variable</var> have <var>value</var>. This
+behaves as if the readline command <code>set variable value</code> had been
+executed in an inputrc file.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-variable_002dvalue"></a>Function: <strong>variable-value</strong><em> variable</em></dt>
+<dd><p>Return a string representing the value of the Readline variable
+<var>variable</var>. For Boolean variables, this string is either &rsquo;on&rsquo; or
+&rsquo;off&rsquo;.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-variable_002ddumper"></a>Function: <strong>variable-dumper</strong><em> readable <code>&amp;optional</code> filename append</em></dt>
+<dd><p>Print the readline variable names and their current values to
+stdout. If readable is not <code>nil</code>, the list is formatted in such a
+way that it can be made part of an inputrc file and re-read. If
+<var>filename</var> is supplied and it&rsquo;s a string or path, output will be
+redirected to the file. <var>append</var> allows to append text to the file
+instead of overwriting it.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-set_002dparen_002dblink_002dtimeout"></a>Function: <strong>set-paren-blink-timeout</strong><em> micros</em></dt>
+<dd><p>Set the time interval (in microseconds) that Readline waits when
+showing a balancing character when <code>blink-matching-paren</code> has
+been enabled. The function returns previous value of the parameter.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-clear_002dhistory"></a>Function: <strong>clear-history</strong></dt>
+<dd><p>Clear the history list by deleting all of the entries.
+</p></dd></dl>
+
+<hr>
+<a name="Signal-Handling"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Miscellaneous-Functions" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Miscellaneous-Functions" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Example" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Example" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Signal-Handling-1"></a>
+<h1 class="chapter">13 Signal Handling</h1>
+
+<a name="index-signals"></a>
+
+<p>Signals are asynchronous events sent to a process by the Unix kernel,
+sometimes on behalf of another process. They are intended to indicate
+exceptional events, like a user pressing the interrupt key on his
+terminal, or a network connection being broken. There is a class of
+signals that can be sent to the process currently reading input from
+the keyboard. Since Readline changes the terminal attributes when it
+is called, it needs to perform special processing when such a signal
+is received in order to restore the terminal to a sane state, or
+provide application writers with functions to do so manually.
+</p>
+<p>Readline contains an internal signal handler that is installed for a
+number of signals (SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM, SIGTSTP,
+SIGTTIN, and SIGTTOU). When one of these signals is received, the
+signal handler will reset the terminal attributes to those that were
+in effect before <code>readline</code> was called, reset the signal handling
+to what it was before <code>readline</code> was called, and resend the
+signal to the calling application. If and when the calling
+application&rsquo;s signal handler returns, Readline will reinitialize the
+terminal and continue to accept input. When a SIGINT is received, the
+Readline signal handler performs some additional work, which will
+cause any partially-entered line to be aborted (see the description of
+<code>free-line-state</code> below).
+</p>
+<p>There is an additional Readline signal handler, for SIGWINCH, which
+the kernel sends to a process whenever the terminal&rsquo;s size changes
+(for example, if a user resizes an xterm). The Readline SIGWINCH
+handler updates Readline&rsquo;s internal screen size information, and then
+calls any SIGWINCH signal handler the calling application has
+installed. Readline calls the application&rsquo;s SIGWINCH signal handler
+without resetting the terminal to its original state. If the
+application&rsquo;s signal handler does more than update its idea of the
+terminal size and return (for example, a longjmp back to a main
+processing loop), it must call <code>cleanup-after-signal</code> (described
+below), to restore the terminal state.
+</p>
+<p>Readline provides two variables that allow application writers to
+control whether or not it will catch certain signals and act on them
+when they are received. It is important that applications change the
+values of these variables only when calling <code>readline</code>, not in a
+signal handler, so Readline&rsquo;s internal signal state is not corrupted.
+</p>
+<dl>
+<dt><a name="index-_002acatch_002dsignals_002a"></a>Symbol macro: <strong>*catch-signals*</strong></dt>
+<dd><p>Boolean. If this variable is non-<code>nil</code>, Readline will install
+signal handlers for SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM,
+SIGTSTP, SIGTTIN, and SIGTTOU. The default value of
+<var>*catch-signals*</var> is <code>t</code>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002acatch_002dsigwinch_002a"></a>Symbol macro: <strong>*catch-sigwinch*</strong></dt>
+<dd><p>If this variable is set to a non-<code>nil</code> value, Readline will
+install a signal handler for SIGWINCH. The default value of
+<var>*catch-sigwinch*</var> is <code>t</code>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-_002achange_002denvironment_002a"></a>Symbol macro: <strong>*change-environment*</strong></dt>
+<dd><p>If this variable is set to a non-<code>nil</code> value, and Readline is
+handling SIGWINCH, Readline will modify the LINES and COLUMNS
+environment variables upon receipt of a SIGWINCH. The default value of
+<var>*change-environment*</var> is <code>t</code>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-cleanup_002dafter_002dsignal"></a>Function: <strong>cleanup-after-signal</strong></dt>
+<dd><p>This function will reset the state of the terminal to what it was
+before <code>readline</code> was called, and remove the Readline signal
+handlers for all signals, depending on the values of
+<var>*catch-signals*</var> and <var>*catch-sigwinch*</var>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-free_002dline_002dstate"></a>Function: <strong>free-line-state</strong></dt>
+<dd><p>This will free any partial state associated with the current input
+line (undo information, any partial history entry, any
+partially-entered keyboard macro, and any partially-entered numeric
+argument). This should be called before
+<code>cleanup-after-signal</code>. The Readline signal handler for SIGINT
+calls this to abort the current input line.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-reset_002dafter_002dsignal"></a>Function: <strong>reset-after-signal</strong></dt>
+<dd><p>This will reinitialize the terminal and reinstall any Readline signal
+handlers, depending on the values of <var>*catch-signals*</var> and
+<var>*catch-sigwinch*</var>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-echo_002dsignal_002dchar"></a>Function: <strong>echo-signal-char</strong><em> sig</em></dt>
+<dd><p>If an application wishes to install its own signal handlers, but still
+have readline display characters that generate signals, calling this
+function with <var>sig</var> set to <code>:sigint</code>, <code>:sigquit</code>, or
+<code>:sigtstp</code> will display the character generating that signal.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-resize_002dterminal"></a>Function: <strong>resize-terminal</strong></dt>
+<dd><p>Update Readline&rsquo;s internal screen size by reading values from the
+kernel.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-set_002dscreen_002dsize"></a>Function: <strong>set-screen-size</strong><em> rows cols</em></dt>
+<dd><p>Set Readline&rsquo;s idea of the terminal size to <var>rows</var> rows and
+<var>cols</var> columns. If either rows or columns is less than or equal to
+<code>0</code>, Readline&rsquo;s idea of that terminal dimension is unchanged.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-get_002dscreen_002dsize"></a>Function: <strong>get-screen-size</strong></dt>
+<dd><p>Return Readline&rsquo;s idea of the terminal&rsquo;s size. The function returns
+multiple values: rows and cols.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-reset_002dscreen_002dsize"></a>Function: <strong>reset-screen-size</strong></dt>
+<dd><p>Cause Readline to reobtain the screen size and recalculate its
+dimensions.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-set_002dsignals"></a>Function: <strong>set-signals</strong></dt>
+<dd><p>Install Readline&rsquo;s signal handler for SIGINT, SIGQUIT, SIGTERM,
+SIGHUP, SIGALRM, SIGTSTP, SIGTTIN, SIGTTOU, and SIGWINCH, depending on
+the values of <var>*catch-signals*</var> and <var>*catch-sigwinch*</var>.
+</p></dd></dl>
+
+<dl>
+<dt><a name="index-clear_002dsignals"></a>Function: <strong>clear-signals</strong></dt>
+<dd><p>Remove all of the Readline signal handlers installed by
+<code>set-signals</code>.
+</p></dd></dl>
+
+<hr>
+<a name="Example"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Signal-Handling" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Signal-Handling" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#GNU-Free-Documentation-License" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#GNU-Free-Documentation-License" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Example-1"></a>
+<h1 class="chapter">14 Example</h1>
+
+<p>This program demonstrates some basic capacities of cl-readline. Note
+that you should run it on terminal, not via SLIME.
+</p>
+<div class="example">
+<pre class="example">;;; Load some systems and define a package...
 
 (asdf:load-system :alexandria)
 (asdf:load-system :cl-readline)
@@ -755,8 +1362,8 @@
 
 ;;; Now let's define lists of verbs and fruits:
 
-(defvar *verbs*  '("eat" "get" "throw" "quit"))
-(defvar *fruits* '("banana" "apple" "orange" "banana_two"))
+(defvar *verbs*  '(&quot;eat&quot; &quot;get&quot; &quot;throw&quot; &quot;quit&quot;))
+(defvar *fruits* '(&quot;banana&quot; &quot;apple&quot; &quot;orange&quot; &quot;banana_two&quot;))
 
 ;;; Define and register function that does custom completion: if user enters
 ;;; first word, it will be completed as a verb, second and later words will
@@ -794,27 +1401,1018 @@
 
 (defun print-some-text (arg key)
   (declare (ignore arg key))
-  (rl:insert-text "inserted text"))
+  (rl:insert-text &quot;inserted text&quot;))
 
-(rl:bind-keyseq "\\C-o" #'print-some-text)
+(rl:bind-keyseq &quot;\\C-o&quot; #'print-some-text)
 
 ;;; Let's write novelty-check, so if the actual line is equal to the most
 ;;; recent history line it will not be added to the history.
 
 (defun novelty-check (x y)
-  (string/= (string-trim " " x)
-            (string-trim " " y)))
+  (string/= (string-trim &quot; &quot; x)
+            (string-trim &quot; &quot; y)))
 
 ;;; Finally, this is our main function. To exit from the loop, enter 'quit'.
 
 (defun run-example ()
   (do ((i 0 (1+ i))
-       (text ""))
-      ((string= "quit" (string-trim " " text)))
+       (text &quot;&quot;))
+      ((string= &quot;quit&quot; (string-trim &quot; &quot; text)))
     (setf text
-          (rl:readline :prompt (format nil "[~a]> " i)
+          (rl:readline :prompt (format nil &quot;[~a]&gt; &quot; i)
                        :add-history t
-                       :novelty-check #'novelty-check))))</pre>
-    <p>[<a href="#0">contents</a>]</p>
-  </body>
+                       :novelty-check #'novelty-check))))
+</pre></div>
+
+<hr>
+<a name="GNU-Free-Documentation-License"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Example" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Example" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="GNU-Free-Documentation-License-1"></a>
+<h1 class="appendix">Appendix A GNU Free Documentation License</h1>
+
+<p align="center">Version 1.3, 3 November 2008
+</p>
+
+<div class="display">
+<pre class="display">Copyright &copy; 2000, 2001, 2002, 2007, 2008 Free Software Foundation, Inc.
+<a href="http://fsf.org/">http://fsf.org/</a>
+
+Everyone is permitted to copy and distribute verbatim copies
+of this license document, but changing it is not allowed.
+</pre></div>
+
+<ol>
+<li>
+PREAMBLE
+
+<p>The purpose of this License is to make a manual, textbook, or other
+functional and useful document <em>free</em> in the sense of freedom: to
+assure everyone the effective freedom to copy and redistribute it,
+with or without modifying it, either commercially or noncommercially.
+Secondarily, this License preserves for the author and publisher a way
+to get credit for their work, while not being considered responsible
+for modifications made by others.
+</p>
+<p>This License is a kind of &ldquo;copyleft&rdquo;, which means that derivative
+works of the document must themselves be free in the same sense.  It
+complements the GNU General Public License, which is a copyleft
+license designed for free software.
+</p>
+<p>We have designed this License in order to use it for manuals for free
+software, because free software needs free documentation: a free
+program should come with manuals providing the same freedoms that the
+software does.  But this License is not limited to software manuals;
+it can be used for any textual work, regardless of subject matter or
+whether it is published as a printed book.  We recommend this License
+principally for works whose purpose is instruction or reference.
+</p>
+</li><li>
+APPLICABILITY AND DEFINITIONS
+
+<p>This License applies to any manual or other work, in any medium, that
+contains a notice placed by the copyright holder saying it can be
+distributed under the terms of this License.  Such a notice grants a
+world-wide, royalty-free license, unlimited in duration, to use that
+work under the conditions stated herein.  The &ldquo;Document&rdquo;, below,
+refers to any such manual or work.  Any member of the public is a
+licensee, and is addressed as &ldquo;you&rdquo;.  You accept the license if you
+copy, modify or distribute the work in a way requiring permission
+under copyright law.
+</p>
+<p>A &ldquo;Modified Version&rdquo; of the Document means any work containing the
+Document or a portion of it, either copied verbatim, or with
+modifications and/or translated into another language.
+</p>
+<p>A &ldquo;Secondary Section&rdquo; is a named appendix or a front-matter section
+of the Document that deals exclusively with the relationship of the
+publishers or authors of the Document to the Document&rsquo;s overall
+subject (or to related matters) and contains nothing that could fall
+directly within that overall subject.  (Thus, if the Document is in
+part a textbook of mathematics, a Secondary Section may not explain
+any mathematics.)  The relationship could be a matter of historical
+connection with the subject or with related matters, or of legal,
+commercial, philosophical, ethical or political position regarding
+them.
+</p>
+<p>The &ldquo;Invariant Sections&rdquo; are certain Secondary Sections whose titles
+are designated, as being those of Invariant Sections, in the notice
+that says that the Document is released under this License.  If a
+section does not fit the above definition of Secondary then it is not
+allowed to be designated as Invariant.  The Document may contain zero
+Invariant Sections.  If the Document does not identify any Invariant
+Sections then there are none.
+</p>
+<p>The &ldquo;Cover Texts&rdquo; are certain short passages of text that are listed,
+as Front-Cover Texts or Back-Cover Texts, in the notice that says that
+the Document is released under this License.  A Front-Cover Text may
+be at most 5 words, and a Back-Cover Text may be at most 25 words.
+</p>
+<p>A &ldquo;Transparent&rdquo; copy of the Document means a machine-readable copy,
+represented in a format whose specification is available to the
+general public, that is suitable for revising the document
+straightforwardly with generic text editors or (for images composed of
+pixels) generic paint programs or (for drawings) some widely available
+drawing editor, and that is suitable for input to text formatters or
+for automatic translation to a variety of formats suitable for input
+to text formatters.  A copy made in an otherwise Transparent file
+format whose markup, or absence of markup, has been arranged to thwart
+or discourage subsequent modification by readers is not Transparent.
+An image format is not Transparent if used for any substantial amount
+of text.  A copy that is not &ldquo;Transparent&rdquo; is called &ldquo;Opaque&rdquo;.
+</p>
+<p>Examples of suitable formats for Transparent copies include plain
+<small>ASCII</small> without markup, Texinfo input format, LaTeX input
+format, <acronym>SGML</acronym> or <acronym>XML</acronym> using a publicly available
+<acronym>DTD</acronym>, and standard-conforming simple <acronym>HTML</acronym>,
+PostScript or <acronym>PDF</acronym> designed for human modification.  Examples
+of transparent image formats include <acronym>PNG</acronym>, <acronym>XCF</acronym> and
+<acronym>JPG</acronym>.  Opaque formats include proprietary formats that can be
+read and edited only by proprietary word processors, <acronym>SGML</acronym> or
+<acronym>XML</acronym> for which the <acronym>DTD</acronym> and/or processing tools are
+not generally available, and the machine-generated <acronym>HTML</acronym>,
+PostScript or <acronym>PDF</acronym> produced by some word processors for
+output purposes only.
+</p>
+<p>The &ldquo;Title Page&rdquo; means, for a printed book, the title page itself,
+plus such following pages as are needed to hold, legibly, the material
+this License requires to appear in the title page.  For works in
+formats which do not have any title page as such, &ldquo;Title Page&rdquo; means
+the text near the most prominent appearance of the work&rsquo;s title,
+preceding the beginning of the body of the text.
+</p>
+<p>The &ldquo;publisher&rdquo; means any person or entity that distributes copies
+of the Document to the public.
+</p>
+<p>A section &ldquo;Entitled XYZ&rdquo; means a named subunit of the Document whose
+title either is precisely XYZ or contains XYZ in parentheses following
+text that translates XYZ in another language.  (Here XYZ stands for a
+specific section name mentioned below, such as &ldquo;Acknowledgements&rdquo;,
+&ldquo;Dedications&rdquo;, &ldquo;Endorsements&rdquo;, or &ldquo;History&rdquo;.)  To &ldquo;Preserve the Title&rdquo;
+of such a section when you modify the Document means that it remains a
+section &ldquo;Entitled XYZ&rdquo; according to this definition.
+</p>
+<p>The Document may include Warranty Disclaimers next to the notice which
+states that this License applies to the Document.  These Warranty
+Disclaimers are considered to be included by reference in this
+License, but only as regards disclaiming warranties: any other
+implication that these Warranty Disclaimers may have is void and has
+no effect on the meaning of this License.
+</p>
+</li><li>
+VERBATIM COPYING
+
+<p>You may copy and distribute the Document in any medium, either
+commercially or noncommercially, provided that this License, the
+copyright notices, and the license notice saying this License applies
+to the Document are reproduced in all copies, and that you add no other
+conditions whatsoever to those of this License.  You may not use
+technical measures to obstruct or control the reading or further
+copying of the copies you make or distribute.  However, you may accept
+compensation in exchange for copies.  If you distribute a large enough
+number of copies you must also follow the conditions in section 3.
+</p>
+<p>You may also lend copies, under the same conditions stated above, and
+you may publicly display copies.
+</p>
+</li><li>
+COPYING IN QUANTITY
+
+<p>If you publish printed copies (or copies in media that commonly have
+printed covers) of the Document, numbering more than 100, and the
+Document&rsquo;s license notice requires Cover Texts, you must enclose the
+copies in covers that carry, clearly and legibly, all these Cover
+Texts: Front-Cover Texts on the front cover, and Back-Cover Texts on
+the back cover.  Both covers must also clearly and legibly identify
+you as the publisher of these copies.  The front cover must present
+the full title with all words of the title equally prominent and
+visible.  You may add other material on the covers in addition.
+Copying with changes limited to the covers, as long as they preserve
+the title of the Document and satisfy these conditions, can be treated
+as verbatim copying in other respects.
+</p>
+<p>If the required texts for either cover are too voluminous to fit
+legibly, you should put the first ones listed (as many as fit
+reasonably) on the actual cover, and continue the rest onto adjacent
+pages.
+</p>
+<p>If you publish or distribute Opaque copies of the Document numbering
+more than 100, you must either include a machine-readable Transparent
+copy along with each Opaque copy, or state in or with each Opaque copy
+a computer-network location from which the general network-using
+public has access to download using public-standard network protocols
+a complete Transparent copy of the Document, free of added material.
+If you use the latter option, you must take reasonably prudent steps,
+when you begin distribution of Opaque copies in quantity, to ensure
+that this Transparent copy will remain thus accessible at the stated
+location until at least one year after the last time you distribute an
+Opaque copy (directly or through your agents or retailers) of that
+edition to the public.
+</p>
+<p>It is requested, but not required, that you contact the authors of the
+Document well before redistributing any large number of copies, to give
+them a chance to provide you with an updated version of the Document.
+</p>
+</li><li>
+MODIFICATIONS
+
+<p>You may copy and distribute a Modified Version of the Document under
+the conditions of sections 2 and 3 above, provided that you release
+the Modified Version under precisely this License, with the Modified
+Version filling the role of the Document, thus licensing distribution
+and modification of the Modified Version to whoever possesses a copy
+of it.  In addition, you must do these things in the Modified Version:
+</p>
+<ol>
+<li>
+Use in the Title Page (and on the covers, if any) a title distinct
+from that of the Document, and from those of previous versions
+(which should, if there were any, be listed in the History section
+of the Document).  You may use the same title as a previous version
+if the original publisher of that version gives permission.
+
+</li><li>
+List on the Title Page, as authors, one or more persons or entities
+responsible for authorship of the modifications in the Modified
+Version, together with at least five of the principal authors of the
+Document (all of its principal authors, if it has fewer than five),
+unless they release you from this requirement.
+
+</li><li>
+State on the Title page the name of the publisher of the
+Modified Version, as the publisher.
+
+</li><li>
+Preserve all the copyright notices of the Document.
+
+</li><li>
+Add an appropriate copyright notice for your modifications
+adjacent to the other copyright notices.
+
+</li><li>
+Include, immediately after the copyright notices, a license notice
+giving the public permission to use the Modified Version under the
+terms of this License, in the form shown in the Addendum below.
+
+</li><li>
+Preserve in that license notice the full lists of Invariant Sections
+and required Cover Texts given in the Document&rsquo;s license notice.
+
+</li><li>
+Include an unaltered copy of this License.
+
+</li><li>
+Preserve the section Entitled &ldquo;History&rdquo;, Preserve its Title, and add
+to it an item stating at least the title, year, new authors, and
+publisher of the Modified Version as given on the Title Page.  If
+there is no section Entitled &ldquo;History&rdquo; in the Document, create one
+stating the title, year, authors, and publisher of the Document as
+given on its Title Page, then add an item describing the Modified
+Version as stated in the previous sentence.
+
+</li><li>
+Preserve the network location, if any, given in the Document for
+public access to a Transparent copy of the Document, and likewise
+the network locations given in the Document for previous versions
+it was based on.  These may be placed in the &ldquo;History&rdquo; section.
+You may omit a network location for a work that was published at
+least four years before the Document itself, or if the original
+publisher of the version it refers to gives permission.
+
+</li><li>
+For any section Entitled &ldquo;Acknowledgements&rdquo; or &ldquo;Dedications&rdquo;, Preserve
+the Title of the section, and preserve in the section all the
+substance and tone of each of the contributor acknowledgements and/or
+dedications given therein.
+
+</li><li>
+Preserve all the Invariant Sections of the Document,
+unaltered in their text and in their titles.  Section numbers
+or the equivalent are not considered part of the section titles.
+
+</li><li>
+Delete any section Entitled &ldquo;Endorsements&rdquo;.  Such a section
+may not be included in the Modified Version.
+
+</li><li>
+Do not retitle any existing section to be Entitled &ldquo;Endorsements&rdquo; or
+to conflict in title with any Invariant Section.
+
+</li><li>
+Preserve any Warranty Disclaimers.
+</li></ol>
+
+<p>If the Modified Version includes new front-matter sections or
+appendices that qualify as Secondary Sections and contain no material
+copied from the Document, you may at your option designate some or all
+of these sections as invariant.  To do this, add their titles to the
+list of Invariant Sections in the Modified Version&rsquo;s license notice.
+These titles must be distinct from any other section titles.
+</p>
+<p>You may add a section Entitled &ldquo;Endorsements&rdquo;, provided it contains
+nothing but endorsements of your Modified Version by various
+parties&mdash;for example, statements of peer review or that the text has
+been approved by an organization as the authoritative definition of a
+standard.
+</p>
+<p>You may add a passage of up to five words as a Front-Cover Text, and a
+passage of up to 25 words as a Back-Cover Text, to the end of the list
+of Cover Texts in the Modified Version.  Only one passage of
+Front-Cover Text and one of Back-Cover Text may be added by (or
+through arrangements made by) any one entity.  If the Document already
+includes a cover text for the same cover, previously added by you or
+by arrangement made by the same entity you are acting on behalf of,
+you may not add another; but you may replace the old one, on explicit
+permission from the previous publisher that added the old one.
+</p>
+<p>The author(s) and publisher(s) of the Document do not by this License
+give permission to use their names for publicity for or to assert or
+imply endorsement of any Modified Version.
+</p>
+</li><li>
+COMBINING DOCUMENTS
+
+<p>You may combine the Document with other documents released under this
+License, under the terms defined in section 4 above for modified
+versions, provided that you include in the combination all of the
+Invariant Sections of all of the original documents, unmodified, and
+list them all as Invariant Sections of your combined work in its
+license notice, and that you preserve all their Warranty Disclaimers.
+</p>
+<p>The combined work need only contain one copy of this License, and
+multiple identical Invariant Sections may be replaced with a single
+copy.  If there are multiple Invariant Sections with the same name but
+different contents, make the title of each such section unique by
+adding at the end of it, in parentheses, the name of the original
+author or publisher of that section if known, or else a unique number.
+Make the same adjustment to the section titles in the list of
+Invariant Sections in the license notice of the combined work.
+</p>
+<p>In the combination, you must combine any sections Entitled &ldquo;History&rdquo;
+in the various original documents, forming one section Entitled
+&ldquo;History&rdquo;; likewise combine any sections Entitled &ldquo;Acknowledgements&rdquo;,
+and any sections Entitled &ldquo;Dedications&rdquo;.  You must delete all
+sections Entitled &ldquo;Endorsements.&rdquo;
+</p>
+</li><li>
+COLLECTIONS OF DOCUMENTS
+
+<p>You may make a collection consisting of the Document and other documents
+released under this License, and replace the individual copies of this
+License in the various documents with a single copy that is included in
+the collection, provided that you follow the rules of this License for
+verbatim copying of each of the documents in all other respects.
+</p>
+<p>You may extract a single document from such a collection, and distribute
+it individually under this License, provided you insert a copy of this
+License into the extracted document, and follow this License in all
+other respects regarding verbatim copying of that document.
+</p>
+</li><li>
+AGGREGATION WITH INDEPENDENT WORKS
+
+<p>A compilation of the Document or its derivatives with other separate
+and independent documents or works, in or on a volume of a storage or
+distribution medium, is called an &ldquo;aggregate&rdquo; if the copyright
+resulting from the compilation is not used to limit the legal rights
+of the compilation&rsquo;s users beyond what the individual works permit.
+When the Document is included in an aggregate, this License does not
+apply to the other works in the aggregate which are not themselves
+derivative works of the Document.
+</p>
+<p>If the Cover Text requirement of section 3 is applicable to these
+copies of the Document, then if the Document is less than one half of
+the entire aggregate, the Document&rsquo;s Cover Texts may be placed on
+covers that bracket the Document within the aggregate, or the
+electronic equivalent of covers if the Document is in electronic form.
+Otherwise they must appear on printed covers that bracket the whole
+aggregate.
+</p>
+</li><li>
+TRANSLATION
+
+<p>Translation is considered a kind of modification, so you may
+distribute translations of the Document under the terms of section 4.
+Replacing Invariant Sections with translations requires special
+permission from their copyright holders, but you may include
+translations of some or all Invariant Sections in addition to the
+original versions of these Invariant Sections.  You may include a
+translation of this License, and all the license notices in the
+Document, and any Warranty Disclaimers, provided that you also include
+the original English version of this License and the original versions
+of those notices and disclaimers.  In case of a disagreement between
+the translation and the original version of this License or a notice
+or disclaimer, the original version will prevail.
+</p>
+<p>If a section in the Document is Entitled &ldquo;Acknowledgements&rdquo;,
+&ldquo;Dedications&rdquo;, or &ldquo;History&rdquo;, the requirement (section 4) to Preserve
+its Title (section 1) will typically require changing the actual
+title.
+</p>
+</li><li>
+TERMINATION
+
+<p>You may not copy, modify, sublicense, or distribute the Document
+except as expressly provided under this License.  Any attempt
+otherwise to copy, modify, sublicense, or distribute it is void, and
+will automatically terminate your rights under this License.
+</p>
+<p>However, if you cease all violation of this License, then your license
+from a particular copyright holder is reinstated (a) provisionally,
+unless and until the copyright holder explicitly and finally
+terminates your license, and (b) permanently, if the copyright holder
+fails to notify you of the violation by some reasonable means prior to
+60 days after the cessation.
+</p>
+<p>Moreover, your license from a particular copyright holder is
+reinstated permanently if the copyright holder notifies you of the
+violation by some reasonable means, this is the first time you have
+received notice of violation of this License (for any work) from that
+copyright holder, and you cure the violation prior to 30 days after
+your receipt of the notice.
+</p>
+<p>Termination of your rights under this section does not terminate the
+licenses of parties who have received copies or rights from you under
+this License.  If your rights have been terminated and not permanently
+reinstated, receipt of a copy of some or all of the same material does
+not give you any rights to use it.
+</p>
+</li><li>
+FUTURE REVISIONS OF THIS LICENSE
+
+<p>The Free Software Foundation may publish new, revised versions
+of the GNU Free Documentation License from time to time.  Such new
+versions will be similar in spirit to the present version, but may
+differ in detail to address new problems or concerns.  See
+<a href="http://www.gnu.org/copyleft/">http://www.gnu.org/copyleft/</a>.
+</p>
+<p>Each version of the License is given a distinguishing version number.
+If the Document specifies that a particular numbered version of this
+License &ldquo;or any later version&rdquo; applies to it, you have the option of
+following the terms and conditions either of that specified version or
+of any later version that has been published (not as a draft) by the
+Free Software Foundation.  If the Document does not specify a version
+number of this License, you may choose any version ever published (not
+as a draft) by the Free Software Foundation.  If the Document
+specifies that a proxy can decide which future versions of this
+License can be used, that proxy&rsquo;s public statement of acceptance of a
+version permanently authorizes you to choose that version for the
+Document.
+</p>
+</li><li>
+RELICENSING
+
+<p>&ldquo;Massive Multiauthor Collaboration Site&rdquo; (or &ldquo;MMC Site&rdquo;) means any
+World Wide Web server that publishes copyrightable works and also
+provides prominent facilities for anybody to edit those works.  A
+public wiki that anybody can edit is an example of such a server.  A
+&ldquo;Massive Multiauthor Collaboration&rdquo; (or &ldquo;MMC&rdquo;) contained in the
+site means any set of copyrightable works thus published on the MMC
+site.
+</p>
+<p>&ldquo;CC-BY-SA&rdquo; means the Creative Commons Attribution-Share Alike 3.0
+license published by Creative Commons Corporation, a not-for-profit
+corporation with a principal place of business in San Francisco,
+California, as well as future copyleft versions of that license
+published by that same organization.
+</p>
+<p>&ldquo;Incorporate&rdquo; means to publish or republish a Document, in whole or
+in part, as part of another Document.
+</p>
+<p>An MMC is &ldquo;eligible for relicensing&rdquo; if it is licensed under this
+License, and if all works that were first published under this License
+somewhere other than this MMC, and subsequently incorporated in whole
+or in part into the MMC, (1) had no cover texts or invariant sections,
+and (2) were thus incorporated prior to November 1, 2008.
+</p>
+<p>The operator of an MMC Site may republish an MMC contained in the site
+under CC-BY-SA on the same site at any time before August 1, 2009,
+provided the MMC is eligible for relicensing.
+</p>
+</li></ol>
+
+
+<a name="ADDENDUM_003a-How-to-use-this-License-for-your-documents"></a>
+<h2 class="heading">ADDENDUM: How to use this License for your documents</h2>
+
+<p>To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and
+license notices just after the title page:
+</p>
+<div class="smallexample">
+<pre class="smallexample">  Copyright (C)  <var>year</var>  <var>your name</var>.
+  Permission is granted to copy, distribute and/or modify this document
+  under the terms of the GNU Free Documentation License, Version 1.3
+  or any later version published by the Free Software Foundation;
+  with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
+  Texts.  A copy of the license is included in the section entitled ``GNU
+  Free Documentation License''.
+</pre></div>
+
+<p>If you have Invariant Sections, Front-Cover Texts and Back-Cover Texts,
+replace the &ldquo;with&hellip;Texts.&rdquo; line with this:
+</p>
+<div class="smallexample">
+<pre class="smallexample">    with the Invariant Sections being <var>list their titles</var>, with
+    the Front-Cover Texts being <var>list</var>, and with the Back-Cover Texts
+    being <var>list</var>.
+</pre></div>
+
+<p>If you have Invariant Sections without Cover Texts, or some other
+combination of the three, merge those two alternatives to suit the
+situation.
+</p>
+<p>If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of
+free software license, such as the GNU General Public License,
+to permit their use in free software.
+</p>
+
+
+<hr>
+<a name="Concept-Index"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#GNU-Free-Documentation-License" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#GNU-Free-Documentation-License" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-and-Variable-Index" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Function-and-Variable-Index" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Concept-Index-1"></a>
+<h1 class="unnumbered">Concept Index</h1>
+<table><tr><th valign="top">Jump to: &nbsp; </th><td><a class="summary-letter" href="#Concept-Index-1_cp_letter-C"><b>C</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-Index-1_cp_letter-H"><b>H</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-Index-1_cp_letter-K"><b>K</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-Index-1_cp_letter-R"><b>R</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-Index-1_cp_letter-S"><b>S</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-Index-1_cp_letter-U"><b>U</b></a>
+ &nbsp; 
+</td></tr></table>
+<table class="index-cp" border="0">
+<tr><td></td><th align="left">Index Entry</th><td>&nbsp;</td><th align="left"> Section</th></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-Index-1_cp_letter-C">C</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-completion-types">completion types</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-custom-functions">custom functions</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-Index-1_cp_letter-H">H</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-hooks">hooks</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-Index-1_cp_letter-K">K</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-keymaps">keymaps</a></td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">3 Work with Keymaps</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-Index-1_cp_letter-R">R</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-readline-state">readline state</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-readline_002c-function">readline, function</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-Index-1_cp_letter-S">S</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-signals">signals</a></td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">13 Signal Handling</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-Index-1_cp_letter-U">U</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-undoing">undoing</a></td><td>&nbsp;</td><td valign="top"><a href="#Allowing-Undoing">6 Allowing Undoing</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+</table>
+<table><tr><th valign="top">Jump to: &nbsp; </th><td><a class="summary-letter" href="#Concept-Index-1_cp_letter-C"><b>C</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-Index-1_cp_letter-H"><b>H</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-Index-1_cp_letter-K"><b>K</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-Index-1_cp_letter-R"><b>R</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-Index-1_cp_letter-S"><b>S</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-Index-1_cp_letter-U"><b>U</b></a>
+ &nbsp; 
+</td></tr></table>
+
+<hr>
+<a name="Function-and-Variable-Index"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Concept-Index" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[ &gt; ]</td>
+<td valign="middle" align="left">[ &gt;&gt; ]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Function-and-Variable-Index-1"></a>
+<h1 class="unnumbered">Function and Variable Index</h1>
+<table><tr><th valign="top">Jump to: &nbsp; </th><td><a class="summary-letter" href="#Function-and-Variable-Index-1_fn_symbol-1"><b>*</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_symbol-2"><b>+</b></a>
+ &nbsp; 
+<br>
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-A"><b>A</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-B"><b>B</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-C"><b>C</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-D"><b>D</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-E"><b>E</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-F"><b>F</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-G"><b>G</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-I"><b>I</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-K"><b>K</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-L"><b>L</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-M"><b>M</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-O"><b>O</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-P"><b>P</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-R"><b>R</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-S"><b>S</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-T"><b>T</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-U"><b>U</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-V"><b>V</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-W"><b>W</b></a>
+ &nbsp; 
+</td></tr></table>
+<table class="index-fn" border="0">
+<tr><td></td><th align="left">Index Entry</th><td>&nbsp;</td><th align="left"> Section</th></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_symbol-1">*</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002abasic_002dquote_002dcharacters_002a">*basic-quote-characters*</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002abasic_002dword_002dbreak_002dcharacters_002a">*basic-word-break-characters*</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002acatch_002dsignals_002a">*catch-signals*</a></td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">13 Signal Handling</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002acatch_002dsigwinch_002a">*catch-sigwinch*</a></td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">13 Signal Handling</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002achange_002denvironment_002a">*change-environment*</a></td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">13 Signal Handling</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002acompleter_002dword_002dbreak_002dcharacters_002a">*completer-word-break-characters*</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002acompletion_002dappend_002dcharacter_002a">*completion-append-character*</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002acompletion_002dquery_002ditems_002a">*completion-query-items*</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002adone_002a">*done*</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002aignore_002dcompletion_002dduplicates_002a">*ignore-completion-duplicates*</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002ainhibit_002dcompletion_002a">*inhibit-completion*</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002aline_002dbuffer_002a">*line-buffer*</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002amark_002a">*mark*</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002apoint_002a">*point*</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002areadline_002dname_002a">*readline-name*</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002asort_002dcompletion_002dmatches_002a">*sort-completion-matches*</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_symbol-2">+</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002bbinding_002dkeymap_002b">+binding-keymap+</a></td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">3 Work with Keymaps</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002bcompletion_002dtype_002b">+completion-type+</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002bdispatching_002b">+dispatching+</a></td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">4 Binding Keys</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002bdisplay_002dprompt_002b">+display-prompt+</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002bediting_002dmode_002b">+editing-mode+</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002bexecuting_002dkey_002b">+executing-key+</a></td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">4 Binding Keys</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002bexecuting_002dkeymap_002b">+executing-keymap+</a></td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">3 Work with Keymaps</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002bexecuting_002dkeyseq_002b">+executing-keyseq+</a></td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">4 Binding Keys</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002bexecuting_002dmacro_002b">+executing-macro+</a></td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">4 Binding Keys</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002bgnu_002dreadline_002dp_002b">+gnu-readline-p+</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002bkey_002dsequence_002dlength_002b">+key-sequence-length+</a></td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">4 Binding Keys</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002blibrary_002dversion_002b">+library-version+</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002bprompt_002b">+prompt+</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002breadline_002dstate_002b">+readline-state+</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002breadline_002dversion_002b">+readline-version+</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-A">A</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-add_002ddefun"><code>add-defun</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">4 Binding Keys</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-add_002dfunmap_002dentry"><code>add-funmap-entry</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Associating-Function-Names-and-Bindings">5 Associating Function Names and Bindings</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-add_002dundo"><code>add-undo</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Allowing-Undoing">6 Allowing Undoing</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-B">B</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-bind_002dkey"><code>bind-key</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">4 Binding Keys</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-bind_002dkeyseq"><code>bind-keyseq</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">4 Binding Keys</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-C">C</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-cflr"><code>cflr</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Redisplay">7 Redisplay</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-cleanup_002dafter_002dsignal"><code>cleanup-after-signal</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">13 Signal Handling</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-clear_002dhistory"><code>clear-history</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Miscellaneous-Functions">12 Miscellaneous Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-clear_002dpending_002dinput"><code>clear-pending-input</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Character-Input">9 Character Input</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-clear_002dsignals"><code>clear-signals</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">13 Signal Handling</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-copy_002dkeymap"><code>copy-keymap</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">3 Work with Keymaps</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-D">D</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-delete_002dtext"><code>delete-text</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Modifying-Text">8 Modifying Text</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-deprep_002dterminal"><code>deprep-terminal</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Terminal-Management">10 Terminal Management</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-ding"><code>ding</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Utility-Functions">11 Utility Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-do_002dundo"><code>do-undo</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Allowing-Undoing">6 Allowing Undoing</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-E">E</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-echo_002dsignal_002dchar"><code>echo-signal-char</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">13 Signal Handling</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-execute_002dnext"><code>execute-next</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Character-Input">9 Character Input</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-extend_002dline_002dbuffer"><code>extend-line-buffer</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Utility-Functions">11 Utility Functions</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-F">F</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-forced_002dupdate_002ddisplay"><code>forced-update-display</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Redisplay">7 Redisplay</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-free_002dkeymap"><code>free-keymap</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">3 Work with Keymaps</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-free_002dline_002dstate"><code>free-line-state</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">13 Signal Handling</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-free_002dundo_002dlist"><code>free-undo-list</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Allowing-Undoing">6 Allowing Undoing</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-function_002ddumper"><code>function-dumper</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Associating-Function-Names-and-Bindings">5 Associating Function Names and Bindings</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-funmap_002dnames"><code>funmap-names</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Associating-Function-Names-and-Bindings">5 Associating Function Names and Bindings</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-G">G</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-get_002dkeymap"><code>get-keymap</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">3 Work with Keymaps</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-get_002dkeymap_002dby_002dname"><code>get-keymap-by-name</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">3 Work with Keymaps</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-get_002dscreen_002dsize"><code>get-screen-size</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">13 Signal Handling</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-I">I</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-initialize"><code>initialize</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Utility-Functions">11 Utility Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-insert_002dtext"><code>insert-text</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Modifying-Text">8 Modifying Text</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-K">K</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-kill_002dtext"><code>kill-text</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Modifying-Text">8 Modifying Text</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-L">L</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-list_002dfunmap_002dnames"><code>list-funmap-names</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Associating-Function-Names-and-Bindings">5 Associating Function Names and Bindings</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-M">M</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-macro_002ddumper"><code>macro-dumper</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Miscellaneous-Functions">12 Miscellaneous Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-make_002dkeymap"><code>make-keymap</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">3 Work with Keymaps</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-modifying"><code>modifying</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Allowing-Undoing">6 Allowing Undoing</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-O">O</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-on_002dnew_002dline"><code>on-new-line</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Redisplay">7 Redisplay</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-P">P</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-parse_002dand_002dbind"><code>parse-and-bind</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">4 Binding Keys</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-prep_002dterminal"><code>prep-terminal</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Terminal-Management">10 Terminal Management</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-R">R</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-read_002dinit_002dfile"><code>read-init-file</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">4 Binding Keys</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-read_002dkey"><code>read-key</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Character-Input">9 Character Input</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-readline"><code>readline</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-redisplay"><code>redisplay</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Redisplay">7 Redisplay</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-register_002dfunction"><code>register-function</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-register_002dhook"><code>register-hook</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-replace_002dline"><code>replace-line</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Utility-Functions">11 Utility Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-reset_002dafter_002dsignal"><code>reset-after-signal</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">13 Signal Handling</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-reset_002dline_002dstate"><code>reset-line-state</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Redisplay">7 Redisplay</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-reset_002dscreen_002dsize"><code>reset-screen-size</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">13 Signal Handling</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-reset_002dterminal"><code>reset-terminal</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Terminal-Management">10 Terminal Management</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-resize_002dterminal"><code>resize-terminal</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">13 Signal Handling</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-S">S</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-set_002dkeyboard_002dinput_002dtimeout"><code>set-keyboard-input-timeout</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Character-Input">9 Character Input</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-set_002dkeymap"><code>set-keymap</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">3 Work with Keymaps</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-set_002dparen_002dblink_002dtimeout"><code>set-paren-blink-timeout</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Miscellaneous-Functions">12 Miscellaneous Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-set_002dprompt"><code>set-prompt</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Redisplay">7 Redisplay</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-set_002dscreen_002dsize"><code>set-screen-size</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">13 Signal Handling</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-set_002dsignals"><code>set-signals</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">13 Signal Handling</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-show_002dchar"><code>show-char</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Redisplay">7 Redisplay</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-stuff_002dchar"><code>stuff-char</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Character-Input">9 Character Input</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-T">T</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-tty_002dset_002ddefault_002dbindings"><code>tty-set-default-bindings</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Terminal-Management">10 Terminal Management</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-tty_002dunset_002ddefault_002dbindings"><code>tty-unset-default-bindings</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Terminal-Management">10 Terminal Management</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-U">U</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-unbind_002dcommand"><code>unbind-command</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">4 Binding Keys</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-unbind_002dkey"><code>unbind-key</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">4 Binding Keys</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-undo_002dgroup"><code>undo-group</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Allowing-Undoing">6 Allowing Undoing</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-V">V</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-variable_002dbind"><code>variable-bind</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Miscellaneous-Functions">12 Miscellaneous Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-variable_002ddumper"><code>variable-dumper</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Miscellaneous-Functions">12 Miscellaneous Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-variable_002dvalue"><code>variable-value</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Miscellaneous-Functions">12 Miscellaneous Functions</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Function-and-Variable-Index-1_fn_letter-W">W</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-with_002dmessage"><code>with-message</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Redisplay">7 Redisplay</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-with_002dnew_002dkeymap"><code>with-new-keymap</code></a></td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">3 Work with Keymaps</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+</table>
+<table><tr><th valign="top">Jump to: &nbsp; </th><td><a class="summary-letter" href="#Function-and-Variable-Index-1_fn_symbol-1"><b>*</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_symbol-2"><b>+</b></a>
+ &nbsp; 
+<br>
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-A"><b>A</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-B"><b>B</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-C"><b>C</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-D"><b>D</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-E"><b>E</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-F"><b>F</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-G"><b>G</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-I"><b>I</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-K"><b>K</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-L"><b>L</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-M"><b>M</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-O"><b>O</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-P"><b>P</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-R"><b>R</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-S"><b>S</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-T"><b>T</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-U"><b>U</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-V"><b>V</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-W"><b>W</b></a>
+ &nbsp; 
+</td></tr></table>
+
+<hr size="6">
+<a name="SEC_Contents"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<h1>Table of Contents</h1>
+
+<div class="contents">
+
+<ul class="no-bullet">
+  <li><a name="toc-Basic-Functionality-1" href="#Basic-Functionality">1 Basic Functionality</a></li>
+  <li><a name="toc-Hooks-and-Custom-Functions-1" href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></li>
+  <li><a name="toc-Work-with-Keymaps-1" href="#Work-with-Keymaps">3 Work with Keymaps</a></li>
+  <li><a name="toc-Binding-Keys-1" href="#Binding-Keys">4 Binding Keys</a></li>
+  <li><a name="toc-Associating-Function-Names-and-Bindings-1" href="#Associating-Function-Names-and-Bindings">5 Associating Function Names and Bindings</a></li>
+  <li><a name="toc-Allowing-Undoing-1" href="#Allowing-Undoing">6 Allowing Undoing</a></li>
+  <li><a name="toc-Redisplay-1" href="#Redisplay">7 Redisplay</a></li>
+  <li><a name="toc-Modifying-Text-1" href="#Modifying-Text">8 Modifying Text</a></li>
+  <li><a name="toc-Character-Input-1" href="#Character-Input">9 Character Input</a></li>
+  <li><a name="toc-Terminal-Management-1" href="#Terminal-Management">10 Terminal Management</a></li>
+  <li><a name="toc-Utility-Functions-1" href="#Utility-Functions">11 Utility Functions</a></li>
+  <li><a name="toc-Miscellaneous-Functions-1" href="#Miscellaneous-Functions">12 Miscellaneous Functions</a></li>
+  <li><a name="toc-Signal-Handling-1" href="#Signal-Handling">13 Signal Handling</a></li>
+  <li><a name="toc-Example-1" href="#Example">14 Example</a></li>
+  <li><a name="toc-GNU-Free-Documentation-License-1" href="#GNU-Free-Documentation-License">Appendix A GNU Free Documentation License</a></li>
+  <li><a name="toc-Concept-Index-1" href="#Concept-Index">Concept Index</a></li>
+  <li><a name="toc-Function-and-Variable-Index-1" href="#Function-and-Variable-Index">Function and Variable Index</a></li>
+</ul>
+</div>
+<hr>
+<a name="SEC_About"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Concept-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<h1>About This Document</h1>
+
+<p>
+  This document was generated on <i>January 18, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+</p>
+<p>
+  The buttons in the navigation panels have the following meaning:
+</p>
+<table border="1">
+  <tr>
+    <th> Button </th>
+    <th> Name </th>
+    <th> Go to </th>
+    <th> From 1.2.3 go to</th>
+  </tr>
+  <tr>
+    <td align="center"> [ &lt;&lt; ] </td>
+    <td align="center">FastBack</td>
+    <td>Beginning of this chapter or previous chapter</td>
+    <td>1</td>
+  </tr>
+  <tr>
+    <td align="center"> [ &lt; ] </td>
+    <td align="center">Back</td>
+    <td>Previous section in reading order</td>
+    <td>1.2.2</td>
+  </tr>
+  <tr>
+    <td align="center"> [ Up ] </td>
+    <td align="center">Up</td>
+    <td>Up section</td>
+    <td>1.2</td>
+  </tr>
+  <tr>
+    <td align="center"> [ &gt; ] </td>
+    <td align="center">Forward</td>
+    <td>Next section in reading order</td>
+    <td>1.2.4</td>
+  </tr>
+  <tr>
+    <td align="center"> [ &gt;&gt; ] </td>
+    <td align="center">FastForward</td>
+    <td>Next chapter</td>
+    <td>2</td>
+  </tr>
+  <tr>
+    <td align="center"> [Top] </td>
+    <td align="center">Top</td>
+    <td>Cover (top) of document</td>
+    <td> &nbsp; </td>
+  </tr>
+  <tr>
+    <td align="center"> [Contents] </td>
+    <td align="center">Contents</td>
+    <td>Table of contents</td>
+    <td> &nbsp; </td>
+  </tr>
+  <tr>
+    <td align="center"> [Index] </td>
+    <td align="center">Index</td>
+    <td>Index</td>
+    <td> &nbsp; </td>
+  </tr>
+  <tr>
+    <td align="center"> [ ? ] </td>
+    <td align="center">About</td>
+    <td>About (help)</td>
+    <td> &nbsp; </td>
+  </tr>
+</table>
+
+<p>
+  where the <strong> Example </strong> assumes that the current position is at <strong> Subsubsection One-Two-Three </strong> of a document of the following structure:
+</p>
+
+<ul>
+  <li> 1. Section One
+    <ul>
+      <li>1.1 Subsection One-One
+        <ul>
+          <li>...</li>
+        </ul>
+      </li>
+      <li>1.2 Subsection One-Two
+        <ul>
+          <li>1.2.1 Subsubsection One-Two-One</li>
+          <li>1.2.2 Subsubsection One-Two-Two</li>
+          <li>1.2.3 Subsubsection One-Two-Three &nbsp; &nbsp;
+            <strong>&lt;== Current Position </strong></li>
+          <li>1.2.4 Subsubsection One-Two-Four</li>
+        </ul>
+      </li>
+      <li>1.3 Subsection One-Three
+        <ul>
+          <li>...</li>
+        </ul>
+      </li>
+      <li>1.4 Subsection One-Four</li>
+    </ul>
+  </li>
+</ul>
+
+<hr>
+<p>
+ <font size="-1">
+  This document was generated on <i>January 18, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
 </html>

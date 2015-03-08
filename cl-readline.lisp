@@ -388,7 +388,7 @@ the most recent history line. Only when the predicate evaluates to non-NIL
 value new line will be added to the history. Return value on success is the
 actual string and NIL on failure."
   (setf *already-prompted*  already-prompted
-        *num-chars-to-read* (if num-chars num-chars 0)
+        *num-chars-to-read* (or num-chars 0)
         *erase-empty-line*  erase-empty-line)
   (let* ((prompt (if prompt (string prompt) ""))
          (ptr (foreign-funcall "readline"

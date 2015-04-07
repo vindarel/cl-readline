@@ -34,6 +34,6 @@ https://mrkkrp.github.io/cl-readline/
 
 ## License
 
-Copyright (c) 2015 Mark Karpov
+Copyright © 2015 Mark Karpov
 
 Distributed under GNU GPL, version 3.

@@ -2,7 +2,7 @@
 ;;;
 ;;; cl-readline, bindings to GNU Readline library.
 ;;;
-;;; Copyright (c) 2015 Mark Karpov
+;;; Copyright © 2015 Mark Karpov
 ;;;
 ;;; cl-readline is free software: you can redistribute it and/or modify it
 ;;; under the terms of the GNU General Public License as published by the

@@ -20,10 +20,11 @@
 (in-package #:cl-readline)
 
 (define-foreign-library readline
-  (:unix (:or "libreadline.so.6.3"
-              "libreadline.so.6"
-              "libreadline.so"))
-  (t     (:default "libreadline")))
+  (:darwin (:or "libreadline.dylib"))
+  (:unix   (:or "libreadline.so.6.3"
+                "libreadline.so.6"
+                "libreadline.so"))
+  (t       (:default "libreadline")))
 
 (use-foreign-library readline)
 

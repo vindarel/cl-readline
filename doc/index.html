@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <!-- This manual describes the cl-readline Library (version
-0.1.0, 18 January 2015), bindings to GNU Readline Library.
+0.1.1, 18 June 2015), bindings to GNU Readline Library.
 
 This documentation is derived from original GNU Readline documentation
 by Brian Fox and Chet Ramey.
@@ -17,8 +17,8 @@ Documentation License".
 
 
  -->
-<!-- Created on March 28, 2015 by texi2html 5.0
-texi2html was written by: 
+<!-- Created on June 18, 2015 by texi2html 5.0
+texi2html was written by:
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
             Olaf Bachmann <obachman@mathematik.uni-kl.de>
@@ -71,13 +71,13 @@ hr { display: none }
 <body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
 
 <h1>cl-readline Library</h1>
-<h3 align="right">Edition 0.1.0, for <code>cl-readline Library</code> Version 0.1.0.</h3>
-<h3 align="right">January 2015</h3>
+<h3 align="right">Edition 0.1.1, for <code>cl-readline Library</code> Version 0.1.1.</h3>
+<h3 align="right">June 2015</h3>
 <strong>Mark Karpov, Brian Fox, Chet Ramey</strong><br>
 
 
 <p>This manual describes the cl-readline Library (version
-0.1.0, 18 January 2015), bindings to GNU Readline Library.
+0.1.1, 18 June 2015), bindings to GNU Readline Library.
 </p>
 <p>This documentation is derived from original GNU Readline documentation
 by Brian Fox and Chet Ramey.
@@ -195,6 +195,13 @@ increase the memory allocated to <var>*line-buffer*</var>.
 </p></dd></dl>
 
 <dl>
+<dt><a name="index-_002bend_002b"></a>Symbol Macro: <strong>+end+</strong></dt>
+<dd><p>Integer. The number of characters present in <var>*line-buffer*</var>. When
+<var>*point*</var> is at the end of the line, <var>*point*</var> and <var>+end+</var>
+are equal.
+</p></dd></dl>
+
+<dl>
 <dt><a name="index-_002amark_002a"></a>Symbol Macro: <strong>*mark*</strong></dt>
 <dd><p>Integer. The mark (saved position) in the current line. If set, the
 mark and point define a region.
@@ -215,7 +222,7 @@ after calling <code>readline</code>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002bdisplay_002dprompt_002b"></a>Symbol Macro: <strong>+display-prompt+</strong></dt>
+<dt><a name="index-_002adisplay_002dprompt_002a"></a>Symbol Macro: <strong>*display-prompt*</strong></dt>
 <dd><p>String. The string displayed as the prompt. This is usually identical
 to <var>+prompt+</var>, but may be changed temporarily by functions that
 use the prompt string as a message area, such as incremental search.
@@ -315,23 +322,23 @@ keywords that denote state of Readline. The following flags are used:
 
 <dl>
 <dt><a name="index-readline"></a>Function: <strong>readline</strong><em> <code>&amp;key</code> prompt already-prompted num-chars erase-empty-line add-history novelty-check</em></dt>
-<dd><p>Get a line from user with editing. <var>prompt</var>, if supplied, is
-printed before reading of input. Non-<code>nil</code> value of
-<var>already-prompted</var> will tell Readline that the application has
-printed prompt already. However, <var>prompt</var> must be supplied in this
-case too, so redisplay functions can update the display properly. If
-<var>num-chars</var> argument is a positive number, Readline will return
-after accepting that many characters. If <var>erase-empty-line</var> is not
-<code>nil</code>, <code>readline</code> will completely erase the current line,
-including any prompt, any time a newline is typed as the only
-character on an otherwise-empty line. The cursor is moved to the
-beginning of the newly-blank line. Supplying <var>add-history</var> tells
-Readline that user&rsquo;s input should be added to history. However, blank
-lines don&rsquo;t get into history anyway. <var>novelty-check</var>, if supplied,
-must be a predicate that takes two strings: the actual line and the
-most recent history line. Only when the predicate evaluates to
-non-<code>nil</code> value new line will be added to the history. Return
-value on success is the actual string and <code>nil</code> on failure.
+<dd><p>Get a line from user with editing. <var>prompt</var>, if supplied, is printed
+before reading of input. Non-<code>nil</code> value of <var>already-prompted</var>
+will tell Readline that the application has printed prompt
+already. However, <var>prompt</var> must be supplied in this case too, so
+redisplay functions can update the display properly. If <var>num-chars</var>
+argument is a positive number, Readline will return after accepting that
+many characters. If <var>erase-empty-line</var> is not <code>nil</code>,
+<code>readline</code> will completely erase the current line, including any
+prompt, any time a newline is typed as the only character on an
+otherwise-empty line. The cursor is moved to the beginning of the
+newly-blank line. Supplying <var>add-history</var> tells Readline that user&rsquo;s
+input should be added to history. However, blank lines don&rsquo;t get into
+history anyway. <var>novelty-check</var>, if given, must be a predicate that
+takes two strings: the actual line and the most recent history
+line. Only when the predicate evaluates to non-<code>nil</code> value new line
+will be added to the history. Return value on success is the actual
+string and <code>nil</code> on failure.
 </p></dd></dl>
 
 <hr>
@@ -446,11 +453,7 @@ bound to self-insert.
 
 <dl>
 <dt><a name="index-register_002dhook"></a>Function: <strong>register-hook</strong><em> hook function</em></dt>
-<dd><p>Register a hook. <var>function</var> must be a function that takes no
-arguments and returns <code>nil</code> on success and <code>t</code> on
-failure. If <var>function</var> is <code>nil</code>, hook will be removed (or
-default function will be used). <var>hook</var> should be a keyword, one of
-the following:
+<dd><p>Register a hook. <var>hook</var> should be a keyword, one of the following:
 </p><ul>
 <li>
 <code>:startup</code> hook is called just before <code>readline</code> prints the
@@ -478,15 +481,18 @@ completion in the list. It&rsquo;s up to the function how to display these
 completions.
 </li></ul>
 <p>Other values of <var>hook</var> will be ignored.
+</p>
+<p><var>function</var> must be a function that takes no arguments and returns
+<code>nil</code> on success and <code>t</code> on failure. If <var>function</var> is
+<code>nil</code>, hook will be removed (or default function will be used).
 </p></dd></dl>
 
 <a name="index-custom-functions"></a>
 
 <dl>
 <dt><a name="index-register_002dfunction"></a>Function: <strong>register-function</strong><em> func function</em></dt>
-<dd><p>Register a function. <var>function</var> must be a function, if
-<var>function</var> is <code>nil</code>, result is unpredictable. <var>func</var>
-should be a keyword, one of the following:
+<dd><p>Register a function. <var>func</var> should be a keyword, one of the
+following:
 </p><ul>
 <li>
 <code>:getc</code> function is used to get a character from the input
@@ -518,6 +524,9 @@ actual completion (or part of completion if two or more completions
 share common prefix) and the rest arguments are possible completions.
 </li></ul>
 <p>Other values of <var>func</var> will be ignored.
+</p>
+<p><var>function</var> must be a function, if <var>function</var> is <code>nil</code>,
+result is unpredictable.
 </p></dd></dl>
 
 <hr>
@@ -666,7 +675,7 @@ has invoked it.
 
 <dl>
 <dt><a name="index-bind_002dkey"></a>Function: <strong>bind-key</strong><em> key function <code>&amp;key</code> keymap if-unbound</em></dt>
-<dd><p>Binds <var>key</var> to <var>function</var> in the currently active keymap. If
+<dd><p>Bind <var>key</var> to <var>function</var> in the currently active keymap. If
 <var>keymap</var> argument supplied, binding takes place in specified
 keymap. If <var>if-unbound</var> is supplied and it&rsquo;s not <code>nil</code>,
 <var>key</var> will be bound to <var>function</var> only if it&rsquo;s not already
@@ -732,9 +741,9 @@ perform any key bindings and variable assignments found.
 <p>Note that this section is stripped-down. Many functions are
 missing. It&rsquo;s because C functions take addresses of other functions as
 arguments. In cl-readline we use dynamic generation of callbacks, so
-once you have registered a new function, it&rsquo;s tricky to get its
-identity. Note that this problem is solvable, but not without certain
-hair. However, it shouldn&rsquo;t be a problem in most cases.
+once you have registered a new function, it&rsquo;s tricky to identify it
+later. Note that this problem is solvable, but hairy. If you need to use
+functions that are missing, open an issue and describe your problem.
 </p>
 <dl>
 <dt><a name="index-function_002ddumper"></a>Function: <strong>function-dumper</strong><em> readable <code>&amp;optional</code> filename append</em></dt>
@@ -926,14 +935,14 @@ showing the message and restore it before clearing the message.
 
 <dl>
 <dt><a name="index-insert_002dtext"></a>Function: <strong>insert-text</strong><em> text</em></dt>
-<dd><p>Insert <var>text</var> into the line at the current cursor
-position. Returns the number of characters inserted.
+<dd><p>Insert <var>text</var> into the line at the current cursor position. Return
+the number of characters inserted.
 </p></dd></dl>
 
 <dl>
 <dt><a name="index-delete_002dtext"></a>Function: <strong>delete-text</strong><em> start end</em></dt>
 <dd><p>Delete the text between <var>start</var> and <var>end</var> in the current
-line. Returns the number of characters deleted.
+line. Return the number of characters deleted.
 </p></dd></dl>
 
 <dl>
@@ -973,7 +982,7 @@ stream.
 
 <dl>
 <dt><a name="index-stuff_002dchar"></a>Function: <strong>stuff-char</strong><em> char</em></dt>
-<dd><p>Insert <var>char</var> into the Readline input stream. It will be &rsquo;read&rsquo;
+<dd><p>Insert <var>char</var> into the Readline input stream. It will be «read»
 before Readline attempts to read characters from the terminal with
 <code>read-key</code>. Up to <code>512</code> characters may be pushed
 back. <code>stuff-char</code> returns <code>t</code> if the character was
@@ -995,12 +1004,11 @@ works only if the pending input has not already been read with
 
 <dl>
 <dt><a name="index-set_002dkeyboard_002dinput_002dtimeout"></a>Function: <strong>set-keyboard-input-timeout</strong><em> u</em></dt>
-<dd><p>While waiting for keyboard input in <code>read-key</code>, Readline will
-wait for <var>u</var> microseconds for input before calling any function
-assigned to <code>event-hook</code>. <var>u</var> must be greater than or equal
-to zero (a zero-length timeout is equivalent to a poll). The default
-waiting period is one-tenth of a second. Returns the old timeout
-value.
+<dd><p>While waiting for keyboard input in <code>read-key</code>, Readline will wait
+for <var>u</var> microseconds for input before calling any function assigned
+to <code>event-hook</code>. <var>u</var> must be greater than or equal to zero (a
+zero-length timeout is equivalent to a poll). The default waiting period
+is one-tenth of a second. Return the old timeout value.
 </p></dd></dl>
 
 <hr>
@@ -1306,7 +1314,7 @@ kernel.
 <dl>
 <dt><a name="index-get_002dscreen_002dsize"></a>Function: <strong>get-screen-size</strong></dt>
 <dd><p>Return Readline&rsquo;s idea of the terminal&rsquo;s size. The function returns
-multiple values: rows and cols.
+multiple values: number of rows and columns.
 </p></dd></dl>
 
 <dl>
@@ -1349,7 +1357,7 @@ the values of <var>*catch-signals*</var> and <var>*catch-sigwinch*</var>.
 <h1 class="chapter">14 Example</h1>
 
 <p>This program demonstrates some basic capacities of cl-readline. Note
-that you should run it on terminal, not via SLIME.
+that you should run it in terminal, not via SLIME.
 </p>
 <div class="example">
 <pre class="example">;;; Load some systems and define a package...
@@ -1966,17 +1974,17 @@ to permit their use in free software.
 <a name="Concept-Index-1"></a>
 <h1 class="unnumbered">Concept Index</h1>
 <table><tr><th valign="top">Jump to: &nbsp; </th><td><a class="summary-letter" href="#Concept-Index-1_cp_letter-C"><b>C</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-H"><b>H</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-K"><b>K</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-R"><b>R</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-S"><b>S</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-U"><b>U</b></a>
- &nbsp; 
+ &nbsp;
 </td></tr></table>
 <table class="index-cp" border="0">
 <tr><td></td><th align="left">Index Entry</th><td>&nbsp;</td><th align="left"> Section</th></tr>
@@ -2003,17 +2011,17 @@ to permit their use in free software.
 <tr><td colspan="4"> <hr></td></tr>
 </table>
 <table><tr><th valign="top">Jump to: &nbsp; </th><td><a class="summary-letter" href="#Concept-Index-1_cp_letter-C"><b>C</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-H"><b>H</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-K"><b>K</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-R"><b>R</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-S"><b>S</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Concept-Index-1_cp_letter-U"><b>U</b></a>
- &nbsp; 
+ &nbsp;
 </td></tr></table>
 
 <hr>
@@ -2036,48 +2044,48 @@ to permit their use in free software.
 <a name="Function-and-Variable-Index-1"></a>
 <h1 class="unnumbered">Function and Variable Index</h1>
 <table><tr><th valign="top">Jump to: &nbsp; </th><td><a class="summary-letter" href="#Function-and-Variable-Index-1_fn_symbol-1"><b>*</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_symbol-2"><b>+</b></a>
- &nbsp; 
+ &nbsp;
 <br>
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-A"><b>A</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-B"><b>B</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-C"><b>C</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-D"><b>D</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-E"><b>E</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-F"><b>F</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-G"><b>G</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-I"><b>I</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-K"><b>K</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-L"><b>L</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-M"><b>M</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-O"><b>O</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-P"><b>P</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-R"><b>R</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-S"><b>S</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-T"><b>T</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-U"><b>U</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-V"><b>V</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-W"><b>W</b></a>
- &nbsp; 
+ &nbsp;
 </td></tr></table>
 <table class="index-fn" border="0">
 <tr><td></td><th align="left">Index Entry</th><td>&nbsp;</td><th align="left"> Section</th></tr>
@@ -2091,6 +2099,7 @@ to permit their use in free software.
 <tr><td></td><td valign="top"><a href="#index-_002acompleter_002dword_002dbreak_002dcharacters_002a">*completer-word-break-characters*</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002acompletion_002dappend_002dcharacter_002a">*completion-append-character*</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002acompletion_002dquery_002ditems_002a">*completion-query-items*</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002adisplay_002dprompt_002a">*display-prompt*</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002adone_002a">*done*</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002aignore_002dcompletion_002dduplicates_002a">*ignore-completion-duplicates*</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002ainhibit_002dcompletion_002a">*inhibit-completion*</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
@@ -2104,8 +2113,8 @@ to permit their use in free software.
 <tr><td></td><td valign="top"><a href="#index-_002bbinding_002dkeymap_002b">+binding-keymap+</a></td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">3 Work with Keymaps</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002bcompletion_002dtype_002b">+completion-type+</a></td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002bdispatching_002b">+dispatching+</a></td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">4 Binding Keys</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-_002bdisplay_002dprompt_002b">+display-prompt+</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002bediting_002dmode_002b">+editing-mode+</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002bend_002b">+end+</a></td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">1 Basic Functionality</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002bexecuting_002dkey_002b">+executing-key+</a></td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">4 Binding Keys</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002bexecuting_002dkeymap_002b">+executing-keymap+</a></td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">3 Work with Keymaps</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002bexecuting_002dkeyseq_002b">+executing-keyseq+</a></td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">4 Binding Keys</a></td></tr>
@@ -2224,48 +2233,48 @@ to permit their use in free software.
 <tr><td colspan="4"> <hr></td></tr>
 </table>
 <table><tr><th valign="top">Jump to: &nbsp; </th><td><a class="summary-letter" href="#Function-and-Variable-Index-1_fn_symbol-1"><b>*</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_symbol-2"><b>+</b></a>
- &nbsp; 
+ &nbsp;
 <br>
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-A"><b>A</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-B"><b>B</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-C"><b>C</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-D"><b>D</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-E"><b>E</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-F"><b>F</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-G"><b>G</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-I"><b>I</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-K"><b>K</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-L"><b>L</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-M"><b>M</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-O"><b>O</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-P"><b>P</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-R"><b>R</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-S"><b>S</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-T"><b>T</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-U"><b>U</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-V"><b>V</b></a>
- &nbsp; 
+ &nbsp;
 <a class="summary-letter" href="#Function-and-Variable-Index-1_fn_letter-W"><b>W</b></a>
- &nbsp; 
+ &nbsp;
 </td></tr></table>
 
 <hr size="6">
@@ -2311,7 +2320,7 @@ to permit their use in free software.
 <h1>About This Document</h1>
 
 <p>
-  This document was generated on <i>March 28, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>June 18, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
 </p>
 <p>
   The buttons in the navigation panels have the following meaning:
@@ -2413,7 +2422,7 @@ to permit their use in free software.
 <hr>
 <p>
  <font size="-1">
-  This document was generated on <i>March 28, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+  This document was generated on <i>June 18, 2015</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
  </font>
  <br>
 

@@ -45,9 +45,11 @@
     :vicmdonce    ; 0x0400000 entered vi command mode at least once
     :redisplaying ; 0x0800000 updating terminal display
     :done)        ; 0x1000000 done; accepted line
-  "Possible state values for +READLINE-STATE+.")
+  "Possible state values for `+readline-state+'.")
 
-(defvar *c-buffer-size* 256)
+(defvar +c-buffer-size+ 256
+  "How many bytes to allocate per Lisp string when converting list of
+Lisp strings into array of C strings.")
 
 (defun decode-version (version)
   "Transform VERSION into two values representing major and minor numbers of
@@ -56,7 +58,8 @@ Readline library version."
           (ldb (byte 8 0) version)))
 
 (defun decode-state (state)
-  "Transform Readline STATE into list of keywords."
+  "Transform Readline state STATE into list of keywords. See `+states+' for
+list of components that can appear in result list."
   (mapcan (lambda (index keyword)
             (when (logbitp index state)
               (list keyword)))
@@ -64,7 +67,9 @@ Readline library version."
           +states+))
 
 (defmacro produce-callback (function return-type &optional func-arg-list)
-  "Return pointer to callback that calls FUNCTION."
+  "Return pointer to callback that calls FUNCTION. RETURN-TYPE specifies
+return type of the function and FUNC-ARG-LIST is list of argument types (it
+can be ommited if FUNCTION doesn't take any arguments)."
   (let ((gensymed-list (mapcar (lambda (x) (list (gensym) x))
                                func-arg-list)))
     (with-gensyms (temp)
@@ -76,8 +81,8 @@ Readline library version."
            (null-pointer)))))
 
 (defun to-list-of-strings (pointer)
-  "Convert null-terminated array of pointers to chars into list of Lisp
-strings."
+  "Convert null-terminated array of pointers to chars that POINTER points to
+into list of Lisp strings."
   (unless (null-pointer-p pointer)
     (let (result)
       (do ((i 0 (1+ i)))
@@ -87,9 +92,9 @@ strings."
               result)))))
 
 (defun to-array-of-strings (list)
-  "Convert list of Lisp strings into null-terminated array of C
+  "Convert list of Lisp strings LIST into null-terminated array of C
 strings. Memory for every string and the array itself should be freed with
-'free'. If LIST is NIL, null pointer will be returned."
+`free' (C function). If LIST is NIL, null pointer will be returned."
   (if list
       (let* ((len (length list))
              (ptr (foreign-funcall "malloc"
@@ -102,12 +107,12 @@ strings. Memory for every string and the array itself should be freed with
         (do ((i   0 (1+ i))
              (lst list (cdr lst)))
             ((null lst) ptr)
-          (let* ((string  (car lst))
-                 (buffer  (foreign-funcall "malloc"
-                                           :unsigned-int
-                                           (* *c-buffer-size*
-                                              (foreign-type-size :char))
-                                           :pointer)))
+          (let* ((string (car lst))
+                 (buffer (foreign-funcall "malloc"
+                                          :unsigned-int
+                                          (* +c-buffer-size+
+                                             (foreign-type-size :char))
+                                          :pointer)))
             (setf (mem-aref ptr :pointer i)
-                  (lisp-string-to-foreign string buffer *c-buffer-size*)))))
+                  (lisp-string-to-foreign string buffer +c-buffer-size+)))))
       (null-pointer)))

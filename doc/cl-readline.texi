@@ -2,11 +2,11 @@
 @comment %**start of header (This is for running Texinfo on a region.)
 @setfilename cl-readline.info
 @settitle cl-readline Library
-@set EDITION 0.1.0
-@set VERSION 0.1.0
-@set UPDATED 18 January 2015
-@set UPDATED-MONTH January 2015
-@set LASTCHANGE Sat Jan 18 21:03:13 EST 2015
+@set EDITION 0.1.1
+@set VERSION 0.1.1
+@set UPDATED 18 June 2015
+@set UPDATED-MONTH June 2015
+@set LASTCHANGE Sat Jun 18 21:03:13 EST 2015
 
 @comment %**end of header (This is for running Texinfo on a region.)
 @synindex vr fn
@@ -107,6 +107,12 @@ Integer. The offset of the current cursor position in
 @var{*line-buffer*} (the point).
 @end defvr
 
+@defvr {Symbol Macro} +end+
+Integer. The number of characters present in @var{*line-buffer*}. When
+@var{*point*} is at the end of the line, @var{*point*} and @var{+end+}
+are equal.
+@end defvr
+
 @defvr {Symbol Macro} *mark*
 Integer. The mark (saved position) in the current line. If set, the
 mark and point define a region.
@@ -124,7 +130,7 @@ String. The prompt Readline uses. This is set from the argument to
 after calling @code{readline}.
 @end defvr
 
-@defvr {Symbol Macro} +display-prompt+
+@defvr {Symbol Macro} *display-prompt*
 String. The string displayed as the prompt. This is usually identical
 to @var{+prompt+}, but may be changed temporarily by functions that
 use the prompt string as a message area, such as incremental search.
@@ -217,23 +223,23 @@ Keyword. Evaluated to keyword denoting actual editing mode:
 @cindex readline, function
 
 @defun readline @code{&key} prompt already-prompted num-chars erase-empty-line add-history novelty-check
-Get a line from user with editing. @var{prompt}, if supplied, is
-printed before reading of input. Non-@code{nil} value of
-@var{already-prompted} will tell Readline that the application has
-printed prompt already. However, @var{prompt} must be supplied in this
-case too, so redisplay functions can update the display properly. If
-@var{num-chars} argument is a positive number, Readline will return
-after accepting that many characters. If @var{erase-empty-line} is not
-@code{nil}, @code{readline} will completely erase the current line,
-including any prompt, any time a newline is typed as the only
-character on an otherwise-empty line. The cursor is moved to the
-beginning of the newly-blank line. Supplying @var{add-history} tells
-Readline that user's input should be added to history. However, blank
-lines don't get into history anyway. @var{novelty-check}, if supplied,
-must be a predicate that takes two strings: the actual line and the
-most recent history line. Only when the predicate evaluates to
-non-@code{nil} value new line will be added to the history. Return
-value on success is the actual string and @code{nil} on failure.
+Get a line from user with editing. @var{prompt}, if supplied, is printed
+before reading of input. Non-@code{nil} value of @var{already-prompted}
+will tell Readline that the application has printed prompt
+already. However, @var{prompt} must be supplied in this case too, so
+redisplay functions can update the display properly. If @var{num-chars}
+argument is a positive number, Readline will return after accepting that
+many characters. If @var{erase-empty-line} is not @code{nil},
+@code{readline} will completely erase the current line, including any
+prompt, any time a newline is typed as the only character on an
+otherwise-empty line. The cursor is moved to the beginning of the
+newly-blank line. Supplying @var{add-history} tells Readline that user's
+input should be added to history. However, blank lines don't get into
+history anyway. @var{novelty-check}, if given, must be a predicate that
+takes two strings: the actual line and the most recent history
+line. Only when the predicate evaluates to non-@code{nil} value new line
+will be added to the history. Return value on success is the actual
+string and @code{nil} on failure.
 @end defun
 
 @node Hooks and Custom Functions
@@ -321,11 +327,7 @@ bound to self-insert.
 @cindex hooks
 
 @defun register-hook hook function
-Register a hook. @var{function} must be a function that takes no
-arguments and returns @code{nil} on success and @code{t} on
-failure. If @var{function} is @code{nil}, hook will be removed (or
-default function will be used). @var{hook} should be a keyword, one of
-the following:
+Register a hook. @var{hook} should be a keyword, one of the following:
 @itemize
 @item
 @code{:startup} hook is called just before @code{readline} prints the
@@ -353,14 +355,17 @@ completion in the list. It's up to the function how to display these
 completions.
 @end itemize
 Other values of @var{hook} will be ignored.
+
+@var{function} must be a function that takes no arguments and returns
+@code{nil} on success and @code{t} on failure. If @var{function} is
+@code{nil}, hook will be removed (or default function will be used).
 @end defun
 
 @cindex custom functions
 
 @defun register-function func function
-Register a function. @var{function} must be a function, if
-@var{function} is @code{nil}, result is unpredictable. @var{func}
-should be a keyword, one of the following:
+Register a function. @var{func} should be a keyword, one of the
+following:
 @itemize
 @item
 @code{:getc} function is used to get a character from the input
@@ -392,6 +397,9 @@ actual completion (or part of completion if two or more completions
 share common prefix) and the rest arguments are possible completions.
 @end itemize
 Other values of @var{func} will be ignored.
+
+@var{function} must be a function, if @var{function} is @code{nil},
+result is unpredictable.
 @end defun
 
 @node Work with Keymaps
@@ -490,7 +498,7 @@ has invoked it.
 @end defun
 
 @defun bind-key key function @code{&key} keymap if-unbound
-Binds @var{key} to @var{function} in the currently active keymap. If
+Bind @var{key} to @var{function} in the currently active keymap. If
 @var{keymap} argument supplied, binding takes place in specified
 keymap. If @var{if-unbound} is supplied and it's not @code{nil},
 @var{key} will be bound to @var{function} only if it's not already
@@ -534,9 +542,9 @@ Read keybindings and variable assignments from @var{filename}.
 Note that this section is stripped-down. Many functions are
 missing. It's because C functions take addresses of other functions as
 arguments. In cl-readline we use dynamic generation of callbacks, so
-once you have registered a new function, it's tricky to get its
-identity. Note that this problem is solvable, but not without certain
-hair. However, it shouldn't be a problem in most cases.
+once you have registered a new function, it's tricky to identify it
+later. Note that this problem is solvable, but hairy. If you need to use
+functions that are missing, open an issue and describe your problem.
 
 @defun function-dumper readable @code{&optional} filename append
 Print the Readline function names and the key sequences currently
@@ -659,13 +667,13 @@ showing the message and restore it before clearing the message.
 @chapter Modifying Text
 
 @defun insert-text text
-Insert @var{text} into the line at the current cursor
-position. Returns the number of characters inserted.
+Insert @var{text} into the line at the current cursor position. Return
+the number of characters inserted.
 @end defun
 
 @defun delete-text start end
 Delete the text between @var{start} and @var{end} in the current
-line. Returns the number of characters deleted.
+line. Return the number of characters deleted.
 @end defun
 
 @defun kill-text start end
@@ -685,7 +693,7 @@ stream.
 @end defun
 
 @defun stuff-char char
-Insert @var{char} into the Readline input stream. It will be 'read'
+Insert @var{char} into the Readline input stream. It will be «read»
 before Readline attempts to read characters from the terminal with
 @code{read-key}. Up to @code{512} characters may be pushed
 back. @code{stuff-char} returns @code{t} if the character was
@@ -704,12 +712,11 @@ works only if the pending input has not already been read with
 @end defun
 
 @defun set-keyboard-input-timeout u
-While waiting for keyboard input in @code{read-key}, Readline will
-wait for @var{u} microseconds for input before calling any function
-assigned to @code{event-hook}. @var{u} must be greater than or equal
-to zero (a zero-length timeout is equivalent to a poll). The default
-waiting period is one-tenth of a second. Returns the old timeout
-value.
+While waiting for keyboard input in @code{read-key}, Readline will wait
+for @var{u} microseconds for input before calling any function assigned
+to @code{event-hook}. @var{u} must be greater than or equal to zero (a
+zero-length timeout is equivalent to a poll). The default waiting period
+is one-tenth of a second. Return the old timeout value.
 @end defun
 
 @node Terminal Management
@@ -922,7 +929,7 @@ Set Readline's idea of the terminal size to @var{rows} rows and
 
 @defun get-screen-size
 Return Readline's idea of the terminal's size. The function returns
-multiple values: rows and cols.
+multiple values: number of rows and columns.
 @end defun
 
 @defun reset-screen-size
@@ -945,7 +952,7 @@ Remove all of the Readline signal handlers installed by
 @chapter Example
 
 This program demonstrates some basic capacities of cl-readline. Note
-that you should run it on terminal, not via SLIME.
+that you should run it in terminal, not via SLIME.
 
 @example
 ;;; Load some systems and define a package...

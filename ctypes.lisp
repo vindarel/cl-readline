@@ -23,19 +23,19 @@
     (:wrapper :int
               :from-c code-char
               :to-c   char-code)
-  "This wrapper performs conversion between C int and Lisp character.")
+  "Wrapper for conversion between C int and Lisp character.")
 
 (defctype version
     (:wrapper :int
               :from-c decode-version)
-  "This wrapper performs conversion between raw C int representing version
-of Readline library and Lisp values.")
+  "Wrapper for conversion between raw C int representing version of Readline
+library and Lisp values.")
 
 (defctype state
     (:wrapper :int
               :from-c decode-state)
-  "This wrapper performs conversion between raw C int representing state of
-Readline and list of keywords.")
+  "Wrapper for conversion between raw C int representing state of Readline
+and list of keywords.")
 
 (defcenum editing-mode
   "Enumeration of all possible editing modes in Readline."
@@ -43,6 +43,7 @@ Readline and list of keywords.")
   :emacs)
 
 (defcstruct history-entry
+  "C structure that represents a history entry in Readline."
   (line :pointer)
   (time :pointer)
   (data :pointer))
@@ -56,7 +57,7 @@ Readline and list of keywords.")
 
 (defcenum unix-signal
   "Enumeration of some Unix signals for use with some Readline functions,
-see section 'Signal Handling'."
+see section «Signal Handling»."
   (:sighup  1)
   (:sigint  2)
   (:sigquit 3)
@@ -68,7 +69,7 @@ see section 'Signal Handling'."
 
 (defcenum completion-type
   "Types of completion performed by Readline. See description of
-*COMPLETION-TYPE* for more information."
+`+completion-type+' for more information."
   (:standard-completion 9)
   (:display-and-perform 33)
   (:insert-all          42)

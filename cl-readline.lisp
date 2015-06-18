@@ -34,21 +34,22 @@
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Descriptions here from official documentation for GNU Readline, the
-;; documentation can be found at
+;; Descriptions here are from the official documentation for GNU Readline.
+;; The documentation can be found at
 ;; http://cnswww.cns.cwru.edu/php/chet/readline/readline.html
 
 (defcvar ("rl_line_buffer" *line-buffer*) :string
   "This is the line gathered so far. You are welcome to modify the contents
-of the line, but remember about undoing. The function EXTEND-LINE-BUFFER is
-available to increase the memory allocated to *LINE-BUFFER*.")
+of the line, but remember about undoing. The function `extend-line-buffer'
+is available to increase the memory allocated to `*line-buffer*'.")
 
 (defcvar ("rl_point" *point*) :int
-  "The offset of the current cursor position in *LINE-BUFFER* (the point).")
+  "The offset of the current cursor position in `*line-buffer*' (the
+point).")
 
-(defcvar ("rl_end" *end*) :int
-  "The number of characters present in *LINE-BUFFER*. When *POINT* is at the
-end of the line, *POINT* and *END* are equal.")
+(defcvar ("rl_end" +end+ :read-only t) :int
+  "The number of characters present in `*line-buffer*'. When `*point*' is at
+the end of the line, `*point*' and `+end+' are equal.")
 
 (defcvar ("rl_mark" *mark*) :int
   "The mark (saved position) in the current line. If set, the mark and point
@@ -79,13 +80,13 @@ character on an otherwise-empty line. The cursor is moved to the beginning
 of the newly-blank line.")
 
 (defcvar ("rl_prompt" +prompt+ :read-only t) :string
-  "The prompt Readline uses. This is set from the argument to READLINE,
-and should not be assigned to directly. The SET-PROMPT function may be used
-to modify the prompt string after calling READLINE.")
+  "The prompt Readline uses. This is set from the argument to `readline',
+and should not be assigned to directly. The `set-prompt' function may be
+used to modify the prompt string after calling `readline'.")
 
 (defcvar ("rl_display_prompt" *display-prompt*) :string
   "The string displayed as the prompt. This is usually identical to
-+PROMPT+, but may be changed temporarily by functions that use the prompt
+`+prompt+', but may be changed temporarily by functions that use the prompt
 string as a message area, such as incremental search.")
 
 (defcvar ("rl_already_prompted" *already-prompted*) :boolean
@@ -149,10 +150,10 @@ most ten times a second if there is no keyboard input.")
 
 (defcvar ("rl_getc_function" *getc-function*) :pointer
   "If non-zero, Readline will call indirectly through this pointer to get a
-character from the input stream. By default, it is set to rl_getc, the
+character from the input stream. By default, it is set to `rl_getc', the
 default Readline character input function (see section 2.4.8 Character
-Input). In general, an application that sets rl_getc_function should
-consider setting rl_input_available_hook as well.")
+Input). In general, an application that sets `rl_getc_function' should
+consider setting `rl_input_available_hook' as well.")
 
 (defcvar ("rl_signal_event_hook" *signal-event-hook*) :pointer
   "If non-zero, this is the address of a function to call if a read system
@@ -166,20 +167,20 @@ source.")
 (defcvar ("rl_redisplay_function" *redisplay-function*) :pointer
   "If non-zero, Readline will call indirectly through this pointer to update
 the display with the current contents of the editing buffer. By default, it
-is set to rl_redisplay, the default Readline redisplay function (see section
-2.4.6 Redisplay).")
+is set to `rl_redisplay', the default Readline redisplay function (see
+section 2.4.6 Redisplay).")
 
 (defcvar ("rl_prep_term_function" *prep-term-function*) :pointer
   "If non-zero, Readline will call indirectly through this pointer to
 initialize the terminal. The function takes a single argument, an int flag
 that says whether or not to use eight-bit characters. By default, this is
-set to rl_prep_terminal (see section 2.4.9 Terminal Management).")
+set to `rl_prep_terminal' (see section 2.4.9 Terminal Management).")
 
 (defcvar ("rl_deprep_term_function" *deprep-term-function*) :pointer
   "If non-zero, Readline will call indirectly through this pointer to reset
 the terminal. This function should undo the effects of
-rl_prep_term_function. By default, this is set to rl_deprep_terminal (see
-section 2.4.9 Terminal Management).")
+`rl_prep_term_function.' By default, this is set to
+`rl_deprep_terminal' (see section 2.4.9 Terminal Management).")
 
 (defcvar ("rl_executing_keymap" +executing-keymap+ :read-only t) :pointer
   "This symbol macro is evaluated to the keymap in which the currently
@@ -202,11 +203,11 @@ function.")
 Readline function.")
 
 (defcvar ("rl_key_sequence_length" +key-sequence-length+ :read-only t) :int
-  "The number of characters in +EXECUTING-KEYSEQ+.")
+  "The number of characters in `+executing-keyseq+'.")
 
 (defcvar ("rl_readline_state" +readline-state+ :read-only t) state
   "This symbol macro is evaluated to a list containing keywords that denote
-state of Readline.")
+state of Readline. For list of possible values see `+states+'.")
 
 (defcvar ("rl_explicit_arg" +explicit-arg+ :read-only t) :boolean
   "Evaluated to T if an explicit numeric argument was specified by the
@@ -223,30 +224,30 @@ bindable command function.")
 (defcvar ("rl_catch_signals" *catch-signals*) :boolean
   "If this variable is non-NIL, Readline will install signal handlers for
 SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM, SIGTSTP, SIGTTIN, and
-SIGTTOU. The default value of *CATCH-SIGNALS* is T.")
+SIGTTOU. The default value of `*catch-signals*' is T.")
 
 (defcvar ("rl_catch_sigwinch" *catch-sigwinch*) :boolean
   "If this variable is set to a non-NIL value, Readline will install a
-signal handler for SIGWINCH. The default value of *CATCH-SIGWINCH* is T.")
+signal handler for SIGWINCH. The default value of `*catch-sigwinch*' is T.")
 
 (defcvar ("rl_change_environment" *change-environment*) :boolean
   "If this variable is set to a non-NIL value, and Readline is handling
 SIGWINCH, Readline will modify the LINES and COLUMNS environment variables
-upon receipt of a SIGWINCH. The default value of *CHANGE-ENVIRONMENT* is
+upon receipt of a SIGWINCH. The default value of `*change-environment*' is
 T.")
 
 (defcvar ("rl_attempted_completion_function"
           *attempted-completion-function*)
     :pointer
   "A pointer to an alternative function to create matches. The function is
-called with TEXT, START, and END. START and END are indices in *LINE-BUFFER*
-defining the boundaries of text, which is a character string. If this
-function exists and returns NULL, or if this variable is set to NULL, then
-COMPLETE will call the value of *COMPLETION-ENTRY-FUNCTION* to generate
-matches, otherwise the array of strings returned will be used. If this
-function sets the *ATTEMPTED-COMPLETION-OVER* variable to a non-NIL value,
-Readline will not perform its default completion even if this function
-returns no matches.")
+called with TEXT, START, and END. START and END are indices in
+`*line-buffer*' defining the boundaries of text, which is a character
+string. If this function exists and returns NULL, or if this variable is set
+to NULL, then `complete' will call the value of
+`*completion-entry-function*' to generate matches, otherwise the array of
+strings returned will be used. If this function sets the
+`*attempted-completion-over*' variable to a non-NIL value, Readline will not
+perform its default completion even if this function returns no matches.")
 
 (defcvar ("rl_completion_display_matches_hook"
           *completion-display-matches-hook*)
@@ -255,8 +256,8 @@ returns no matches.")
 completing a word would normally display the list of possible matches. This
 function is called au lieu de Readline displaying the list. It takes three
 arguments: (char **matches, int num_matches, int max_length) where matches
-is the array of matching strings, num_matches is the number of strings in
-that array, and max_length is the length of the longest string in that
+is the array of matching strings, `num_matches' is the number of strings in
+that array, and `max_length' is the length of the longest string in that
 array.")
 
 (defcvar ("rl_basic_word_break_characters"
@@ -273,17 +274,16 @@ which break words for completion in Bash.")
           *completer-word-break-characters*)
     :string
   "The list of characters that signal a break between words for
-COMPLETE-INTERNAL. The default list is the value of
-*BASIC-WORD-BREAK-CHARACTERS*.")
+`complete-internal'. The default list is the value of
+`*basic-word-break-characters*.'")
 
 (defcvar ("rl_completion_query_items" *completion-query-items*) :int
   "Up to this many items will be displayed in response to a
-POSSIBLE-COMPLETIONS call. After that, Readline asks the user if she is sure
-she wants to see them all. The default value is 100. A negative value
+`possible-completions' call. After that, Readline asks the user if she is
+sure she wants to see them all. The default value is 100. A negative value
 indicates that Readline should never ask the user.")
 
-(defcvar ("rl_completion_append_character"
-          *completion-append-character*)
+(defcvar ("rl_completion_append_character" *completion-append-character*)
     int-char
   "When a single completion alternative matches at the end of the command
 line, this character is appended to the inserted completion text. The
@@ -293,29 +293,27 @@ application-specific completion functions to provide the 'most sensible word
 separator character' according to an application-specific command line
 syntax specification.")
 
-(defcvar ("rl_ignore_completion_duplicates"
-          *ignore-completion-duplicates*)
+(defcvar ("rl_ignore_completion_duplicates" *ignore-completion-duplicates*)
     :boolean
   "If non-NIL, then duplicates in the matches are removed. The default is
 T.")
 
-(defcvar ("rl_attempted_completion_over"
-          *attempted-completion-over*)
+(defcvar ("rl_attempted_completion_over" *attempted-completion-over*)
     :boolean
   "If an application-specific completion function assigned to
-*ATTEMPTED-COMPLETION-FUNCTION* sets this variable to a non-NIL value,
+`*attempted-completion-function*' sets this variable to a non-NIL value,
 Readline will not perform its default filename completion even if the
 application's completion function returns no matches. It should be set only
 by an application's completion function.")
 
-(defcvar ("rl_sort_completion_matches"
-          *sort-completion-matches*)
+(defcvar ("rl_sort_completion_matches" *sort-completion-matches*)
     :boolean
   "If an application sets this variable to NIL, Readline will not sort the
 list of completions (which implies that it cannot remove any duplicate
 completions). The default value is T, which means that Readline will sort
 the completions and, depending on the value of
-*IGNORE-COMPLETION-DUPLICATES*, will attempt to remove duplicate matches.")
+`*ignore-completion-duplicates*', will attempt to remove duplicate
+matches.")
 
 (defcvar ("rl_completion_type" +completion-type+ :read-only t) completion-type
   "Set to a keyword describing the type of completion Readline is currently
@@ -378,13 +376,13 @@ reading of input. Non-NIL value of ALREADY-PROMPTED will tell Readline that
 the application has printed prompt already. However, PROMPT must be supplied
 in this case too, so redisplay functions can update the display properly. If
 NUM-CHARS argument is a positive number, Readline will return after
-accepting that many characters. If ERASE-EMPTY-LINE is not NIL, READLINE
+accepting that many characters. If ERASE-EMPTY-LINE is not NIL, `readline'
 will completely erase the current line, including any prompt, any time a
 newline is typed as the only character on an otherwise-empty line. The
 cursor is moved to the beginning of the newly-blank line. Supplying
 ADD-HISTORY tells Readline that user's input should be added to
 history. However, blank lines don't get into history anyway. NOVELTY-CHECK,
-if supplied, must be a predicate that takes two strings: the actual line and
+if given, must be a predicate that takes two strings: the actual line and
 the most recent history line. Only when the predicate evaluates to non-NIL
 value new line will be added to the history. Return value on success is the
 actual string and NIL on failure."
@@ -418,9 +416,9 @@ initialize it."
     (initialize)))
 
 (defmacro with-possible-redirection (filename append &body body)
-  "If FILENAME is not NIL, tries to create C file with name FILENAME,
-temporarily reassign *OUTSTREAM* to pointer to this file, perform BODY, then
-close the file and assign *OUTSTREAM* to the old value. If APPEND is not
+  "If FILENAME is not NIL, try to create C file named FILENAME,
+temporarily reassign `*outstream*' to pointer to this file, perform BODY,
+then close the file and assign `*outstream*' the old value. If APPEND is not
 NIL, output will be appended to the file. Returns NIL on success and T on
 failure."
   (with-gensyms (temp-outstream file-pointer body-fnc)
@@ -451,10 +449,7 @@ failure."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun register-hook (hook function)
-  "Register a hook. FUNCTION must be a function that takes no arguments and
-returns NIL on success and T on failure. If FUNCTION is NIL, hook will be
-removed (or default function will be used). HOOK should be a keyword, one of
-the following:
+  "Register a hook. HOOK should be a keyword, one of the following:
 
 :STARTUP hook is called just before READLINE prints the prompt.
 
@@ -477,7 +472,11 @@ able to take three arguments: list of completions, length of the list, and
 length of the longest completion in the list. It's up to the function how to
 display these completions.
 
-Other values of HOOK will be ignored."
+Other values of HOOK will be ignored.
+
+FUNCTION must be a function that takes no arguments and returns NIL on
+success and T on failure. If FUNCTION is NIL, hook will be removed (or
+default function will be used)."
   (let ((cb (if (and (eql hook :lsmatches)
                      function)
                 (produce-callback
@@ -499,8 +498,7 @@ Other values of HOOK will be ignored."
   nil)
 
 (defun register-function (func function)
-  "Register a function. FUNCTION must be a function, if FUNCTION is NIL,
-result is unpredictable. FUNC should be a keyword, one of the following:
+  "Register a function. FUNC should be a keyword, one of the following:
 
 :GETC function is used to get a character from the input stream, thus
 FUNCTION should take pointer to C stream and return a character if this
@@ -528,7 +526,9 @@ where first element is the actual completion (or part of completion if two
 or more completions share common prefix) and the rest arguments are possible
 completions.
 
-Other values of FUNC will be ignored."
+Other values of FUNC will be ignored.
+
+FUNCTION must be a function, if FUNCTION is NIL, result is unpredictable."
   (case func
     (:getc        (setf *getc-function*
                         (produce-callback function int-char (:pointer))))
@@ -592,9 +592,9 @@ set keymap inputrc line."
   (keymap :pointer))
 
 (defmacro with-new-keymap (form &body body)
-  "Create new keymap evaluating FORM, bind symbol KEYMAP to the result, then
-free it when control flow leaves BODY. MAKE-KEYMAP and COPY-KEYMAP can be
-used to produce new keymap."
+  "Create new keymap evaluating FORM, bind symbol `keymap' to the result,
+then free it when control flow leaves BODY. `make-keymap' and `copy-keymap'
+can be used to produce new keymap."
   `(let ((keymap ,form))
      (unwind-protect
           (progn ,@body)
@@ -609,7 +609,7 @@ used to produce new keymap."
 (defun add-defun (name function &optional key)
   "Add NAME to the list of named functions. Make FUNCTION be the function
 that gets called. If KEY is not NIL and it's a character, then bind it to
-function using BIND-KEY. FUNCTION must be able to take two arguments:
+function using `bind-key'. FUNCTION must be able to take two arguments:
 integer representing its argument and character representing key that has
 invoked it."
   (ensure-initialization)
@@ -621,7 +621,7 @@ invoked it."
                    :int (if key (char-code key) -1)))
 
 (defun bind-key (key function &key keymap if-unbound)
-  "Binds KEY to FUNCTION in the currently active keymap. If KEYMAP argument
+  "Bind KEY to FUNCTION in the currently active keymap. If KEYMAP argument
 supplied, binding takes place in specified keymap. If IF-UNBOUND is supplied
 and it's not NIL, KEY will be bound to FUNCTION only if it's not already
 bound."
@@ -812,7 +812,7 @@ unit. It is assumed that you will subsequently modify that text."
 
 (defcfun ("rl_redisplay" redisplay) :void
   "Change what's displayed on the screen to reflect the current contents of
-*LINE-BUFFER*.")
+`*line-buffer*'.")
 
 (defcfun ("rl_forced_update_display" forced-update-display) :boolean
   "Force the line to be updated and redisplayed, whether or not Readline
@@ -824,7 +824,7 @@ usually after outputting a newline. When WITH-PROMPT is not NIL, Readline
 will think that prompt is already displayed. This could be used by
 applications that want to output the prompt string themselves, but still
 need Readline to know the prompt string length for redisplay. This should be
-used together with :ALREADY-PROMPTED keyword argument of READLINE."
+used together with :ALREADY-PROMPTED keyword argument of `readline'."
   (if with-prompt
       (foreign-funcall "rl_on_new_line_with_prompt" :boolean)
       (foreign-funcall "rl_on_new_line" :boolean)))
@@ -861,7 +861,7 @@ it before clearing the message."
 
 (defcfun ("rl_set_prompt" set-prompt) :boolean
   "Make Readline use PROMPT for subsequent redisplay. This calls
-EXPAND-PROMPT to expand the prompt and sets +PROMPT+ to the result."
+`expand-prompt' to expand the prompt and sets `+prompt+' to the result."
   (prompt :string))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -871,12 +871,12 @@ EXPAND-PROMPT to expand the prompt and sets +PROMPT+ to the result."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defcfun ("rl_insert_text" insert-text) :int
-  "Insert TEXT into the line at the current cursor position. Returns the
+  "Insert TEXT into the line at the current cursor position. Return the
 number of characters inserted."
   (text :string))
 
 (defcfun ("rl_delete_text" delete-text) :int
-  "Delete the text between START and END in the current line. Returns the
+  "Delete the text between START and END in the current line. Return the
 number of characters deleted."
   (start :int)
   (end   :int))
@@ -901,26 +901,25 @@ kill ring slot is used."
 stream.")
 
 (defcfun ("rl_stuff_char" stuff-char) :boolean
-  "Insert CHAR into the Readline input stream. It will be 'read' before
-Readline attempts to read characters from the terminal with READ-KEY. Up to
-512 characters may be pushed back. STUFF-CHAR returns T if the character was
-successfully inserted; NIL otherwise."
+  "Insert CHAR into the Readline input stream. It will be «read» before
+Readline attempts to read characters from the terminal with `read-key'. Up
+to 512 characters may be pushed back. `stuff-char' returns T if the
+character was successfully inserted; NIL otherwise."
   (char int-char))
 
 (defcfun ("rl_execute_next" execute-next) :boolean
-  "Make CHAR be the next command to be executed when READ-KEY is
-called."
+  "Make CHAR be the next command to be executed when `read-key' is called."
   (char int-char))
 
 (defcfun ("rl_clear_pending_input" clear-pending-input) :boolean
-  "Negate the effect of any previous call to EXECUTE-NEXT. This works only
-if the pending input has not already been read with READ-KEY.")
+  "Negate the effect of any previous call to `execute-next'. This works only
+if the pending input has not already been read with `read-key'.")
 
 (defcfun ("rl_set_keyboard_input_timeout" set-keyboard-input-timeout) :int
-  "While waiting for keyboard input in READ-KEY, Readline will wait for U
-microseconds for input before calling any function assigned to EVENT-HOOK. U
-must be greater than or equal to zero (a zero-length timeout is equivalent
-to a poll). The default waiting period is one-tenth of a second. Returns the
+  "While waiting for keyboard input in `read-key', Readline will wait for U
+microseconds for input before calling any function assigned to `event-hook'.
+U must be greater than or equal to zero (a zero-length timeout is equivalent
+to a poll). The default waiting period is one-tenth of a second. Return the
 old timeout value."
   (u :int))
 
@@ -931,14 +930,14 @@ old timeout value."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defcfun ("rl_prep_terminal" prep-terminal) :void
-  "Modify the terminal settings for Readline's use, so READLINE can read a
+  "Modify the terminal settings for Readline's use, so `readline' can read a
 single character at a time from the keyboard. The EIGHT-BIT-INPUT argument
 should be non-NIL if Readline should read eight-bit input."
   (eight-bit-input :boolean))
 
 (defcfun ("rl_deprep_terminal" deprep-terminal) :void
-  "Undo the effects of PREP-TERMINAL, leaving the terminal in the state in
-which it was before the most recent call to PREP-TERMINAL.")
+  "Undo the effects of `prep-terminal', leaving the terminal in the state in
+which it was before the most recent call to `prep-terminal'.")
 
 (defun tty-set-default-bindings (keymap)
   "Read the operating system's terminal editing characters (as would be
@@ -950,9 +949,9 @@ in KEYMAP."
                    :void))
 
 (defcfun ("rl_tty_unset_default_bindings" tty-unset-default-bindings) :void
-  "Reset the bindings manipulated by TTY-SET-DEFAULT-BINDINGS so that the
-terminal editing characters are bound to INSERT. The bindings are performed
-in KEYMAP."
+  "Reset the bindings manipulated by `tty-set-default-bindings' so that the
+terminal editing characters are bound to `insert'. The bindings are
+performed in KEYMAP."
   (keymap :pointer))
 
 (defcfun ("rl_reset_terminal" reset-terminal) :boolean
@@ -967,7 +966,7 @@ the terminal type (e.g., vt100)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defcfun ("rl_replace_line" replace-line) :void
-  "Replace the contents of *LINE-BUFFER* with TEXT. The point and mark are
+  "Replace the contents of `*line-buffer*' with TEXT. The point and mark are
 preserved, if possible. If CLEAR-UNDO is non-NIL, the undo list associated
 with the current line is cleared."
   (text       :string)
@@ -980,7 +979,7 @@ possibly reallocating it if necessary."
 
 (defcfun ("rl_initialize" initialize) :boolean
   "Initialize or re-initialize Readline's internal state. It's not strictly
-necessary to call this; READLINE calls it before reading any input.")
+necessary to call this; `readline' calls it before reading any input.")
 
 (defcfun ("rl_ding" ding) :boolean
   "Ring the terminal bell, obeying the setting of bell-style.")
@@ -1050,19 +1049,21 @@ function returns previous value of the parameter."
 
 (defcfun ("rl_cleanup_after_signal" cleanup-after-signal) :void
   "This function will reset the state of the terminal to what it was before
-READLINE was called, and remove the Readline signal handlers for all
-signals, depending on the values of *CATCH-SIGNALS* and *CATCH-SIGWINCH*.")
+`readline' was called, and remove the Readline signal handlers for all
+signals, depending on the values of `*catch-signals*' and
+`*catch-sigwinch*'.")
 
 (defcfun ("rl_free_line_state" free-line-state) :void
   "This will free any partial state associated with the current input
 line (undo information, any partial history entry, any partially-entered
 keyboard macro, and any partially-entered numeric argument). This should be
-called before CLEANUP-AFTER-SIGNAL. The Readline signal handler for SIGINT
+called before `cleanup-after-signal.' The Readline signal handler for SIGINT
 calls this to abort the current input line.")
 
 (defcfun ("rl_reset_after_signal" reset-after-signal) :void
   "This will reinitialize the terminal and reinstall any Readline signal
-handlers, depending on the values of *CATCH-SIGNALS* and *CATCH-SIGWINCH*.")
+handlers, depending on the values of `*catch-signals*' and
+`*catch-sigwinch*'.")
 
 (defcfun ("rl_echo_signal_char" echo-signal-char) :void
   "If an application wishes to install its own signal handlers, but still
@@ -1087,7 +1088,7 @@ idea of that terminal dimension is unchanged."
 
 (defun get-screen-size ()
   "Return Readline's idea of the terminal's size. The function returns
-multiple values: rows and cols."
+multiple values: number of rows and columns."
   (ensure-initialization)
   (with-foreign-objects ((rows :int)
                          (cols :int))
@@ -1105,7 +1106,7 @@ dimensions.")
 (defcfun ("rl_set_signals" set-signals) :boolean
   "Install Readline's signal handler for SIGINT, SIGQUIT, SIGTERM, SIGHUP,
 SIGALRM, SIGTSTP, SIGTTIN, SIGTTOU, and SIGWINCH, depending on the values of
-*CATCH-SIGNALS* and *CATCH-SIGWINCH*.")
+`*catch-signals*' and `*catch-sigwinch*'.")
 
 (defcfun ("rl_clear_signals" clear-signals) :boolean
-  "Remove all of the Readline signal handlers installed by SET-SIGNALS.")
+  "Remove all of the Readline signal handlers installed by `set-signals'.")

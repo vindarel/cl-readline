@@ -26,7 +26,7 @@
    ;; Readline Variables
    #:*line-buffer*
    #:*point*
-   #:*end*
+   #:+end+
    #:*mark*
    #:*done*
    #:+dispatching+

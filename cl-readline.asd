@@ -18,7 +18,7 @@
 ;;; with this program. If not, see <http://www.gnu.org/licenses/>.
 
 (asdf:defsystem :cl-readline
-  :version      "0.1.0"
+  :version      "0.1.1"
   :description  "Common Lisp bindings to GNU Readline library"
   :author       "Mark Karpov"
   :license      "GNU GPL, version 3"

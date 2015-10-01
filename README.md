@@ -26,6 +26,13 @@ Via Quicklisp:
 (ql:quickload "cl-readline")
 ```
 
+If you are using Homebrew on a Mac, please note that **GNU Readline** is a [*keg-only*](stackoverflow.com/questions/4691403/keg-only-homebrew-formulas) formula
+of Homebrew, which means you may need to link the library yourself:
+
+```
+$ brew link readline --force
+```
+
 ## Documentation
 
 See contents of directory `doc`. Documentation is also available online:

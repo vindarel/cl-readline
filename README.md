@@ -22,8 +22,15 @@ should have installed them.
 
 Via Quicklisp:
 
-```
+```common-lisp
 (ql:quickload "cl-readline")
+```
+
+If you are using Homebrew on a Mac, please note that GNU Readline has
+*keg-only* formula, which means you may need to link the library yourself:
+
+```
+$ brew link readline --force
 ```
 
 ## Documentation

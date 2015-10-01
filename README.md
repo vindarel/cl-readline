@@ -30,7 +30,7 @@ If you are using Homebrew on a Mac, please note that **GNU Readline** is a [*keg
 of Homebrew, which means you may need to link thte library yourself:
 
 ```
-$ brew --force link readline
+$ brew link readline --force
 ```
 
 ## Documentation

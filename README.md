@@ -1,7 +1,10 @@
 # cl-readline
 
-Common Lisp bindings to [GNU Readline
-library](http://directory.fsf.org/wiki/Readline).
+[![License GPL 3](https://img.shields.io/badge/license-GPL_3-green.svg)](http://www.gnu.org/licenses/gpl-3.0.txt)
+[![Quicklisp](http://quickdocs.org/badge/cl-readline.svg)](http://quickdocs.org/cl-readline/)
+
+Common Lisp bindings to
+[GNU Readline library](http://directory.fsf.org/wiki/Readline).
 
 The Readline library provides a set of functions for use by applications
 that allow users to edit command lines as they are typed in. Both Emacs and
@@ -18,9 +21,9 @@ issue if you have any propositions.
 
 Download or clone the repository and put it into some place where ASDF can
 find it. Note that `cl-readline` depends on CFFI and Alexandria, so you
-should have installed them.
+should install them too.
 
-Via Quicklisp:
+Via Quicklisp (recommended):
 
 ```common-lisp
 (ql:quickload "cl-readline")
@@ -35,7 +38,7 @@ $ brew link readline --force
 
 ## Documentation
 
-See contents of directory `doc`. Documentation is also available online:
+See contents of the directory `doc`. Documentation is also available online:
 
 https://mrkkrp.github.io/cl-readline/
 

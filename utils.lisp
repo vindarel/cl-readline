@@ -81,8 +81,8 @@ can be ommited if FUNCTION doesn't take any arguments)."
            (null-pointer)))))
 
 (defun to-list-of-strings (pointer)
-  "Convert null-terminated array of pointers to chars that POINTER points to
-into list of Lisp strings."
+  "Convert a null-terminated array of pointers to chars that POINTER points
+to into list of Lisp strings."
   (unless (null-pointer-p pointer)
     (let (result)
       (do ((i 0 (1+ i)))
@@ -92,7 +92,7 @@ into list of Lisp strings."
               result)))))
 
 (defun to-array-of-strings (list)
-  "Convert list of Lisp strings LIST into null-terminated array of C
+  "Convert a list of Lisp strings LIST into null-terminated array of C
 strings. Memory for every string and the array itself should be freed with
 `free' (C function). If LIST is NIL, null pointer will be returned."
   (if list

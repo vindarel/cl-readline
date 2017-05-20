@@ -3,8 +3,8 @@
 [![License GPL 3](https://img.shields.io/badge/license-GPL_3-green.svg)](http://www.gnu.org/licenses/gpl-3.0.txt)
 [![Quicklisp](http://quickdocs.org/badge/cl-readline.svg)](http://quickdocs.org/cl-readline/)
 
-Common Lisp bindings to
-[GNU Readline library](http://directory.fsf.org/wiki/Readline).
+Common Lisp bindings
+to [GNU Readline library](http://directory.fsf.org/wiki/Readline).
 
 The Readline library provides a set of functions for use by applications
 that allow users to edit command lines as they are typed in. Both Emacs and
@@ -13,9 +13,10 @@ functions to maintain a list of previously-entered command lines, to recall
 and perhaps reedit those lines, and perform csh-like history expansion on
 previous commands.
 
-These bindings provide Lispy interface to GNU Readline somewhat reducing its
-hair. Some minor features are omitted, they may be added on request. Open an
-issue if you have any propositions.
+These bindings provide a Lispy interface to GNU Readline somewhat reducing
+the pain you are bound to experience when you use it. Some minor features
+are omitted, they may be added on request. Open an issue if you have any
+propositions.
 
 ## Installation
 
@@ -44,6 +45,6 @@ https://mrkkrp.github.io/cl-readline/
 
 ## License
 
-Copyright © 2015—2017 Mark Karpov
+Copyright © 2015–2017 Mark Karpov
 
 Distributed under GNU GPL, version 3.

@@ -21,10 +21,6 @@ propositions.
 
 ## Installation
 
-Download or clone the repository and put it into some place where ASDF can
-find it. Note that `cl-readline` depends on CFFI and Alexandria, so you
-should install them too.
-
 Via Quicklisp (recommended):
 
 ```common-lisp
@@ -42,7 +38,7 @@ $ brew link readline --force
 
 See contents of the directory `doc`. Documentation is also available online:
 
-https://mrkkrp.github.io/cl-readline/
+https://vindarel.github.io/cl-readline/
 
 ## License
 

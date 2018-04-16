@@ -40,6 +40,11 @@ See contents of the directory `doc`. Documentation is also available online:
 
 https://vindarel.github.io/cl-readline/
 
+See also our
+[cl-readline-example](https://github.com/vindarel/cl-readline-example)
+and a list of projects using the library
+[on the wiki](https://github.com/vindarel/cl-readline/wiki).
+
 ## License
 
 Copyright © 2015–2018 Mark Karpov

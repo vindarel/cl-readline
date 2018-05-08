@@ -1041,6 +1041,17 @@ function returns previous value of the parameter."
 (defcfun ("rl_clear_history" clear-history) :void
   "Clear the history list by deleting all of the entries.")
 
+(defcfun ("read_history" read-history) :int
+  "Add the contents of filename to the history list, a line at a
+time."
+  (filename :string))
+
+(defcfun ("write_history" write-history) :int
+  "Write the current history to filename, overwriting filename if
+necessary."
+  (filename :string))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                            Signal Handling                             ;;

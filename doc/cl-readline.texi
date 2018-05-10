@@ -821,6 +821,16 @@ been enabled. The function returns previous value of the parameter.
 Clear the history list by deleting all of the entries.
 @end defun
 
+@defun read-history filename
+Add the contents of filename to the history list, a line at a
+time.
+@end defun
+
+@defun write-history filename
+Write the current history to filename, overwriting filename if
+necessary.
+@end defun
+
 @node Signal Handling
 @chapter Signal Handling
 

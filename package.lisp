@@ -130,6 +130,8 @@
    #:variable-dumper
    #:set-paren-blink-timeout
    #:clear-history
+   #:read-history
+   #:write-history
    ;; Signal Handling
    #:cleanup-after-signal
    #:free-line-state

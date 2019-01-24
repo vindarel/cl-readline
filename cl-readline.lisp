@@ -23,6 +23,7 @@
   (:darwin (:or "libreadline.dylib"))
   (:unix   (:or "libreadline.so.6.3"
                 "libreadline.so.6"
+                "libreadline.so.7"
                 "libreadline.so"))
   (t       (:default "libreadline")))
 

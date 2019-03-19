@@ -36,17 +36,20 @@ $ brew link readline --force
 
 ## Documentation
 
-See contents of the directory `doc`. Documentation is also available online:
+See contents of the directory `doc`. The documentation is also available online:
 
 https://vindarel.github.io/cl-readline/
 
 See also our
-[cl-readline-example](https://github.com/vindarel/cl-readline-example)
-and a list of projects using the library
+[cl-readline-example](https://github.com/vindarel/cl-readline-example),
+our [replic](https://github.com/vindarel/replic) library and executable,
+that helps building a readline application, and a list of projects
+using the library
 [on the wiki](https://github.com/vindarel/cl-readline/wiki).
 
 ## License
 
-Copyright © 2015–2018 Mark Karpov
+Copyright © 2015–2018 Mark Karpov <br> 
+Copyright © 2018–2019 vindarel
 
 Distributed under GNU GPL, version 3.

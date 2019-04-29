@@ -61,11 +61,6 @@ define a region.")
   "Setting this to a non-NIL value causes Readline to return the current
 line immediately.")
 
-(defcvar ("rl_num_chars_to_read" *num-chars-to-read*) :int
-  "Setting this to a positive value before calling READLINE causes Readline
-to return after accepting that many characters, rather than reading up to a
-character bound to accept-line.")
-
 (defcvar ("rl_pending_input" *pending-input*) :int ;; not used
   "Setting this to a value makes it the next keystroke read. This is a way
 to stuff a single character into the input stream.")
@@ -74,12 +69,6 @@ to stuff a single character into the input stream.")
   "Set to a non-NIL value if a function is being called from a key binding;
 NIL otherwise. Application functions can test this to discover whether they
 were called directly or by Readline's dispatching mechanism.")
-
-(defcvar ("rl_erase_empty_line" *erase-empty-line*) :boolean
-  "Setting this to a non-NIL value causes Readline to completely erase the
-current line, including any prompt, any time a newline is typed as the only
-character on an otherwise-empty line. The cursor is moved to the beginning
-of the newly-blank line.")
 
 (defcvar ("rl_prompt" +prompt+ :read-only t) :string
   "The prompt Readline uses. This is set from the argument to `readline',
@@ -388,9 +377,7 @@ if given, must be a predicate that takes two strings: the actual line and
 the most recent history line. Only when the predicate evaluates to non-NIL
 value new line will be added to the history. Return value on success is the
 actual string and NIL on failure."
-  (setf *already-prompted*  already-prompted
-        *num-chars-to-read* (or num-chars 0)
-        *erase-empty-line*  erase-empty-line)
+  (setf *already-prompted*  already-prompted)
   (let* ((prompt (if prompt (string prompt) ""))
          (ptr (foreign-funcall "readline"
                                :string prompt

@@ -20,7 +20,14 @@
 (in-package #:cl-readline)
 
 (define-foreign-library readline
-  (:darwin (:or "libreadline.dylib"))
+  ;; On OSX we first search readline, installed by brew install readline
+  ;; because native system version of readline is a symlink to libedit.
+  ;; Some people on the internet advice to "fix" it by running:
+  ;; brew link --force readline
+  ;; but it is a bad idea, because this command may break some system utilities,
+  ;; depending on libedit's internals.
+  (:darwin (:or "/usr/local/opt/readline/lib/libreadline.dylib"
+                "libreadline.dylib"))
   (:unix   (:or "libreadline.so.6.3"
                 "libreadline.so.6"
                 "libreadline.so.7"

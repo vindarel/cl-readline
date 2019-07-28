@@ -962,17 +962,16 @@ Remove all of the Readline signal handlers installed by
 @chapter Example
 
 This program demonstrates some basic capacities of cl-readline. Note
-that you should run it in terminal, not via SLIME.
+that you should run it in terminal, not via SLIME. See more at @url{https://github.com/vindarel/cl-readline-example}.
 
 @example
 ;;; Load some systems and define a package...
 
-(asdf:load-system :alexandria)
+(asdf:load-system :str)
 (asdf:load-system :cl-readline)
 
 (cl:defpackage :example
-  (:use    #:common-lisp
-           #:alexandria)
+  (:use    #:common-lisp)
   (:export #:run-example))
 
 (in-package :example)
@@ -982,29 +981,18 @@ that you should run it in terminal, not via SLIME.
 (defvar *verbs*  '("eat" "get" "throw" "quit"))
 (defvar *fruits* '("banana" "apple" "orange" "banana_two"))
 
-;;; Define and register function that does custom completion: if user enters
-;;; first word, it will be completed as a verb, second and later words will
+;;; Define and register function that does custom completion: if the user enters
+;;; a first word, it will be completed as a verb, and the second and later words will
 ;;; be completed as fruits.
 
 (defun custom-complete (text start end)
   (declare (ignore end))
-  (labels ((common-prefix (items)
-             (subseq
-              (car items) 0
-              (position
-               nil
-               (mapcar
-                (lambda (i)
-                  (every (lambda (x)
-                           (char= (char (car items) i)
-                                  (char x           i)))
-                         (cdr items)))
-                (iota (reduce #'min (mapcar #'length items)))))))
-           (select-completions (list)
-             (let ((els (remove-if-not (curry #'starts-with-subseq text)
+  (labels ((select-completions (list)
+             (let ((els (remove-if-not (lambda (it)
+                                         (str:starts-with? text it))
                                        list)))
                (if (cdr els)
-                   (cons (common-prefix els) els)
+                   (cons (str:prefix els) els)
                    els))))
     (if (zerop start)
         (select-completions *verbs*)
@@ -1012,9 +1000,10 @@ that you should run it in terminal, not via SLIME.
 
 (rl:register-function :complete #'custom-complete)
 
-;;; Let's also create a custom command and bind it to some key sequence so
-;;; user can invoke it. In this example user can automagically insert phrase
-;;; 'inserted text' pressing Control-o.
+;;; Let's also create a custom command and bind it to some key
+;;; sequence so the user can invoke it. In this example the user can
+;;; automagically insert the phrase 'inserted text' pressing
+;;; Control-o.
 
 (defun print-some-text (arg key)
   (declare (ignore arg key))
@@ -1032,6 +1021,7 @@ that you should run it in terminal, not via SLIME.
 ;;; Finally, this is our main function. To exit from the loop, enter 'quit'.
 
 (defun run-example ()
+  ;; see cl-readline-example to see how to catch a C-c.
   (do ((i 0 (1+ i))
        (text ""))
       ((string= "quit" (string-trim " " text)))

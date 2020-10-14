@@ -47,9 +47,11 @@ that helps building a readline application, and a list of projects
 using the library
 [on the wiki](https://github.com/vindarel/cl-readline/wiki).
 
+See also [linedit](https://github.com/sharplispers/linedit).
+
 ## License
 
-Copyright © 2015–2018 Mark Karpov <br> 
-Copyright © 2018–2019 vindarel
+Copyright © 2015–2018 Mark Karpov <br>
+Copyright © 2018–2020 vindarel
 
 Distributed under GNU GPL, version 3.

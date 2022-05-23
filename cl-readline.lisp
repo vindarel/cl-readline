@@ -28,6 +28,7 @@
   ;; depending on libedit's internals.
   (:darwin (:or "/usr/local/opt/readline/lib/libreadline.dylib"
                 "/opt/homebrew/opt/readline/lib/libreadline.dylib"
+                "/opt/local/lib/libreadline.dylib"
                 "libreadline.dylib"))
   (:unix   (:or "libreadline.so.6.3"
                 "libreadline.so.6"

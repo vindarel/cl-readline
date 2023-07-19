@@ -542,22 +542,22 @@ Other values of FUNC will be ignored.
 FUNCTION must be a function, if FUNCTION is NIL, result is unpredictable."
   (case func
     (:getc        (setf *getc-function*
-                        (produce-callback function int-char (:pointer))))
+                        (produce-callback* function int-char '(:pointer))))
     (:redisplay   (setf *redisplay-function*
-                        (produce-callback function :void)))
+                        (produce-callback* function :void)))
     (:prep-term   (setf *prep-term-function*
-                        (produce-callback function :void (:boolean))))
+                        (produce-callback* function :void '(:boolean))))
     (:deprep-term (setf *deprep-term-function*
-                        (produce-callback function :void)))
+                        (produce-callback* function :void)))
     (:complete    (setf *attempted-completion-function*
-                        (produce-callback
+                        (produce-callback*
                          (lambda (text start end)
                            (prog1
                                (to-array-of-strings
                                 (funcall function text start end))
                              (setf *attempted-completion-over* t)))
                          :pointer
-                         (:string :int :int)))))
+                         '(:string :int :int)))))
   nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -637,7 +637,7 @@ supplied, binding takes place in specified keymap. If IF-UNBOUND is supplied
 and it's not NIL, KEY will be bound to FUNCTION only if it's not already
 bound."
   (ensure-initialization)
-  (let ((cb (produce-callback function :boolean (:int int-char))))
+  (let ((cb (produce-callback* function :boolean '(:int int-char))))
     (cond ((and keymap if-unbound)
            (foreign-funcall "rl_bind_key_if_unbound_in_map"
                             int-char key
@@ -691,7 +691,7 @@ performed in KEYMAP. If IF-UNBOUND is supplied and it's not NIL, KEYSEQ will
 be bound to FUNCTION only if it's not already bound. The return value is T
 if KEYSEQ is invalid and NIL otherwise."
   (ensure-initialization)
-  (let ((cb (produce-callback function :boolean (:int int-char))))
+  (let ((cb (produce-callback* function :boolean '(:int int-char))))
     (cond ((and keymap if-unbound)
            (foreign-funcall "rl_bind_keyseq_if_unbound_in_map"
                             :string  keyseq

@@ -28,5 +28,4 @@
                  (:file "ctypes")
                  (:file "cl-readline"))
   :depends-on   (:alexandria
-                 :cffi
-                 :conium))
+                 :cffi))

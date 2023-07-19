@@ -1044,7 +1044,8 @@ append text to the file instead of overwriting it."
                      :void)))
 
 (defcvar ("rl_blink_matching_paren" *blink-matching-paren*) :boolean
-  "If this variable is non-NIL, matching parenthesis will blink whenever the closing parenthesis is inserted.")
+  "If this variable is non-NIL, matching parenthesis (if its key is bound to
+rl_insert_close) will blink whenever the closing parenthesis is inserted.")
 
 (defcfun ("rl_set_paren_blink_timeout" set-paren-blink-timeout) :int
   "Set the time interval (in microseconds) that Readline waits when showing

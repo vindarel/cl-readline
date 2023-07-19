@@ -85,20 +85,13 @@ can be ommited if FUNCTION doesn't take any arguments)."
 This avoids using a GENSYM as the name of a callback, and is also funcallable."
   (let ((gensymed-list (mapcar (lambda (x) (list (gensym) x))
                                func-arg-list)))
-    (if function
-        (let ((name (etypecase function
-                      (symbol function)
-                      (function
-                       (let ((name-from-conium
-                               (conium:function-name function)))
-                         (if (and name-from-conium
-                                  (symbolp name-from-conium))
-                             name-from-conium
-                             (gensym)))))))
-          (eval `(defcallback ,name ,return-type ,gensymed-list
-                   (funcall ,function ,@(mapcar #'car gensymed-list))))
-          (get-callback name))
-        (null-pointer))))
+    (with-gensyms (temp)
+      (if function
+          (progn
+            (eval `(defcallback ,temp ,return-type ,gensymed-list
+                     (funcall ,function ,@(mapcar #'car gensymed-list))))
+            (get-callback temp))
+          (null-pointer)))))
 
 (defun to-list-of-strings (pointer)
   "Convert a null-terminated array of pointers to chars that POINTER points

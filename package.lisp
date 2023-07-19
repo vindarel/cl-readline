@@ -128,6 +128,7 @@
    #:variable-bind
    #:variable-value
    #:variable-dumper
+   #:*blink-matching-paren*
    #:set-paren-blink-timeout
    #:clear-history
    #:read-history

@@ -112,6 +112,11 @@
    #:execute-next
    #:clear-pending-input
    #:set-keyboard-input-timeout
+
+   ;; Moving the cursor
+   #:backward-char
+   #:forward-char
+
    ;; Terminal Management
    #:prep-terminal
    #:deprep-terminal

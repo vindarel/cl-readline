@@ -114,8 +114,17 @@
    #:set-keyboard-input-timeout
 
    ;; Moving the cursor
+   #:forward-byte
+   #:backward-byte
    #:backward-char
    #:forward-char
+   #:forward-word
+   #:backward-word
+   #:beginning-of-line
+   #:end-of-line
+   #:refresh-line
+   #:clear-screen
+   #:clear-display
 
    ;; Terminal Management
    #:prep-terminal

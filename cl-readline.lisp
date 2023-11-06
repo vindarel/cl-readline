@@ -40,6 +40,7 @@
 
 (use-foreign-library readline)
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                           Readline Variables                           ;;
@@ -55,6 +56,8 @@
 of the line, but remember about undoing. The function `extend-line-buffer'
 is available to increase the memory allocated to `*line-buffer*'.")
 
+;; rl_point is the place in the string where the cursor is.  Sometimes
+;; this is the same as rl_end.
 (defcvar ("rl_point" *point*) :int
   "The offset of the current cursor position in `*line-buffer*' (the
 point).")
@@ -354,6 +357,7 @@ character will be inserted as any other bound to self-insert.")
 (defcvar ("history_length" +history-length+ :read-only t) :int
   "The number of entries currently stored in the history list.")
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                          Basic Functionality                           ;;
@@ -454,6 +458,7 @@ failure."
                    (setf *outstream* ,temp-outstream))))
            (,body-fnc)))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                       Hooks and Custom Functions                       ;;
@@ -561,6 +566,7 @@ FUNCTION must be a function, if FUNCTION is NIL, result is unpredictable."
                          '(:string :int :int)))))
   nil)
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                           Work with Keymaps                            ;;
@@ -612,6 +618,7 @@ can be used to produce new keymap."
           (progn ,@body)
        (free-keymap keymap))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                              Binding Keys                              ;;
@@ -731,6 +738,7 @@ key bindings and variable assignments found."
                    :string filename
                    :boolean))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                Associating Function Names and Bindings                 ;;
@@ -779,6 +787,7 @@ FUNCTION the function to be called when name is invoked."
                                               :boolean
                                               (:int int-char))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                            Allowing Undoing                            ;;
@@ -816,6 +825,7 @@ unit. It is assumed that you will subsequently modify that text."
   (start :int)
   (end   :int))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                               Redisplay                                ;;
@@ -876,6 +886,7 @@ it before clearing the message."
 `expand-prompt' to expand the prompt and sets `+prompt+' to the result."
   (prompt :string))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                             Modifying Text                             ;;
@@ -902,6 +913,7 @@ kill ring slot is used."
   (start :int)
   (end   :int))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                            Character Input                             ;;
@@ -935,22 +947,125 @@ to a poll). The default waiting period is one-tenth of a second. Return the
 old timeout value."
   (u :int))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                          Moving the cursor                             ;;
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defcfun ("rl_backward_char" backward-char) :int
-  "Move backward COUNT characters."
-  (count :int)
-  (key :int))
+;; Wrappers around readline bindable *commands*
+;; (and not external C functions).
+;; Any command that is called interactively receives two arguments.
+;; The first is a count: the numeric arg passed to this command.
+;; The second is the key which invoked this command.
+;;
+;; @vindarel, 2023/10:
+;; The Lisp wrappers do not use the second key argument: what is it used for?
+;; It is probably not necessary when used programmatically,
+;; but anyways it creates an issue. When binding a key to one of these commands:
+;; (rl:bind-keyseq "\\C-o" #'rl:forward-word)
+;; the "key" parameter given to our function is not an int,
+;; but (probably) the representation of a (SIGNED-BYTE 32),
+;; which creates a fatal error. We ignore the key argument
 
-(defcfun ("rl_forward_char" forward-char) :int
-  "Move forward COUNT characters."
-  (count :int)
-  (key :int))
+(defun forward-byte (&optional (count 1) key)
+  "Move forward COUNT bytes (1 by default)."
+  (declare (ignore key))
+  (foreign-funcall "rl_forward_byte"
+                   :int count
+                   :int 0
+                   :int))
 
+(defun backward-byte (&optional (count 1) key)
+  "Move backward COUNT bytes (1 by default)."
+  (declare (ignore key))
+  (foreign-funcall "rl_backward_byte"
+                   :int count
+                   :int 0
+                   :int))
+
+(defun backward-char (&optional (count 1) key)
+  "Move backward COUNT characters (1 by default)."
+  (declare (ignore key))
+  (foreign-funcall "rl_backward_char"
+                   :int count
+                   :int 0
+                   :int))
+
+(defun forward-char (&optional (count 1) key)
+  "Move forward COUNT characters (1 by default)."
+  (declare (ignore key))
+  (foreign-funcall "rl_forward_char"
+                   :int count
+                   :int 1
+                   :int))
+
+(defun beginning-of-line (&optional (count 1) key)
+  "Move to the beginning of the line. "
+  (declare (ignore key))
+  (foreign-funcall "rl_beg_of_line"
+                   :int count
+                   :int 0
+                   :int))
+
+(defun end-of-line (&optional (count 1) key)
+  "Move to the end of the line. "
+  (declare (ignore key))
+  (foreign-funcall "rl_end_of_line"
+                   :int count
+                   :int 0
+                   :int))
+
+(defun forward-word (&optional (count 1) key)
+  "Move forward a word.
+
+  We do what Emacs does. Handles multibyte chars."
+  (declare (ignore key))
+  (foreign-funcall "rl_forward_word"
+                   :int count
+                   :int 0
+                   :int))
+
+(defun backward-word (&optional (count 1) key)
+  "Move backward a word.
+
+  We do what Emacs does. Handles multibyte chars."
+  (declare (ignore key))
+  (foreign-funcall "rl_backward_word"
+                   :int count
+                   :int 0
+                   :int))
+
+(defun refresh-line (&optional (count 1) key)
+  "Clear the current line. Numeric argument to C-l does this."
+  (declare (ignore key))
+  (foreign-funcall "rl_refresh_line"
+                   :int count
+                   :int 0
+                   :int))
+
+(defun clear-screen (&optional (count 1) key)
+  "C-l typed to a line without quoting clears the screen, and then reprints the prompt and the current input line.
+
+  Given a numeric arg, redraw only the current line."
+  (declare (ignore key))
+  (foreign-funcall "rl_clear_screen"
+                   :int count
+                   :int 0
+                   :int))
+
+(defun clear-display (&optional (count 1) key)
+  "Clear the screen and update the display."
+  (declare (ignore key))
+  (foreign-funcall "rl_clear_display"
+                   :int count
+                   :int 0
+                   :int))
+
+;; and more: insert, quoted insert, delete or show completions, insert comment…
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
 ;;                          Terminal Management                           ;;

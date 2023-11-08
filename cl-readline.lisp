@@ -986,7 +986,9 @@ old timeout value."
                    :int))
 
 (defun backward-char (&optional (count 1) key)
-  "Move backward COUNT characters (1 by default)."
+  "Move backward COUNT characters (1 by default).
+
+  KEY is ignored."
   (declare (ignore key))
   (foreign-funcall "rl_backward_char"
                    :int count

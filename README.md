@@ -49,9 +49,32 @@ using the library
 
 See also [linedit](https://github.com/sharplispers/linedit).
 
+### Get to know readline
+
+A `man readline` will teach a lot.
+
+You can configure how your readline prompt behaves, system-wide, with
+a configuration file: `~/.inputrc`, that is read by your shell and by
+other applications using readline. The file `/etc/inputrc` contains
+examples.
+
+[This post by masteringemacs](https://www.masteringemacs.org/article/keyboard-shortcuts-every-command-line-hacker-should-know-about-gnu-readline) contains a whole lot of tips.
+
+If you came here to improve the default SBCL readline REPL, started
+with `rlwrap` (readline wrapper), this library is of no help, you'll
+need to tweak your readline or use another SBCL readline REPL
+([cl-repl](https://github.com/koji-kojiro/cl-repl/),
+[sbcli](https://github.com/hellerve/sbcli), the newer [CIEL
+repl](https://ciel-lang.github.io/CIEL/#/repl)). To improve the completion with Lisp symbols, read this: [rlwrap settings for SBCL](https://gist.github.com/vindarel/2309154f4e751be389fa99239764c363).
+
+This library is to write applications on readline and build your own
+logic: your own prompt, your own completion, your own key bindings,
+etc.
+
+
 ## License
 
 Copyright © 2015–2018 Mark Karpov <br>
-Copyright © 2018–2020 vindarel
+Copyright © 2018–present vindarel and contributors
 
 Distributed under GNU GPL, version 3.

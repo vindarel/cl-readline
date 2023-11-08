@@ -1020,7 +1020,7 @@ old timeout value."
                    :int))
 
 (defun forward-word (&optional (count 1) key)
-  "Move forward a word.
+  "Move forward COUNT word(s).
 
   We do what Emacs does. Handles multibyte chars."
   (declare (ignore key))
@@ -1030,7 +1030,7 @@ old timeout value."
                    :int))
 
 (defun backward-word (&optional (count 1) key)
-  "Move backward a word.
+  "Move backward COUNT word(s).
 
   We do what Emacs does. Handles multibyte chars."
   (declare (ignore key))

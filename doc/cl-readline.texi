@@ -8,6 +8,12 @@
 @set UPDATED-MONTH June 2015
 @set LASTCHANGE Sat Jun 18 21:03:13 EST 2015
 
+@c How to edit this file:
+@c - best in Emacs
+@c - when adding or removing a section, update the menu on that file. See the Emacs Texinfo menu or call M-x texinfo-all-menus-update.
+@c - try the rendering with M-x makeinfo-buffer (C-c RET C-b)
+@c - run make html (which calls makeinfo --html)
+
 @comment %**end of header (This is for running Texinfo on a region.)
 @synindex vr fn
 
@@ -62,25 +68,26 @@ All symbols described in this document live in @code{cl-readline}
 package, it has the following nicknames: @code{rl}.
 
 @menu
-* Basic Functionality:: Most basic functions and symbol macros.
-* Hooks and Custom Functions:: How to change behavior of cl-readline.
-* Work with Keymaps:: Modify existing keymaps and create new ones.
-* Binding Keys:: How to change keymaps.
-* Associating Function Names and Bindings:: Translate function names
+* Basic Functionality::         Most basic functions and symbol macros.
+* Hooks and Custom Functions::  How to change behavior of cl-readline.
+* Work with Keymaps::           Modify existing keymaps and create new ones.
+* Binding Keys::                How to change keymaps.
+* Associating Function Names and Bindings::  Translate function names
 to key sequences.
-* Allowing Undoing:: How to make your functions undoable.
-* Redisplay:: Functions to control line display.
-* Modifying Text:: Functions to modify @var{*line-buffer*}.
-* Character Input:: Functions to read keyboard input.
-* Terminal Management:: Functions to manage terminal settings.
-* Utility Functions:: Generally useful functions.
-* Miscellaneous Functions:: Functions that don't fall into any
+* Allowing Undoing::            How to make your functions undoable.
+* Redisplay::                   Functions to control line display.
+* Adding and modifying Text::
+* Character Input::             Functions to read keyboard input.
+* Moving the cursor::
+* Terminal Management::         Functions to manage terminal settings.
+* Utility Functions::           Generally useful functions.
+* Miscellaneous Functions::     Functions that don't fall into any
 category.
-* Signal Handling:: How Readline behaves when it receives signals.
-* Example:: A complete example of cl-readline use.
-* GNU Free Documentation License:: License for copying this manual.
-* Concept Index:: Index of concepts described in this manual.
-* Function and Variable Index::	Index of externally visible functions
+* Signal Handling::             How Readline behaves when it receives signals.
+* Example::                     A complete example of cl-readline use.
+* GNU Free Documentation License::  License for copying this manual.
+* Concept Index::               Index of concepts described in this manual.
+* Function and Variable Index::  Index of externally visible functions
 and variables.
 @end menu
 @end ifnottex
@@ -640,7 +647,7 @@ Reset the display state to a clean state and redisplay the current
 line starting on a new line.
 @end defun
 
-@defun cflr
+@defun crlf
 Move the cursor to the start of the next screen line.
 @end defun
 
@@ -663,8 +670,12 @@ Show message @var{message} in the echo area while executing
 showing the message and restore it before clearing the message.
 @end defmac
 
-@node Modifying Text
-@chapter Modifying Text
+@node Adding and modifying Text
+@chapter Adding and modifying Text
+
+Once a prompt is started, you can insert and delete text at the current cursor position.
+
+See also @code{crlf} and the section ``Moving the cursor''.
 
 @defun insert-text text
 Insert @var{text} into the line at the current cursor position. Return
@@ -693,7 +704,7 @@ stream.
 @end defun
 
 @defun stuff-char char
-Insert @var{char} into the Readline input stream. It will be «read»
+Insert @var{char} into the Readline input stream. It will be ``read''
 before Readline attempts to read characters from the terminal with
 @code{read-key}. Up to @code{512} characters may be pushed
 back. @code{stuff-char} returns @code{t} if the character was
@@ -718,6 +729,72 @@ to @code{event-hook}. @var{u} must be greater than or equal to zero (a
 zero-length timeout is equivalent to a poll). The default waiting period
 is one-tenth of a second. Return the old timeout value.
 @end defun
+
+@node Moving the cursor
+@chapter Moving the cursor
+
+You can move the cursor by characters and words, or move to the beginning and end of the line.
+
+We also have commands to clear the line and the screen.
+
+Note that these functions bind readline commands, thus they must
+accept two arguments: @var{count} (defaults to 1) and @var{key} (the
+key identifier that fired this command). The key is not used in the Lisp functions.
+
+@defun backward-word @code{&optional} (count 1)
+Move backward COUNT words (1 by default).
+@end defun
+
+@defun forward-word @code{&optional} (count 1)
+Move forward COUNT word(s).
+@end defun
+
+@defun backward-char @code{&optional} (count 1)
+Move forward COUNT characters.
+@end defun
+
+@defun forward-char @code{&optional} (count 1)
+Move forward COUNT characters.
+@end defun
+
+@defun beginning-of-line
+Move to the beginning of the line.
+@end defun
+
+@defun end-of-line
+Move to the end of the line.
+@end defun
+
+@defun refresh-line
+Clear the current line. A numeric argument to C-l does this.
+@end defun
+
+@defun clear-screen
+C-l typed to a line without quoting clears the screen, and then reprints the prompt and the current input line.
+@end defun
+
+@defun clear-display
+Clear the screen and update the display."
+@end defun
+
+Here's an example to enter an opening @code{(} and a closing @code{)}, and move the cursor in between the parenthesis:
+
+@example
+(defun insert-parens (&optional count key)
+  (rl:insert-text "()")
+  (rl:backward-char))
+
+(defun run-example ()
+  (rl:bind-keyseq "(" #'insert-parens)  ;; this function must accept COUNT and KEY
+
+  ;; start a prompt
+  (rl:readline :prompt "go > ")
+  ;; and now you can type "(".
+  )
+
+(run-example)
+@end example
+
 
 @node Terminal Management
 @chapter Terminal Management

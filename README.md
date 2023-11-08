@@ -71,6 +71,18 @@ This library is to write applications on readline and build your own
 logic: your own prompt, your own completion, your own key bindings,
 etc.
 
+### Update the documentation
+
+Edit the .texi file.
+
+Update the index.html (displayed as-is by Github pages) by running:
+
+    $ make html
+
+which calls the `makeinfo` program, and commit `doc/index.html` to the gh-pages branch.
+
+XXX: add Lisp syntax highlighting to code blocks.
+
 
 ## License
 

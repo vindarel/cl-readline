@@ -15,7 +15,7 @@ Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.  A
 copy of the license is included in the section entitled "GNU Free
 Documentation License".
  -->
-<!-- Created by GNU Texinfo 6.5, http://www.gnu.org/software/texinfo/ -->
+<!-- Created by GNU Texinfo 6.7, http://www.gnu.org/software/texinfo/ -->
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>cl-readline Library</title>
@@ -28,28 +28,18 @@ Documentation License".
 <link href="#Top" rel="start" title="Top">
 <link href="#Concept-Index" rel="index" title="Concept Index">
 <link href="#SEC_Contents" rel="contents" title="Table of Contents">
-<link href="dir.html#Top" rel="up" title="(dir)">
 <style type="text/css">
 <!--
 a.summary-letter {text-decoration: none}
 blockquote.indentedblock {margin-right: 0em}
-blockquote.smallindentedblock {margin-right: 0em; font-size: smaller}
-blockquote.smallquotation {font-size: smaller}
 div.display {margin-left: 3.2em}
 div.example {margin-left: 3.2em}
 div.lisp {margin-left: 3.2em}
-div.smalldisplay {margin-left: 3.2em}
-div.smallexample {margin-left: 3.2em}
-div.smalllisp {margin-left: 3.2em}
 kbd {font-style: oblique}
 pre.display {font-family: inherit}
 pre.format {font-family: inherit}
 pre.menu-comment {font-family: serif}
 pre.menu-preformatted {font-family: serif}
-pre.smalldisplay {font-family: inherit; font-size: smaller}
-pre.smallexample {font-size: smaller}
-pre.smallformat {font-family: inherit; font-size: smaller}
-pre.smalllisp {font-size: smaller}
 span.nolinebreak {white-space: nowrap}
 span.roman {font-family: initial; font-weight: normal}
 span.sansserif {font-family: sans-serif; font-weight: normal}
@@ -63,44 +53,49 @@ ul.no-bullet {list-style: none}
 <body lang="en">
 <h1 class="settitle" align="center">cl-readline Library</h1>
 
+<p>How to edit this file:
+- best in Emacs
+- when adding or removing a section, update the menu on that file. See the Emacs Texinfo menu or call M-x texinfo-all-menus-update.
+- try the rendering with M-x makeinfo-buffer (C-c RET C-b)
+-
+</p>
 
 
 
 
-<a name="SEC_Contents"></a>
+<span id="SEC_Contents"></span>
 <h2 class="contents-heading">Table of Contents</h2>
 
 <div class="contents">
 
 <ul class="no-bullet">
-  <li><a name="toc-Basic-Functionality-1" href="#Basic-Functionality">1 Basic Functionality</a></li>
-  <li><a name="toc-Hooks-and-Custom-Functions-1" href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></li>
-  <li><a name="toc-Work-with-Keymaps-1" href="#Work-with-Keymaps">3 Work with Keymaps</a></li>
-  <li><a name="toc-Binding-Keys-1" href="#Binding-Keys">4 Binding Keys</a></li>
-  <li><a name="toc-Associating-Function-Names-and-Bindings-1" href="#Associating-Function-Names-and-Bindings">5 Associating Function Names and Bindings</a></li>
-  <li><a name="toc-Allowing-Undoing-1" href="#Allowing-Undoing">6 Allowing Undoing</a></li>
-  <li><a name="toc-Redisplay-1" href="#Redisplay">7 Redisplay</a></li>
-  <li><a name="toc-Modifying-Text-1" href="#Modifying-Text">8 Modifying Text</a></li>
-  <li><a name="toc-Character-Input-1" href="#Character-Input">9 Character Input</a></li>
-  <li><a name="toc-Terminal-Management-1" href="#Terminal-Management">10 Terminal Management</a></li>
-  <li><a name="toc-Utility-Functions-1" href="#Utility-Functions">11 Utility Functions</a></li>
-  <li><a name="toc-Miscellaneous-Functions-1" href="#Miscellaneous-Functions">12 Miscellaneous Functions</a></li>
-  <li><a name="toc-Signal-Handling-1" href="#Signal-Handling">13 Signal Handling</a></li>
-  <li><a name="toc-Example-1" href="#Example">14 Example</a></li>
-  <li><a name="toc-GNU-Free-Documentation-License-1" href="#GNU-Free-Documentation-License">Appendix A GNU Free Documentation License</a></li>
-  <li><a name="toc-Concept-Index-1" href="#Concept-Index">Concept Index</a></li>
-  <li><a name="toc-Function-and-Variable-Index-1" href="#Function-and-Variable-Index">Function and Variable Index</a></li>
+  <li><a id="toc-Basic-Functionality-1" href="#Basic-Functionality">1 Basic Functionality</a></li>
+  <li><a id="toc-Hooks-and-Custom-Functions-1" href="#Hooks-and-Custom-Functions">2 Hooks and Custom Functions</a></li>
+  <li><a id="toc-Work-with-Keymaps-1" href="#Work-with-Keymaps">3 Work with Keymaps</a></li>
+  <li><a id="toc-Binding-Keys-1" href="#Binding-Keys">4 Binding Keys</a></li>
+  <li><a id="toc-Associating-Function-Names-and-Bindings-1" href="#Associating-Function-Names-and-Bindings">5 Associating Function Names and Bindings</a></li>
+  <li><a id="toc-Allowing-Undoing-1" href="#Allowing-Undoing">6 Allowing Undoing</a></li>
+  <li><a id="toc-Redisplay-1" href="#Redisplay">7 Redisplay</a></li>
+  <li><a id="toc-Adding-and-modifying-Text-1" href="#Adding-and-modifying-Text">8 Adding and modifying Text</a></li>
+  <li><a id="toc-Character-Input-1" href="#Character-Input">9 Character Input</a></li>
+  <li><a id="toc-Moving-the-cursor-1" href="#Moving-the-cursor">10 Moving the cursor</a></li>
+  <li><a id="toc-Terminal-Management-1" href="#Terminal-Management">11 Terminal Management</a></li>
+  <li><a id="toc-Utility-Functions-1" href="#Utility-Functions">12 Utility Functions</a></li>
+  <li><a id="toc-Miscellaneous-Functions-1" href="#Miscellaneous-Functions">13 Miscellaneous Functions</a></li>
+  <li><a id="toc-Signal-Handling-1" href="#Signal-Handling">14 Signal Handling</a></li>
+  <li><a id="toc-Example-1" href="#Example">15 Example</a></li>
+  <li><a id="toc-GNU-Free-Documentation-License-1" href="#GNU-Free-Documentation-License">Appendix A GNU Free Documentation License</a></li>
+  <li><a id="toc-Concept-Index-1" href="#Concept-Index" rel="index">Concept Index</a></li>
+  <li><a id="toc-Function-and-Variable-Index-1" href="#Function-and-Variable-Index" rel="index">Function and Variable Index</a></li>
 </ul>
 </div>
 
 
-<a name="Top"></a>
-<div class="header">
+<span id="Top"></span><div class="header">
 <p>
-Next: <a href="#Basic-Functionality" accesskey="n" rel="next">Basic Functionality</a>, Up: <a href="dir.html#Top" accesskey="u" rel="up">(dir)</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Basic-Functionality" accesskey="n" rel="next">Basic Functionality</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="cl_002dreadline-Library"></a>
-<h1 class="top">cl-readline Library</h1>
+<span id="cl_002dreadline-Library"></span><h1 class="top">cl-readline Library</h1>
 
 <p>This document describes cl-readline library, bindings to GNU Readline
 library. This program is distributed under GNU General Public License,
@@ -110,53 +105,53 @@ version 3.
 package, it has the following nicknames: <code>rl</code>.
 </p>
 <table class="menu" border="0" cellspacing="0">
-<tr><td align="left" valign="top">&bull; <a href="#Basic-Functionality" accesskey="1">Basic Functionality</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Most basic functions and symbol macros.
+<tr><td align="left" valign="top">&bull; <a href="#Basic-Functionality" accesskey="1">Basic Functionality</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Most basic functions and symbol macros.
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Hooks-and-Custom-Functions" accesskey="2">Hooks and Custom Functions</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">How to change behavior of cl-readline.
+<tr><td align="left" valign="top">&bull; <a href="#Hooks-and-Custom-Functions" accesskey="2">Hooks and Custom Functions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">How to change behavior of cl-readline.
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Work-with-Keymaps" accesskey="3">Work with Keymaps</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Modify existing keymaps and create new ones.
+<tr><td align="left" valign="top">&bull; <a href="#Work-with-Keymaps" accesskey="3">Work with Keymaps</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Modify existing keymaps and create new ones.
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Binding-Keys" accesskey="4">Binding Keys</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">How to change keymaps.
+<tr><td align="left" valign="top">&bull; <a href="#Binding-Keys" accesskey="4">Binding Keys</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">How to change keymaps.
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Associating-Function-Names-and-Bindings" accesskey="5">Associating Function Names and Bindings</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Translate function names
+<tr><td align="left" valign="top">&bull; <a href="#Associating-Function-Names-and-Bindings" accesskey="5">Associating Function Names and Bindings</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Translate function names
 to key sequences.
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Allowing-Undoing" accesskey="6">Allowing Undoing</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">How to make your functions undoable.
+<tr><td align="left" valign="top">&bull; <a href="#Allowing-Undoing" accesskey="6">Allowing Undoing</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">How to make your functions undoable.
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Redisplay" accesskey="7">Redisplay</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Functions to control line display.
+<tr><td align="left" valign="top">&bull; <a href="#Redisplay" accesskey="7">Redisplay</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Functions to control line display.
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Modifying-Text" accesskey="8">Modifying Text</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Functions to modify <var>*line-buffer*</var>.
+<tr><td align="left" valign="top">&bull; <a href="#Adding-and-modifying-Text" accesskey="8">Adding and modifying Text</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Character-Input" accesskey="9">Character Input</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Functions to read keyboard input.
+<tr><td align="left" valign="top">&bull; <a href="#Character-Input" accesskey="9">Character Input</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Functions to read keyboard input.
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Terminal-Management">Terminal Management</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Functions to manage terminal settings.
+<tr><td align="left" valign="top">&bull; <a href="#Moving-the-cursor">Moving the cursor</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Utility-Functions">Utility Functions</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Generally useful functions.
+<tr><td align="left" valign="top">&bull; <a href="#Terminal-Management">Terminal Management</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Functions to manage terminal settings.
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Miscellaneous-Functions">Miscellaneous Functions</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Functions that don&rsquo;t fall into any
+<tr><td align="left" valign="top">&bull; <a href="#Utility-Functions">Utility Functions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Generally useful functions.
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Miscellaneous-Functions">Miscellaneous Functions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Functions that don&rsquo;t fall into any
 category.
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Signal-Handling">Signal Handling</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">How Readline behaves when it receives signals.
+<tr><td align="left" valign="top">&bull; <a href="#Signal-Handling">Signal Handling</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">How Readline behaves when it receives signals.
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Example">Example</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">A complete example of cl-readline use.
+<tr><td align="left" valign="top">&bull; <a href="#Example">Example</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">A complete example of cl-readline use.
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#GNU-Free-Documentation-License">GNU Free Documentation License</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">License for copying this manual.
+<tr><td align="left" valign="top">&bull; <a href="#GNU-Free-Documentation-License">GNU Free Documentation License</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">License for copying this manual.
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Concept-Index">Concept Index</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Index of concepts described in this manual.
+<tr><td align="left" valign="top">&bull; <a href="#Concept-Index" rel="index">Concept Index</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Index of concepts described in this manual.
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Function-and-Variable-Index">Function and Variable Index</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Index of externally visible functions
+<tr><td align="left" valign="top">&bull; <a href="#Function-and-Variable-Index" rel="index">Function and Variable Index</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Index of externally visible functions
 and variables.
 </td></tr>
 </table>
 
 <hr>
-<a name="Basic-Functionality"></a>
-<div class="header">
+<span id="Basic-Functionality"></span><div class="header">
 <p>
 Next: <a href="#Hooks-and-Custom-Functions" accesskey="n" rel="next">Hooks and Custom Functions</a>, Previous: <a href="#Top" accesskey="p" rel="prev">Top</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Basic-Functionality-1"></a>
-<h2 class="chapter">1 Basic Functionality</h2>
+<span id="Basic-Functionality-1"></span><h2 class="chapter">1 Basic Functionality</h2>
 
 <p>This section describes most basic functions and symbol-macros that
 represent underlying C variables. For every symbol macro we give data
@@ -166,39 +161,39 @@ signs (for example, <var>+prompt+</var>), it means that you should not
 setfable and you can set their values with <code>setf</code> macro.
 </p>
 <dl>
-<dt><a name="index-_002aline_002dbuffer_002a"></a>Symbol Macro: <strong>*line-buffer*</strong></dt>
+<dt id="index-_002aline_002dbuffer_002a">Symbol Macro: <strong>*line-buffer*</strong></dt>
 <dd><p>String. This is the line gathered so far. You are welcome to modify
 the contents of the line, but remember about undoing (see <a href="#Allowing-Undoing">Allowing Undoing</a>). The function <code>extend-line-buffer</code> is available to
 increase the memory allocated to <var>*line-buffer*</var>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002apoint_002a"></a>Symbol Macro: <strong>*point*</strong></dt>
+<dt id="index-_002apoint_002a">Symbol Macro: <strong>*point*</strong></dt>
 <dd><p>Integer. The offset of the current cursor position in
 <var>*line-buffer*</var> (the point).
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002bend_002b"></a>Symbol Macro: <strong>+end+</strong></dt>
+<dt id="index-_002bend_002b">Symbol Macro: <strong>+end+</strong></dt>
 <dd><p>Integer. The number of characters present in <var>*line-buffer*</var>. When
 <var>*point*</var> is at the end of the line, <var>*point*</var> and <var>+end+</var>
 are equal.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002amark_002a"></a>Symbol Macro: <strong>*mark*</strong></dt>
+<dt id="index-_002amark_002a">Symbol Macro: <strong>*mark*</strong></dt>
 <dd><p>Integer. The mark (saved position) in the current line. If set, the
 mark and point define a region.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002adone_002a"></a>Symbol Macro: <strong>*done*</strong></dt>
+<dt id="index-_002adone_002a">Symbol Macro: <strong>*done*</strong></dt>
 <dd><p>Boolean. Setting this to a non-<code>nil</code> value causes Readline to
 return the current line immediately.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002bprompt_002b"></a>Symbol Macro: <strong>+prompt+</strong></dt>
+<dt id="index-_002bprompt_002b">Symbol Macro: <strong>+prompt+</strong></dt>
 <dd><p>String. The prompt Readline uses. This is set from the argument to
 <code>readline</code>, and should not be assigned to directly. The
 <code>set-prompt</code> function may be used to modify the prompt string
@@ -206,40 +201,40 @@ after calling <code>readline</code>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002adisplay_002dprompt_002a"></a>Symbol Macro: <strong>*display-prompt*</strong></dt>
+<dt id="index-_002adisplay_002dprompt_002a">Symbol Macro: <strong>*display-prompt*</strong></dt>
 <dd><p>String. The string displayed as the prompt. This is usually identical
 to <var>+prompt+</var>, but may be changed temporarily by functions that
 use the prompt string as a message area, such as incremental search.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002blibrary_002dversion_002b"></a>Symbol Macro: <strong>+library-version+</strong></dt>
+<dt id="index-_002blibrary_002dversion_002b">Symbol Macro: <strong>+library-version+</strong></dt>
 <dd><p>String. The version number of this revision of the library.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002breadline_002dversion_002b"></a>Symbol Macro: <strong>+readline-version+</strong></dt>
+<dt id="index-_002breadline_002dversion_002b">Symbol Macro: <strong>+readline-version+</strong></dt>
 <dd><p>Two integer values. Major and minor version numbers of Readline
 library.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002bgnu_002dreadline_002dp_002b"></a>Symbol Macro: <strong>+gnu-readline-p+</strong></dt>
+<dt id="index-_002bgnu_002dreadline_002dp_002b">Symbol Macro: <strong>+gnu-readline-p+</strong></dt>
 <dd><p>Boolean. Always evaluated to <code>t</code>, denoting that this is GNU
 readline rather than some emulation.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002areadline_002dname_002a"></a>Symbol Macro: <strong>*readline-name*</strong></dt>
+<dt id="index-_002areadline_002dname_002a">Symbol Macro: <strong>*readline-name*</strong></dt>
 <dd><p>String. This symbol-macro should be set to a unique name by each
 application using Readline. The value allows conditional parsing of
 the inputrc file.
 </p></dd></dl>
 
-<a name="index-readline-state"></a>
+<span id="index-readline-state"></span>
 
 <dl>
-<dt><a name="index-_002breadline_002dstate_002b"></a>Symbol Macro: <strong>+readline-state+</strong></dt>
+<dt id="index-_002breadline_002dstate_002b">Symbol Macro: <strong>+readline-state+</strong></dt>
 <dd><p>List of keywords. This symbol macro is evaluated to a list containing
 keywords that denote state of Readline. The following flags are used:
 </p><ul>
@@ -272,15 +267,15 @@ keywords that denote state of Readline. The following flags are used:
 </dd></dl>
 
 <dl>
-<dt><a name="index-_002bediting_002dmode_002b"></a>Symbol macro: <strong>+editing-mode+</strong></dt>
+<dt id="index-_002bediting_002dmode_002b">Symbol macro: <strong>+editing-mode+</strong></dt>
 <dd><p>Keyword. Evaluated to keyword denoting actual editing mode:
 <code>:emacs</code> or <code>:vi</code>.
 </p></dd></dl>
 
-<a name="index-readline_002c-function"></a>
+<span id="index-readline_002c-function"></span>
 
 <dl>
-<dt><a name="index-readline"></a>Function: <strong>readline</strong> <em><code>&amp;key</code> prompt already-prompted num-chars erase-empty-line add-history novelty-check</em></dt>
+<dt id="index-readline">Function: <strong>readline</strong> <em><code>&amp;key</code> prompt already-prompted num-chars erase-empty-line add-history novelty-check</em></dt>
 <dd><p>Get a line from user with editing. <var>prompt</var>, if supplied, is printed
 before reading of input. Non-<code>nil</code> value of <var>already-prompted</var>
 will tell Readline that the application has printed prompt
@@ -301,38 +296,36 @@ string and <code>nil</code> on failure.
 </p></dd></dl>
 
 <hr>
-<a name="Hooks-and-Custom-Functions"></a>
-<div class="header">
+<span id="Hooks-and-Custom-Functions"></span><div class="header">
 <p>
 Next: <a href="#Work-with-Keymaps" accesskey="n" rel="next">Work with Keymaps</a>, Previous: <a href="#Basic-Functionality" accesskey="p" rel="prev">Basic Functionality</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Hooks-and-Custom-Functions-1"></a>
-<h2 class="chapter">2 Hooks and Custom Functions</h2>
+<span id="Hooks-and-Custom-Functions-1"></span><h2 class="chapter">2 Hooks and Custom Functions</h2>
 
 <p>cl-readline provides ways to register custom functions, so you can
 rewrite some parts of Readline library in Lisp.
 </p>
 <dl>
-<dt><a name="index-_002abasic_002dword_002dbreak_002dcharacters_002a"></a>Symbol macro: <strong>*basic-word-break-characters*</strong></dt>
+<dt id="index-_002abasic_002dword_002dbreak_002dcharacters_002a">Symbol macro: <strong>*basic-word-break-characters*</strong></dt>
 <dd><p>String. The basic list of characters that signal a break between words
 for the completer routine. The default value of this variable is the
 characters which break words for completion in Bash.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002abasic_002dquote_002dcharacters_002a"></a>Symbol macro: <strong>*basic-quote-characters*</strong></dt>
+<dt id="index-_002abasic_002dquote_002dcharacters_002a">Symbol macro: <strong>*basic-quote-characters*</strong></dt>
 <dd><p>String. A list of quote characters which can cause a word break.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002acompleter_002dword_002dbreak_002dcharacters_002a"></a>Symbol macro: <strong>*completer-word-break-characters*</strong></dt>
+<dt id="index-_002acompleter_002dword_002dbreak_002dcharacters_002a">Symbol macro: <strong>*completer-word-break-characters*</strong></dt>
 <dd><p>String. The list of characters that signal a break between words for
 <code>complete-internal</code>. The default list is the value of
 <var>*basic-word-break-characters*</var>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002acompletion_002dquery_002ditems_002a"></a>Symbol macro: <strong>*completion-query-items*</strong></dt>
+<dt id="index-_002acompletion_002dquery_002ditems_002a">Symbol macro: <strong>*completion-query-items*</strong></dt>
 <dd><p>Up to this many items will be displayed in response to a
 <code>possible-completions</code> call. After that, Readline asks the user
 if she is sure she wants to see them all. The default value is
@@ -341,7 +334,7 @@ the user.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002acompletion_002dappend_002dcharacter_002a"></a>Symbol macro: <strong>*completion-append-character*</strong></dt>
+<dt id="index-_002acompletion_002dappend_002dcharacter_002a">Symbol macro: <strong>*completion-append-character*</strong></dt>
 <dd><p>Character. When a single completion alternative matches at the end of
 the command line, this character is appended to the inserted
 completion text. The default is a space character. Setting this to the
@@ -352,13 +345,13 @@ application-specific command line syntax specification.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002aignore_002dcompletion_002dduplicates_002a"></a>Symbol macro: <strong>*ignore-completion-duplicates*</strong></dt>
+<dt id="index-_002aignore_002dcompletion_002dduplicates_002a">Symbol macro: <strong>*ignore-completion-duplicates*</strong></dt>
 <dd><p>Boolean. If non-<code>nil</code>, then duplicates in the matches are
 removed. The default is <code>t</code>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002asort_002dcompletion_002dmatches_002a"></a>Symbol macro: <strong>*sort-completion-matches*</strong></dt>
+<dt id="index-_002asort_002dcompletion_002dmatches_002a">Symbol macro: <strong>*sort-completion-matches*</strong></dt>
 <dd><p>Boolean. If an application sets this variable to <code>nil</code>, Readline
 will not sort the list of completions (which implies that it cannot
 remove any duplicate completions). The default value is <code>t</code>,
@@ -367,10 +360,10 @@ the value of <var>*ignore-completion-duplicates*</var>, will attempt to
 remove duplicate matches.
 </p></dd></dl>
 
-<a name="index-completion-types"></a>
+<span id="index-completion-types"></span>
 
 <dl>
-<dt><a name="index-_002bcompletion_002dtype_002b"></a>Symbol macro: <strong>+completion-type+</strong></dt>
+<dt id="index-_002bcompletion_002dtype_002b">Symbol macro: <strong>+completion-type+</strong></dt>
 <dd><p>Keyword. Set to a keyword describing the type of completion Readline
 is currently attempting. Possible values are:
 </p><ul>
@@ -386,16 +379,16 @@ share a common prefix.
 </dd></dl>
 
 <dl>
-<dt><a name="index-_002ainhibit_002dcompletion_002a"></a>Symbol macro: <strong>*inhibit-completion*</strong></dt>
+<dt id="index-_002ainhibit_002dcompletion_002a">Symbol macro: <strong>*inhibit-completion*</strong></dt>
 <dd><p>Boolean. If this variable is non-<code>nil</code>, completion is
 inhibited. The completion character will be inserted as any other
 bound to self-insert.
 </p></dd></dl>
 
-<a name="index-hooks"></a>
+<span id="index-hooks"></span>
 
 <dl>
-<dt><a name="index-register_002dhook"></a>Function: <strong>register-hook</strong> <em>hook function</em></dt>
+<dt id="index-register_002dhook">Function: <strong>register-hook</strong> <em>hook function</em></dt>
 <dd><p>Register a hook. <var>hook</var> should be a keyword, one of the following:
 </p><ul>
 <li> <code>:startup</code> hook is called just before <code>readline</code> prints the
@@ -424,10 +417,10 @@ completions.
 <code>nil</code>, hook will be removed (or default function will be used).
 </p></dd></dl>
 
-<a name="index-custom-functions"></a>
+<span id="index-custom-functions"></span>
 
 <dl>
-<dt><a name="index-register_002dfunction"></a>Function: <strong>register-function</strong> <em>func function</em></dt>
+<dt id="index-register_002dfunction">Function: <strong>register-function</strong> <em>func function</em></dt>
 <dd><p>Register a function. <var>func</var> should be a keyword, one of the
 following:
 </p><ul>
@@ -462,34 +455,32 @@ result is unpredictable.
 </p></dd></dl>
 
 <hr>
-<a name="Work-with-Keymaps"></a>
-<div class="header">
+<span id="Work-with-Keymaps"></span><div class="header">
 <p>
 Next: <a href="#Binding-Keys" accesskey="n" rel="next">Binding Keys</a>, Previous: <a href="#Hooks-and-Custom-Functions" accesskey="p" rel="prev">Hooks and Custom Functions</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Work-with-Keymaps-1"></a>
-<h2 class="chapter">3 Work with Keymaps</h2>
+<span id="Work-with-Keymaps-1"></span><h2 class="chapter">3 Work with Keymaps</h2>
 
-<a name="index-keymaps"></a>
+<span id="index-keymaps"></span>
 
 <p>Keymaps tell Readline which function should it invoke when the user
 presses certain key. Readline provides some pre-existing keymaps and
 let you create your own and modify existing ones.
 </p>
 <dl>
-<dt><a name="index-_002bexecuting_002dkeymap_002b"></a>Symbol macro: <strong>+executing-keymap+</strong></dt>
+<dt id="index-_002bexecuting_002dkeymap_002b">Symbol macro: <strong>+executing-keymap+</strong></dt>
 <dd><p>C pointer. This symbol macro is evaluated to the keymap in which the
 currently executing Readline function was found.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002bbinding_002dkeymap_002b"></a>Symbol macro: <strong>+binding-keymap+</strong></dt>
+<dt id="index-_002bbinding_002dkeymap_002b">Symbol macro: <strong>+binding-keymap+</strong></dt>
 <dd><p>C pointer. This symbol macro is evaluated to the keymap in which the
 last key binding occurred.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-make_002dkeymap"></a>Function: <strong>make-keymap</strong> <em><code>&amp;optional</code> bare</em></dt>
+<dt id="index-make_002dkeymap">Function: <strong>make-keymap</strong> <em><code>&amp;optional</code> bare</em></dt>
 <dd><p>Return a new keymap with self-inserting printing characters, the
 lowercase Meta characters bound to run their equivalents, and the Meta
 digits bound to produce numeric arguments. If <var>bare</var> is supplied
@@ -497,33 +488,33 @@ and it&rsquo;s not <code>nil</code>, empty keymap will be returned.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-copy_002dkeymap"></a>Function: <strong>copy-keymap</strong> <em>keymap</em></dt>
+<dt id="index-copy_002dkeymap">Function: <strong>copy-keymap</strong> <em>keymap</em></dt>
 <dd><p>Return a new keymap which is a copy of <var>keymap</var>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-free_002dkeymap"></a>Function: <strong>free-keymap</strong> <em>keymap</em></dt>
+<dt id="index-free_002dkeymap">Function: <strong>free-keymap</strong> <em>keymap</em></dt>
 <dd><p>Free all storage associated with <var>keymap</var>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-get_002dkeymap"></a>Function: <strong>get-keymap</strong></dt>
+<dt id="index-get_002dkeymap">Function: <strong>get-keymap</strong></dt>
 <dd><p>Return currently active keymap.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-set_002dkeymap"></a>Function: <strong>set-keymap</strong> <em>keymap</em></dt>
+<dt id="index-set_002dkeymap">Function: <strong>set-keymap</strong> <em>keymap</em></dt>
 <dd><p>Make <var>keymap</var> currently active keymap.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-get_002dkeymap_002dby_002dname"></a>Function: <strong>get-keymap-by-name</strong> <em>name</em></dt>
+<dt id="index-get_002dkeymap_002dby_002dname">Function: <strong>get-keymap-by-name</strong> <em>name</em></dt>
 <dd><p>Return the keymap matching <var>name</var>. <var>name</var> is one which would
 be supplied in a set keymap inputrc line.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-with_002dnew_002dkeymap"></a>Macro: <strong>with-new-keymap</strong> <em>form <code>&amp;body</code> body</em></dt>
+<dt id="index-with_002dnew_002dkeymap">Macro: <strong>with-new-keymap</strong> <em>form <code>&amp;body</code> body</em></dt>
 <dd><p>Create new keymap evaluating <var>form</var>, bind symbol <code>keymap</code> to
 the result, then free it when control flow leaves
 <var>body</var>. <code>make-keymap</code> and <code>copy-keymap</code> can be used to
@@ -531,42 +522,40 @@ produce new keymap.
 </p></dd></dl>
 
 <hr>
-<a name="Binding-Keys"></a>
-<div class="header">
+<span id="Binding-Keys"></span><div class="header">
 <p>
 Next: <a href="#Associating-Function-Names-and-Bindings" accesskey="n" rel="next">Associating Function Names and Bindings</a>, Previous: <a href="#Work-with-Keymaps" accesskey="p" rel="prev">Work with Keymaps</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Binding-Keys-1"></a>
-<h2 class="chapter">4 Binding Keys</h2>
+<span id="Binding-Keys-1"></span><h2 class="chapter">4 Binding Keys</h2>
 
 <p>Key sequences are associated with functions through the keymap. Here
 are the functions that may be of interest when working with keymaps.
 </p>
 <dl>
-<dt><a name="index-_002bexecuting_002dmacro_002b"></a>Symbol macro: <strong>+executing-macro+</strong></dt>
+<dt id="index-_002bexecuting_002dmacro_002b">Symbol macro: <strong>+executing-macro+</strong></dt>
 <dd><p>String. This symbol macro is evaluated to the text of any
 currently-executing macro.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002bexecuting_002dkey_002b"></a>Symbol macro: <strong>+executing-key+</strong></dt>
+<dt id="index-_002bexecuting_002dkey_002b">Symbol macro: <strong>+executing-key+</strong></dt>
 <dd><p>Character. The key that caused the dispatch to the currently-executing
 Readline function.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002bexecuting_002dkeyseq_002b"></a>Symbol macro: <strong>+executing-keyseq+</strong></dt>
+<dt id="index-_002bexecuting_002dkeyseq_002b">Symbol macro: <strong>+executing-keyseq+</strong></dt>
 <dd><p>String. The full key sequence that caused the dispatch to the
 currently-executing Readline function.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002bkey_002dsequence_002dlength_002b"></a>Symbol macro: <strong>+key-sequence-length+</strong></dt>
+<dt id="index-_002bkey_002dsequence_002dlength_002b">Symbol macro: <strong>+key-sequence-length+</strong></dt>
 <dd><p>Integer. The number of characters in <var>+executing-keyseq+</var>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002bdispatching_002b"></a>Symbol macro: <strong>+dispatching+</strong></dt>
+<dt id="index-_002bdispatching_002b">Symbol macro: <strong>+dispatching+</strong></dt>
 <dd><p>Boolean. Set to a non-<code>nil</code> value if a function is being called
 from a key binding; <code>nil</code> otherwise. Application functions can
 test this to discover whether they were called directly or by
@@ -574,7 +563,7 @@ Readline&rsquo;s dispatching mechanism.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-add_002ddefun"></a>Function: <strong>add-defun</strong> <em>name function <code>&amp;optional</code> key</em></dt>
+<dt id="index-add_002ddefun">Function: <strong>add-defun</strong> <em>name function <code>&amp;optional</code> key</em></dt>
 <dd><p>Add <var>name</var> to the list of named functions. Make <var>function</var> be
 the function that gets called. If <var>key</var> is not <code>nil</code> and it&rsquo;s
 a character, then bind it to function using
@@ -584,7 +573,7 @@ has invoked it.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-bind_002dkey"></a>Function: <strong>bind-key</strong> <em>key function <code>&amp;key</code> keymap if-unbound</em></dt>
+<dt id="index-bind_002dkey">Function: <strong>bind-key</strong> <em>key function <code>&amp;key</code> keymap if-unbound</em></dt>
 <dd><p>Bind <var>key</var> to <var>function</var> in the currently active keymap. If
 <var>keymap</var> argument supplied, binding takes place in specified
 keymap. If <var>if-unbound</var> is supplied and it&rsquo;s not <code>nil</code>,
@@ -593,7 +582,7 @@ bound.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-unbind_002dkey"></a>Function: <strong>unbind-key</strong> <em>key <code>&amp;optional</code> keymap</em></dt>
+<dt id="index-unbind_002dkey">Function: <strong>unbind-key</strong> <em>key <code>&amp;optional</code> keymap</em></dt>
 <dd><p>Unbind <var>key</var> in <var>keymap</var>. If <var>keymap</var> is not supplied or
 it&rsquo;s <code>nil</code>, <var>key</var> will be unbound in currently active
 keymap. The function returns <code>nil</code> on success and <code>t</code> on
@@ -601,12 +590,12 @@ failure.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-unbind_002dcommand"></a>Function: <strong>unbind-command</strong> <em>command keymap</em></dt>
+<dt id="index-unbind_002dcommand">Function: <strong>unbind-command</strong> <em>command keymap</em></dt>
 <dd><p>Unbind all keys that are bound to <var>command</var> in <var>keymap</var>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-bind_002dkeyseq"></a>Function: <strong>bind-keyseq</strong> <em>keyseq function <code>&amp;key</code> keymap if-unbound</em></dt>
+<dt id="index-bind_002dkeyseq">Function: <strong>bind-keyseq</strong> <em>keyseq function <code>&amp;key</code> keymap if-unbound</em></dt>
 <dd><p>Bind the key sequence represented by the string <var>keyseq</var> to the
 function <var>function</var>, beginning in the current keymap. This makes
 new keymaps as necessary. If <var>keymap</var> is supplied and it&rsquo;s not
@@ -618,24 +607,22 @@ otherwise.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-parse_002dand_002dbind"></a>Function: <strong>parse-and-bind</strong> <em>line</em></dt>
+<dt id="index-parse_002dand_002dbind">Function: <strong>parse-and-bind</strong> <em>line</em></dt>
 <dd><p>Parse <var>line</var> as if it had been read from the inputrc file and
 perform any key bindings and variable assignments found.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-read_002dinit_002dfile"></a>Function: <strong>read-init-file</strong> <em>filename</em></dt>
+<dt id="index-read_002dinit_002dfile">Function: <strong>read-init-file</strong> <em>filename</em></dt>
 <dd><p>Read keybindings and variable assignments from <var>filename</var>.
 </p></dd></dl>
 
 <hr>
-<a name="Associating-Function-Names-and-Bindings"></a>
-<div class="header">
+<span id="Associating-Function-Names-and-Bindings"></span><div class="header">
 <p>
 Next: <a href="#Allowing-Undoing" accesskey="n" rel="next">Allowing Undoing</a>, Previous: <a href="#Binding-Keys" accesskey="p" rel="prev">Binding Keys</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Associating-Function-Names-and-Bindings-1"></a>
-<h2 class="chapter">5 Associating Function Names and Bindings</h2>
+<span id="Associating-Function-Names-and-Bindings-1"></span><h2 class="chapter">5 Associating Function Names and Bindings</h2>
 
 <p>Note that this section is stripped-down. Many functions are
 missing. It&rsquo;s because C functions take addresses of other functions as
@@ -645,7 +632,7 @@ later. Note that this problem is solvable, but hairy. If you need to use
 functions that are missing, open an issue and describe your problem.
 </p>
 <dl>
-<dt><a name="index-function_002ddumper"></a>Function: <strong>function-dumper</strong> <em>readable <code>&amp;optional</code> filename append</em></dt>
+<dt id="index-function_002ddumper">Function: <strong>function-dumper</strong> <em>readable <code>&amp;optional</code> filename append</em></dt>
 <dd><p>Print the Readline function names and the key sequences currently
 bound to them to stdout. If <var>readable</var> is non-<code>nil</code>, the list
 is formatted in such a way that it can be made part of an inputrc file
@@ -655,7 +642,7 @@ text to the file instead of overwriting it.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-list_002dfunmap_002dnames"></a>Function: <strong>list-funmap-names</strong> <em><code>&amp;optional</code> filename append</em></dt>
+<dt id="index-list_002dfunmap_002dnames">Function: <strong>list-funmap-names</strong> <em><code>&amp;optional</code> filename append</em></dt>
 <dd><p>Print the names of all bindable Readline functions to stdout. If
 <var>filename</var> is supplied and it&rsquo;s a string or path, output will be
 redirected to the file. <var>append</var> allows append text to the file
@@ -663,26 +650,24 @@ instead of overwriting it.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-funmap_002dnames"></a>Function: <strong>funmap-names</strong></dt>
+<dt id="index-funmap_002dnames">Function: <strong>funmap-names</strong></dt>
 <dd><p>Return a list of known function names. The list is sorted.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-add_002dfunmap_002dentry"></a>Function: <strong>add-funmap-entry</strong> <em>name function</em></dt>
+<dt id="index-add_002dfunmap_002dentry">Function: <strong>add-funmap-entry</strong> <em>name function</em></dt>
 <dd><p>Add <var>name</var> to the list of bindable Readline command names, and
 make <var>function</var> the function to be called when name is invoked.
 </p></dd></dl>
 
 <hr>
-<a name="Allowing-Undoing"></a>
-<div class="header">
+<span id="Allowing-Undoing"></span><div class="header">
 <p>
 Next: <a href="#Redisplay" accesskey="n" rel="next">Redisplay</a>, Previous: <a href="#Associating-Function-Names-and-Bindings" accesskey="p" rel="prev">Associating Function Names and Bindings</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Allowing-Undoing-1"></a>
-<h2 class="chapter">6 Allowing Undoing</h2>
+<span id="Allowing-Undoing-1"></span><h2 class="chapter">6 Allowing Undoing</h2>
 
-<a name="index-undoing"></a>
+<span id="index-undoing"></span>
 
 <p>If your function simply inserts text once, or deletes text once, and
 uses <code>insert-text</code> or <code>delete-text</code> to do it, then undoing
@@ -693,7 +678,7 @@ combination of these operations, you should group them together into
 one operation. This is done with <code>undo-group</code> macro.
 </p>
 <dl>
-<dt><a name="index-add_002dundo"></a>Function: <strong>add-undo</strong> <em>what start end text</em></dt>
+<dt id="index-add_002dundo">Function: <strong>add-undo</strong> <em>what start end text</em></dt>
 <dd><p>Remember how to undo an event (according to <var>what</var>). The affected
 text runs from <var>start</var> to <var>end</var>, and encompasses
 <var>text</var>. Possible values of <var>what</var> include:
@@ -702,52 +687,50 @@ text runs from <var>start</var> to <var>end</var>, and encompasses
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-free_002dundo_002dlist"></a>Function: <strong>free-undo-list</strong></dt>
+<dt id="index-free_002dundo_002dlist">Function: <strong>free-undo-list</strong></dt>
 <dd><p>Free the existing undo list.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-do_002dundo"></a>Function: <strong>do-undo</strong></dt>
+<dt id="index-do_002dundo">Function: <strong>do-undo</strong></dt>
 <dd><p>Undo the first thing on the undo list. Returns <code>nil</code> if there was
 nothing to undo, <code>t</code> if something was undone.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-modifying"></a>Function: <strong>modifying</strong> <em>start end</em></dt>
+<dt id="index-modifying">Function: <strong>modifying</strong> <em>start end</em></dt>
 <dd><p>Tell Readline to save the text between <var>start</var> and <var>end</var> as a
 single undo unit. It is assumed that you will subsequently modify that
 text.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-undo_002dgroup"></a>Macro: <strong>undo-group</strong> <em><code>&amp;body</code> body</em></dt>
+<dt id="index-undo_002dgroup">Macro: <strong>undo-group</strong> <em><code>&amp;body</code> body</em></dt>
 <dd><p>All insertion and deletion inside this macro will be grouped together
 into one undo operation.
 </p></dd></dl>
 
 <hr>
-<a name="Redisplay"></a>
-<div class="header">
+<span id="Redisplay"></span><div class="header">
 <p>
-Next: <a href="#Modifying-Text" accesskey="n" rel="next">Modifying Text</a>, Previous: <a href="#Allowing-Undoing" accesskey="p" rel="prev">Allowing Undoing</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Adding-and-modifying-Text" accesskey="n" rel="next">Adding and modifying Text</a>, Previous: <a href="#Allowing-Undoing" accesskey="p" rel="prev">Allowing Undoing</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Redisplay-1"></a>
-<h2 class="chapter">7 Redisplay</h2>
+<span id="Redisplay-1"></span><h2 class="chapter">7 Redisplay</h2>
 
 <dl>
-<dt><a name="index-redisplay"></a>Function: <strong>redisplay</strong></dt>
+<dt id="index-redisplay">Function: <strong>redisplay</strong></dt>
 <dd><p>Change what&rsquo;s displayed on the screen to reflect the current contents
 of <var>*line-buffer*</var>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-forced_002dupdate_002ddisplay"></a>Function: <strong>forced-update-display</strong></dt>
+<dt id="index-forced_002dupdate_002ddisplay">Function: <strong>forced-update-display</strong></dt>
 <dd><p>Force the line to be updated and redisplayed, whether or not Readline
 thinks the screen display is correct.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-on_002dnew_002dline"></a>Function: <strong>on-new-line</strong> <em><code>&amp;optional</code> with-prompt</em></dt>
+<dt id="index-on_002dnew_002dline">Function: <strong>on-new-line</strong> <em><code>&amp;optional</code> with-prompt</em></dt>
 <dd><p>Tell the update functions that we have moved onto a new (empty) line,
 usually after outputting a newline. When <var>with-prompt</var> is not
 <code>nil</code>, Readline will think that prompt is already displayed. This
@@ -758,18 +741,18 @@ for redisplay. This should be used together with
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-reset_002dline_002dstate"></a>Function: <strong>reset-line-state</strong></dt>
+<dt id="index-reset_002dline_002dstate">Function: <strong>reset-line-state</strong></dt>
 <dd><p>Reset the display state to a clean state and redisplay the current
 line starting on a new line.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-cflr"></a>Function: <strong>cflr</strong></dt>
+<dt id="index-crlf">Function: <strong>crlf</strong></dt>
 <dd><p>Move the cursor to the start of the next screen line.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-show_002dchar"></a>Function: <strong>show-char</strong> <em>char</em></dt>
+<dt id="index-show_002dchar">Function: <strong>show-char</strong> <em>char</em></dt>
 <dd><p>Display character <var>char</var> on outstream. If Readline has not been
 set to display meta characters directly, this will convert meta
 characters to a meta-prefixed key sequence. This is intended for use
@@ -777,42 +760,44 @@ by applications which wish to do their own redisplay.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-set_002dprompt"></a>Function: <strong>set-prompt</strong> <em>prompt</em></dt>
+<dt id="index-set_002dprompt">Function: <strong>set-prompt</strong> <em>prompt</em></dt>
 <dd><p>Make Readline use <var>prompt</var> for subsequent redisplay. This calls
 <code>expand-prompt</code> to expand the prompt and sets <var>+prompt+</var> to
 the result.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-with_002dmessage"></a>Macro: <strong>with-message</strong> <em>message save-prompt <code>&amp;body</code> body</em></dt>
+<dt id="index-with_002dmessage">Macro: <strong>with-message</strong> <em>message save-prompt <code>&amp;body</code> body</em></dt>
 <dd><p>Show message <var>message</var> in the echo area while executing
 <var>body</var>. If <var>save-prompt</var> is not <code>nil</code>, save prompt before
 showing the message and restore it before clearing the message.
 </p></dd></dl>
 
 <hr>
-<a name="Modifying-Text"></a>
-<div class="header">
+<span id="Adding-and-modifying-Text"></span><div class="header">
 <p>
 Next: <a href="#Character-Input" accesskey="n" rel="next">Character Input</a>, Previous: <a href="#Redisplay" accesskey="p" rel="prev">Redisplay</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Modifying-Text-1"></a>
-<h2 class="chapter">8 Modifying Text</h2>
+<span id="Adding-and-modifying-Text-1"></span><h2 class="chapter">8 Adding and modifying Text</h2>
 
+<p>Once a prompt is started, you can insert and delete text at the current cursor position.
+</p>
+<p>See also <code>crlf</code> and the section &ldquo;Moving the cursor&rdquo;.
+</p>
 <dl>
-<dt><a name="index-insert_002dtext"></a>Function: <strong>insert-text</strong> <em>text</em></dt>
+<dt id="index-insert_002dtext">Function: <strong>insert-text</strong> <em>text</em></dt>
 <dd><p>Insert <var>text</var> into the line at the current cursor position. Return
 the number of characters inserted.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-delete_002dtext"></a>Function: <strong>delete-text</strong> <em>start end</em></dt>
+<dt id="index-delete_002dtext">Function: <strong>delete-text</strong> <em>start end</em></dt>
 <dd><p>Delete the text between <var>start</var> and <var>end</var> in the current
 line. Return the number of characters deleted.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-kill_002dtext"></a>Function: <strong>kill-text</strong> <em>start end</em></dt>
+<dt id="index-kill_002dtext">Function: <strong>kill-text</strong> <em>start end</em></dt>
 <dd><p>Copy the text between <var>start</var> and <var>end</var> in the current line to
 the kill ring, appending or prepending to the last kill if the last
 command was a kill command. The text is deleted. If <var>start</var> is
@@ -821,23 +806,21 @@ last command was not a kill, a new kill ring slot is used.
 </p></dd></dl>
 
 <hr>
-<a name="Character-Input"></a>
-<div class="header">
+<span id="Character-Input"></span><div class="header">
 <p>
-Next: <a href="#Terminal-Management" accesskey="n" rel="next">Terminal Management</a>, Previous: <a href="#Modifying-Text" accesskey="p" rel="prev">Modifying Text</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Moving-the-cursor" accesskey="n" rel="next">Moving the cursor</a>, Previous: <a href="#Adding-and-modifying-Text" accesskey="p" rel="prev">Adding and modifying Text</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Character-Input-1"></a>
-<h2 class="chapter">9 Character Input</h2>
+<span id="Character-Input-1"></span><h2 class="chapter">9 Character Input</h2>
 
 <dl>
-<dt><a name="index-read_002dkey"></a>Function: <strong>read-key</strong></dt>
+<dt id="index-read_002dkey">Function: <strong>read-key</strong></dt>
 <dd><p>Return the next character available from Readline&rsquo;s current input
 stream.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-stuff_002dchar"></a>Function: <strong>stuff-char</strong> <em>char</em></dt>
-<dd><p>Insert <var>char</var> into the Readline input stream. It will be Â«readÂ»
+<dt id="index-stuff_002dchar">Function: <strong>stuff-char</strong> <em>char</em></dt>
+<dd><p>Insert <var>char</var> into the Readline input stream. It will be &ldquo;read&rdquo;
 before Readline attempts to read characters from the terminal with
 <code>read-key</code>. Up to <code>512</code> characters may be pushed
 back. <code>stuff-char</code> returns <code>t</code> if the character was
@@ -845,20 +828,20 @@ successfully inserted; <code>nil</code> otherwise.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-execute_002dnext"></a>Function: <strong>execute-next</strong> <em>char</em></dt>
+<dt id="index-execute_002dnext">Function: <strong>execute-next</strong> <em>char</em></dt>
 <dd><p>Make <var>char</var> be the next command to be executed when
 <code>read-key</code> is called.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-clear_002dpending_002dinput"></a>Function: <strong>clear-pending-input</strong></dt>
+<dt id="index-clear_002dpending_002dinput">Function: <strong>clear-pending-input</strong></dt>
 <dd><p>Negate the effect of any previous call to <code>execute-next</code>. This
 works only if the pending input has not already been read with
 <code>read-key</code>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-set_002dkeyboard_002dinput_002dtimeout"></a>Function: <strong>set-keyboard-input-timeout</strong> <em>u</em></dt>
+<dt id="index-set_002dkeyboard_002dinput_002dtimeout">Function: <strong>set-keyboard-input-timeout</strong> <em>u</em></dt>
 <dd><p>While waiting for keyboard input in <code>read-key</code>, Readline will wait
 for <var>u</var> microseconds for input before calling any function assigned
 to <code>event-hook</code>. <var>u</var> must be greater than or equal to zero (a
@@ -867,16 +850,93 @@ is one-tenth of a second. Return the old timeout value.
 </p></dd></dl>
 
 <hr>
-<a name="Terminal-Management"></a>
-<div class="header">
+<span id="Moving-the-cursor"></span><div class="header">
 <p>
-Next: <a href="#Utility-Functions" accesskey="n" rel="next">Utility Functions</a>, Previous: <a href="#Character-Input" accesskey="p" rel="prev">Character Input</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Terminal-Management" accesskey="n" rel="next">Terminal Management</a>, Previous: <a href="#Character-Input" accesskey="p" rel="prev">Character Input</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Terminal-Management-1"></a>
-<h2 class="chapter">10 Terminal Management</h2>
+<span id="Moving-the-cursor-1"></span><h2 class="chapter">10 Moving the cursor</h2>
+
+<p>You can move the cursor by characters and words, or move to the beginning and end of the line.
+</p>
+<p>We also have commands to clear the line and the screen.
+</p>
+<p>Note that these functions bind readline commands, thus they must
+accept two arguments: <var>count</var> (defaults to 1) and <var>key</var> (the
+key identifier that fired this command). The key is not used in the Lisp functions.
+</p>
+<dl>
+<dt id="index-backward_002dword">Function: <strong>backward-word</strong> <em><code>&amp;optional</code> (count 1)</em></dt>
+<dd><p>Move backward COUNT words (1 by default).
+</p></dd></dl>
 
 <dl>
-<dt><a name="index-prep_002dterminal"></a>Function: <strong>prep-terminal</strong> <em>eight-bit-input</em></dt>
+<dt id="index-forward_002dword">Function: <strong>forward-word</strong> <em><code>&amp;optional</code> (count 1)</em></dt>
+<dd><p>Move forward COUNT word(s).
+</p></dd></dl>
+
+<dl>
+<dt id="index-backward_002dchar">Function: <strong>backward-char</strong> <em><code>&amp;optional</code> (count 1)</em></dt>
+<dd><p>Move forward COUNT characters.
+</p></dd></dl>
+
+<dl>
+<dt id="index-forward_002dchar">Function: <strong>forward-char</strong> <em><code>&amp;optional</code> (count 1)</em></dt>
+<dd><p>Move forward COUNT characters.
+</p></dd></dl>
+
+<dl>
+<dt id="index-beginning_002dof_002dline">Function: <strong>beginning-of-line</strong></dt>
+<dd><p>Move to the beginning of the line.
+</p></dd></dl>
+
+<dl>
+<dt id="index-end_002dof_002dline">Function: <strong>end-of-line</strong></dt>
+<dd><p>Move to the end of the line.
+</p></dd></dl>
+
+<dl>
+<dt id="index-refresh_002dline">Function: <strong>refresh-line</strong></dt>
+<dd><p>Clear the current line. A numeric argument to C-l does this.
+</p></dd></dl>
+
+<dl>
+<dt id="index-clear_002dscreen">Function: <strong>clear-screen</strong></dt>
+<dd><p>C-l typed to a line without quoting clears the screen, and then reprints the prompt and the current input line.
+</p></dd></dl>
+
+<dl>
+<dt id="index-clear_002ddisplay">Function: <strong>clear-display</strong></dt>
+<dd><p>Clear the screen and update the display.&quot;
+</p></dd></dl>
+
+<p>Here&rsquo;s an example to enter an opening <code>(</code> and a closing <code>)</code>, and move the cursor in between the parenthesis:
+</p>
+<div class="example">
+<pre class="example">(defun insert-parens (&amp;optional count key)
+  (rl:insert-text &quot;()&quot;)
+  (rl:backward-char))
+
+(defun run-example ()
+  (rl:bind-keyseq &quot;(&quot; #'insert-parens)  ;; this function must accept COUNT and KEY
+
+  ;; start a prompt
+  (rl:readline :prompt &quot;go &gt; &quot;)
+  ;; and now you can type &quot;(&quot;.
+  )
+
+(run-example)
+</pre></div>
+
+
+<hr>
+<span id="Terminal-Management"></span><div class="header">
+<p>
+Next: <a href="#Utility-Functions" accesskey="n" rel="next">Utility Functions</a>, Previous: <a href="#Moving-the-cursor" accesskey="p" rel="prev">Moving the cursor</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
+</div>
+<span id="Terminal-Management-1"></span><h2 class="chapter">11 Terminal Management</h2>
+
+<dl>
+<dt id="index-prep_002dterminal">Function: <strong>prep-terminal</strong> <em>eight-bit-input</em></dt>
 <dd><p>Modify the terminal settings for Readline&rsquo;s use, so <code>readline</code>
 can read a single character at a time from the keyboard. The
 <code>eight-bit-input</code> argument should be non-<code>nil</code> if Readline
@@ -884,43 +944,41 @@ should read eight-bit input.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-deprep_002dterminal"></a>Function: <strong>deprep-terminal</strong></dt>
+<dt id="index-deprep_002dterminal">Function: <strong>deprep-terminal</strong></dt>
 <dd><p>Undo the effects of <code>prep-terminal</code>, leaving the terminal in the
 state in which it was before the most recent call to
 <code>prep-terminal</code>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-tty_002dset_002ddefault_002dbindings"></a>Function: <strong>tty-set-default-bindings</strong> <em>keymap</em></dt>
+<dt id="index-tty_002dset_002ddefault_002dbindings">Function: <strong>tty-set-default-bindings</strong> <em>keymap</em></dt>
 <dd><p>Read the operating system&rsquo;s terminal editing characters (as would be
 displayed by stty) to their Readline equivalents. The bindings are
 performed in <var>keymap</var>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-tty_002dunset_002ddefault_002dbindings"></a>Function: <strong>tty-unset-default-bindings</strong> <em>keymap</em></dt>
+<dt id="index-tty_002dunset_002ddefault_002dbindings">Function: <strong>tty-unset-default-bindings</strong> <em>keymap</em></dt>
 <dd><p>Reset the bindings manipulated by <code>tty-set-default-bindings</code> so
 that the terminal editing characters are bound to <code>insert</code>. The
 bindings are performed in <var>keymap</var>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-reset_002dterminal"></a>Function: <strong>reset-terminal</strong> <em>terminal</em></dt>
+<dt id="index-reset_002dterminal">Function: <strong>reset-terminal</strong> <em>terminal</em></dt>
 <dd><p>Reinitialize Readline&rsquo;s idea of the terminal settings using
 <var>terminal</var> as the terminal type (e.g., <code>&quot;vt100&quot;</code>).
 </p></dd></dl>
 
 <hr>
-<a name="Utility-Functions"></a>
-<div class="header">
+<span id="Utility-Functions"></span><div class="header">
 <p>
 Next: <a href="#Miscellaneous-Functions" accesskey="n" rel="next">Miscellaneous Functions</a>, Previous: <a href="#Terminal-Management" accesskey="p" rel="prev">Terminal Management</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Utility-Functions-1"></a>
-<h2 class="chapter">11 Utility Functions</h2>
+<span id="Utility-Functions-1"></span><h2 class="chapter">12 Utility Functions</h2>
 
 <dl>
-<dt><a name="index-replace_002dline"></a>Function: <strong>replace-line</strong> <em>text clear-undo</em></dt>
+<dt id="index-replace_002dline">Function: <strong>replace-line</strong> <em>text clear-undo</em></dt>
 <dd><p>Replace the contents of <var>*line-buffer*</var> with <var>text</var>. The point
 and mark are preserved, if possible. If <var>clear-undo</var> is
 non-<code>nil</code>, the undo list associated with the current line is
@@ -928,13 +986,13 @@ cleared.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-extend_002dline_002dbuffer"></a>Function: <strong>extend-line-buffer</strong> <em>len</em></dt>
+<dt id="index-extend_002dline_002dbuffer">Function: <strong>extend-line-buffer</strong> <em>len</em></dt>
 <dd><p>Ensure that line buffer has enough space to hold <var>len</var> characters,
 possibly reallocating it if necessary.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-initialize"></a>Function: <strong>initialize</strong></dt>
+<dt id="index-initialize">Function: <strong>initialize</strong></dt>
 <dd><p>Initialize or re-initialize Readline&rsquo;s internal state. It&rsquo;s not
 strictly necessary to call this; <code>readline</code> calls it before
 reading any input. cl-readline also makes sure that Readline is always
@@ -942,21 +1000,19 @@ initialized when you use it.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-ding"></a>Function: <strong>ding</strong></dt>
+<dt id="index-ding">Function: <strong>ding</strong></dt>
 <dd><p>Ring the terminal bell, obeying the setting of bell-style.
 </p></dd></dl>
 
 <hr>
-<a name="Miscellaneous-Functions"></a>
-<div class="header">
+<span id="Miscellaneous-Functions"></span><div class="header">
 <p>
 Next: <a href="#Signal-Handling" accesskey="n" rel="next">Signal Handling</a>, Previous: <a href="#Utility-Functions" accesskey="p" rel="prev">Utility Functions</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Miscellaneous-Functions-1"></a>
-<h2 class="chapter">12 Miscellaneous Functions</h2>
+<span id="Miscellaneous-Functions-1"></span><h2 class="chapter">13 Miscellaneous Functions</h2>
 
 <dl>
-<dt><a name="index-macro_002ddumper"></a>Function: <strong>macro-dumper</strong> <em>readable <code>&amp;optional</code> filename append</em></dt>
+<dt id="index-macro_002ddumper">Function: <strong>macro-dumper</strong> <em>readable <code>&amp;optional</code> filename append</em></dt>
 <dd><p>Print the key sequences bound to macros and their values, using the
 current keymap to stdout. If <code>readable</code> is non-<code>nil</code>, the
 list is formatted in such a way that it can be made part of an inputrc
@@ -966,21 +1022,21 @@ append text to the file instead of overwriting it.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-variable_002dbind"></a>Function: <strong>variable-bind</strong> <em>variable value</em></dt>
+<dt id="index-variable_002dbind">Function: <strong>variable-bind</strong> <em>variable value</em></dt>
 <dd><p>Make the Readline variable <var>variable</var> have <var>value</var>. This
 behaves as if the readline command <code>set variable value</code> had been
 executed in an inputrc file.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-variable_002dvalue"></a>Function: <strong>variable-value</strong> <em>variable</em></dt>
+<dt id="index-variable_002dvalue">Function: <strong>variable-value</strong> <em>variable</em></dt>
 <dd><p>Return a string representing the value of the Readline variable
 <var>variable</var>. For Boolean variables, this string is either &rsquo;on&rsquo; or
 &rsquo;off&rsquo;.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-variable_002ddumper"></a>Function: <strong>variable-dumper</strong> <em>readable <code>&amp;optional</code> filename append</em></dt>
+<dt id="index-variable_002ddumper">Function: <strong>variable-dumper</strong> <em>readable <code>&amp;optional</code> filename append</em></dt>
 <dd><p>Print the readline variable names and their current values to
 stdout. If readable is not <code>nil</code>, the list is formatted in such a
 way that it can be made part of an inputrc file and re-read. If
@@ -990,39 +1046,37 @@ instead of overwriting it.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-set_002dparen_002dblink_002dtimeout"></a>Function: <strong>set-paren-blink-timeout</strong> <em>micros</em></dt>
+<dt id="index-set_002dparen_002dblink_002dtimeout">Function: <strong>set-paren-blink-timeout</strong> <em>micros</em></dt>
 <dd><p>Set the time interval (in microseconds) that Readline waits when
 showing a balancing character when <code>blink-matching-paren</code> has
 been enabled. The function returns previous value of the parameter.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-clear_002dhistory"></a>Function: <strong>clear-history</strong></dt>
+<dt id="index-clear_002dhistory">Function: <strong>clear-history</strong></dt>
 <dd><p>Clear the history list by deleting all of the entries.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-read_002dhistory"></a>Function: <strong>read-history</strong> <em>filename</em></dt>
+<dt id="index-read_002dhistory">Function: <strong>read-history</strong> <em>filename</em></dt>
 <dd><p>Add the contents of filename to the history list, a line at a
 time.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-write_002dhistory"></a>Function: <strong>write-history</strong> <em>filename</em></dt>
+<dt id="index-write_002dhistory">Function: <strong>write-history</strong> <em>filename</em></dt>
 <dd><p>Write the current history to filename, overwriting filename if
 necessary.
 </p></dd></dl>
 
 <hr>
-<a name="Signal-Handling"></a>
-<div class="header">
+<span id="Signal-Handling"></span><div class="header">
 <p>
 Next: <a href="#Example" accesskey="n" rel="next">Example</a>, Previous: <a href="#Miscellaneous-Functions" accesskey="p" rel="prev">Miscellaneous Functions</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Signal-Handling-1"></a>
-<h2 class="chapter">13 Signal Handling</h2>
+<span id="Signal-Handling-1"></span><h2 class="chapter">14 Signal Handling</h2>
 
-<a name="index-signals"></a>
+<span id="index-signals"></span>
 
 <p>Signals are asynchronous events sent to a process by the Unix kernel,
 sometimes on behalf of another process. They are intended to indicate
@@ -1066,7 +1120,7 @@ values of these variables only when calling <code>readline</code>, not in a
 signal handler, so Readline&rsquo;s internal signal state is not corrupted.
 </p>
 <dl>
-<dt><a name="index-_002acatch_002dsignals_002a"></a>Symbol macro: <strong>*catch-signals*</strong></dt>
+<dt id="index-_002acatch_002dsignals_002a">Symbol macro: <strong>*catch-signals*</strong></dt>
 <dd><p>Boolean. If this variable is non-<code>nil</code>, Readline will install
 signal handlers for SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM,
 SIGTSTP, SIGTTIN, and SIGTTOU. The default value of
@@ -1074,14 +1128,14 @@ SIGTSTP, SIGTTIN, and SIGTTOU. The default value of
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002acatch_002dsigwinch_002a"></a>Symbol macro: <strong>*catch-sigwinch*</strong></dt>
+<dt id="index-_002acatch_002dsigwinch_002a">Symbol macro: <strong>*catch-sigwinch*</strong></dt>
 <dd><p>If this variable is set to a non-<code>nil</code> value, Readline will
 install a signal handler for SIGWINCH. The default value of
 <var>*catch-sigwinch*</var> is <code>t</code>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-_002achange_002denvironment_002a"></a>Symbol macro: <strong>*change-environment*</strong></dt>
+<dt id="index-_002achange_002denvironment_002a">Symbol macro: <strong>*change-environment*</strong></dt>
 <dd><p>If this variable is set to a non-<code>nil</code> value, and Readline is
 handling SIGWINCH, Readline will modify the LINES and COLUMNS
 environment variables upon receipt of a SIGWINCH. The default value of
@@ -1089,7 +1143,7 @@ environment variables upon receipt of a SIGWINCH. The default value of
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-cleanup_002dafter_002dsignal"></a>Function: <strong>cleanup-after-signal</strong></dt>
+<dt id="index-cleanup_002dafter_002dsignal">Function: <strong>cleanup-after-signal</strong></dt>
 <dd><p>This function will reset the state of the terminal to what it was
 before <code>readline</code> was called, and remove the Readline signal
 handlers for all signals, depending on the values of
@@ -1097,7 +1151,7 @@ handlers for all signals, depending on the values of
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-free_002dline_002dstate"></a>Function: <strong>free-line-state</strong></dt>
+<dt id="index-free_002dline_002dstate">Function: <strong>free-line-state</strong></dt>
 <dd><p>This will free any partial state associated with the current input
 line (undo information, any partial history entry, any
 partially-entered keyboard macro, and any partially-entered numeric
@@ -1107,14 +1161,14 @@ calls this to abort the current input line.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-reset_002dafter_002dsignal"></a>Function: <strong>reset-after-signal</strong></dt>
+<dt id="index-reset_002dafter_002dsignal">Function: <strong>reset-after-signal</strong></dt>
 <dd><p>This will reinitialize the terminal and reinstall any Readline signal
 handlers, depending on the values of <var>*catch-signals*</var> and
 <var>*catch-sigwinch*</var>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-echo_002dsignal_002dchar"></a>Function: <strong>echo-signal-char</strong> <em>sig</em></dt>
+<dt id="index-echo_002dsignal_002dchar">Function: <strong>echo-signal-char</strong> <em>sig</em></dt>
 <dd><p>If an application wishes to install its own signal handlers, but still
 have readline display characters that generate signals, calling this
 function with <var>sig</var> set to <code>:sigint</code>, <code>:sigquit</code>, or
@@ -1122,51 +1176,49 @@ function with <var>sig</var> set to <code>:sigint</code>, <code>:sigquit</code>,
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-resize_002dterminal"></a>Function: <strong>resize-terminal</strong></dt>
+<dt id="index-resize_002dterminal">Function: <strong>resize-terminal</strong></dt>
 <dd><p>Update Readline&rsquo;s internal screen size by reading values from the
 kernel.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-set_002dscreen_002dsize"></a>Function: <strong>set-screen-size</strong> <em>rows cols</em></dt>
+<dt id="index-set_002dscreen_002dsize">Function: <strong>set-screen-size</strong> <em>rows cols</em></dt>
 <dd><p>Set Readline&rsquo;s idea of the terminal size to <var>rows</var> rows and
 <var>cols</var> columns. If either rows or columns is less than or equal to
 <code>0</code>, Readline&rsquo;s idea of that terminal dimension is unchanged.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-get_002dscreen_002dsize"></a>Function: <strong>get-screen-size</strong></dt>
+<dt id="index-get_002dscreen_002dsize">Function: <strong>get-screen-size</strong></dt>
 <dd><p>Return Readline&rsquo;s idea of the terminal&rsquo;s size. The function returns
 multiple values: number of rows and columns.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-reset_002dscreen_002dsize"></a>Function: <strong>reset-screen-size</strong></dt>
+<dt id="index-reset_002dscreen_002dsize">Function: <strong>reset-screen-size</strong></dt>
 <dd><p>Cause Readline to reobtain the screen size and recalculate its
 dimensions.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-set_002dsignals"></a>Function: <strong>set-signals</strong></dt>
+<dt id="index-set_002dsignals">Function: <strong>set-signals</strong></dt>
 <dd><p>Install Readline&rsquo;s signal handler for SIGINT, SIGQUIT, SIGTERM,
 SIGHUP, SIGALRM, SIGTSTP, SIGTTIN, SIGTTOU, and SIGWINCH, depending on
 the values of <var>*catch-signals*</var> and <var>*catch-sigwinch*</var>.
 </p></dd></dl>
 
 <dl>
-<dt><a name="index-clear_002dsignals"></a>Function: <strong>clear-signals</strong></dt>
+<dt id="index-clear_002dsignals">Function: <strong>clear-signals</strong></dt>
 <dd><p>Remove all of the Readline signal handlers installed by
 <code>set-signals</code>.
 </p></dd></dl>
 
 <hr>
-<a name="Example"></a>
-<div class="header">
+<span id="Example"></span><div class="header">
 <p>
 Next: <a href="#GNU-Free-Documentation-License" accesskey="n" rel="next">GNU Free Documentation License</a>, Previous: <a href="#Signal-Handling" accesskey="p" rel="prev">Signal Handling</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Example-1"></a>
-<h2 class="chapter">14 Example</h2>
+<span id="Example-1"></span><h2 class="chapter">15 Example</h2>
 
 <p>This program demonstrates some basic capacities of cl-readline. Note
 that you should run it in terminal, not via SLIME. See more at <a href="https://github.com/vindarel/cl-readline-example">https://github.com/vindarel/cl-readline-example</a>.
@@ -1239,13 +1291,11 @@ that you should run it in terminal, not via SLIME. See more at <a href="https://
 </pre></div>
 
 <hr>
-<a name="GNU-Free-Documentation-License"></a>
-<div class="header">
+<span id="GNU-Free-Documentation-License"></span><div class="header">
 <p>
 Next: <a href="#Concept-Index" accesskey="n" rel="next">Concept Index</a>, Previous: <a href="#Example" accesskey="p" rel="prev">Example</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="GNU-Free-Documentation-License-1"></a>
-<h2 class="appendix">Appendix A GNU Free Documentation License</h2>
+<span id="GNU-Free-Documentation-License-1"></span><h2 class="appendix">Appendix A GNU Free Documentation License</h2>
 
 <div align="center">Version 1.3, 3 November 2008
 </div>
@@ -1680,15 +1730,14 @@ provided the MMC is eligible for relicensing.
 </p>
 </li></ol>
 
-<a name="ADDENDUM_003a-How-to-use-this-License-for-your-documents"></a>
-<h3 class="heading">ADDENDUM: How to use this License for your documents</h3>
+<span id="ADDENDUM_003a-How-to-use-this-License-for-your-documents"></span><h3 class="heading">ADDENDUM: How to use this License for your documents</h3>
 
 <p>To use this License in a document you have written, include a copy of
 the License in the document and put the following copyright and
 license notices just after the title page:
 </p>
-<div class="smallexample">
-<pre class="smallexample">  Copyright (C)  <var>year</var>  <var>your name</var>.
+<div class="example">
+<pre class="example">  Copyright (C)  <var>year</var>  <var>your name</var>.
   Permission is granted to copy, distribute and/or modify this document
   under the terms of the GNU Free Documentation License, Version 1.3
   or any later version published by the Free Software Foundation;
@@ -1700,8 +1749,8 @@ license notices just after the title page:
 <p>If you have Invariant Sections, Front-Cover Texts and Back-Cover Texts,
 replace the &ldquo;with&hellip;Texts.&rdquo; line with this:
 </p>
-<div class="smallexample">
-<pre class="smallexample">    with the Invariant Sections being <var>list their titles</var>, with
+<div class="example">
+<pre class="example">    with the Invariant Sections being <var>list their titles</var>, with
     the Front-Cover Texts being <var>list</var>, and with the Back-Cover Texts
     being <var>list</var>.
 </pre></div>
@@ -1718,13 +1767,11 @@ to permit their use in free software.
 
 
 <hr>
-<a name="Concept-Index"></a>
-<div class="header">
+<span id="Concept-Index"></span><div class="header">
 <p>
 Next: <a href="#Function-and-Variable-Index" accesskey="n" rel="next">Function and Variable Index</a>, Previous: <a href="#GNU-Free-Documentation-License" accesskey="p" rel="prev">GNU Free Documentation License</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Concept-Index-1"></a>
-<h2 class="unnumbered">Concept Index</h2>
+<span id="Concept-Index-1"></span><h2 class="unnumbered">Concept Index</h2>
 <table><tr><th valign="top">Jump to: &nbsp; </th><td><a class="summary-letter" href="#Concept-Index_cp_letter-C"><b>C</b></a>
  &nbsp; 
 <a class="summary-letter" href="#Concept-Index_cp_letter-H"><b>H</b></a>
@@ -1741,24 +1788,24 @@ Next: <a href="#Function-and-Variable-Index" accesskey="n" rel="next">Function a
 <table class="index-cp" border="0">
 <tr><td></td><th align="left">Index Entry</th><td>&nbsp;</td><th align="left"> Section</th></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Concept-Index_cp_letter-C">C</a></th><td></td><td></td></tr>
+<tr><th id="Concept-Index_cp_letter-C">C</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-completion-types">completion types</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">Hooks and Custom Functions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-custom-functions">custom functions</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">Hooks and Custom Functions</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Concept-Index_cp_letter-H">H</a></th><td></td><td></td></tr>
+<tr><th id="Concept-Index_cp_letter-H">H</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-hooks">hooks</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">Hooks and Custom Functions</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Concept-Index_cp_letter-K">K</a></th><td></td><td></td></tr>
+<tr><th id="Concept-Index_cp_letter-K">K</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-keymaps">keymaps</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">Work with Keymaps</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Concept-Index_cp_letter-R">R</a></th><td></td><td></td></tr>
+<tr><th id="Concept-Index_cp_letter-R">R</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-readline-state">readline state</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">Basic Functionality</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-readline_002c-function">readline, function</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">Basic Functionality</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Concept-Index_cp_letter-S">S</a></th><td></td><td></td></tr>
+<tr><th id="Concept-Index_cp_letter-S">S</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-signals">signals</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">Signal Handling</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Concept-Index_cp_letter-U">U</a></th><td></td><td></td></tr>
+<tr><th id="Concept-Index_cp_letter-U">U</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-undoing">undoing</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Allowing-Undoing">Allowing Undoing</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
 </table>
@@ -1777,13 +1824,11 @@ Next: <a href="#Function-and-Variable-Index" accesskey="n" rel="next">Function a
 </td></tr></table>
 
 <hr>
-<a name="Function-and-Variable-Index"></a>
-<div class="header">
+<span id="Function-and-Variable-Index"></span><div class="header">
 <p>
 Previous: <a href="#Concept-Index" accesskey="p" rel="prev">Concept Index</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-Index" title="Index" rel="index">Index</a>]</p>
 </div>
-<a name="Function-and-Variable-Index-1"></a>
-<h2 class="unnumbered">Function and Variable Index</h2>
+<span id="Function-and-Variable-Index-1"></span><h2 class="unnumbered">Function and Variable Index</h2>
 <table><tr><th valign="top">Jump to: &nbsp; </th><td><a class="summary-letter" href="#Function-and-Variable-Index_fn_symbol-1"><b>*</b></a>
  &nbsp; 
 <a class="summary-letter" href="#Function-and-Variable-Index_fn_symbol-2"><b>+</b></a>
@@ -1831,7 +1876,7 @@ Previous: <a href="#Concept-Index" accesskey="p" rel="prev">Concept Index</a>, U
 <table class="index-fn" border="0">
 <tr><td></td><th align="left">Index Entry</th><td>&nbsp;</td><th align="left"> Section</th></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_symbol-1">*</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_symbol-1">*</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002abasic_002dquote_002dcharacters_002a">*basic-quote-characters*</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">Hooks and Custom Functions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002abasic_002dword_002dbreak_002dcharacters_002a">*basic-word-break-characters*</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">Hooks and Custom Functions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002acatch_002dsignals_002a">*catch-signals*</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">Signal Handling</a></td></tr>
@@ -1850,7 +1895,7 @@ Previous: <a href="#Concept-Index" accesskey="p" rel="prev">Concept Index</a>, U
 <tr><td></td><td valign="top"><a href="#index-_002areadline_002dname_002a">*readline-name*</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">Basic Functionality</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002asort_002dcompletion_002dmatches_002a">*sort-completion-matches*</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">Hooks and Custom Functions</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_symbol-2">+</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_symbol-2">+</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002bbinding_002dkeymap_002b">+binding-keymap+</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">Work with Keymaps</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002bcompletion_002dtype_002b">+completion-type+</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">Hooks and Custom Functions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002bdispatching_002b">+dispatching+</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">Binding Keys</a></td></tr>
@@ -1867,75 +1912,84 @@ Previous: <a href="#Concept-Index" accesskey="p" rel="prev">Concept Index</a>, U
 <tr><td></td><td valign="top"><a href="#index-_002breadline_002dstate_002b">+readline-state+</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">Basic Functionality</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-_002breadline_002dversion_002b">+readline-version+</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">Basic Functionality</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-A">A</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-A">A</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-add_002ddefun"><code>add-defun</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">Binding Keys</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-add_002dfunmap_002dentry"><code>add-funmap-entry</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Associating-Function-Names-and-Bindings">Associating Function Names and Bindings</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-add_002dundo"><code>add-undo</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Allowing-Undoing">Allowing Undoing</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-B">B</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-B">B</th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-backward_002dchar"><code>backward-char</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Moving-the-cursor">Moving the cursor</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-backward_002dword"><code>backward-word</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Moving-the-cursor">Moving the cursor</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-beginning_002dof_002dline"><code>beginning-of-line</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Moving-the-cursor">Moving the cursor</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-bind_002dkey"><code>bind-key</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">Binding Keys</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-bind_002dkeyseq"><code>bind-keyseq</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">Binding Keys</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-C">C</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-cflr"><code>cflr</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Redisplay">Redisplay</a></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-C">C</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-cleanup_002dafter_002dsignal"><code>cleanup-after-signal</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">Signal Handling</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-clear_002ddisplay"><code>clear-display</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Moving-the-cursor">Moving the cursor</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-clear_002dhistory"><code>clear-history</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Miscellaneous-Functions">Miscellaneous Functions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-clear_002dpending_002dinput"><code>clear-pending-input</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Character-Input">Character Input</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-clear_002dscreen"><code>clear-screen</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Moving-the-cursor">Moving the cursor</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-clear_002dsignals"><code>clear-signals</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">Signal Handling</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-copy_002dkeymap"><code>copy-keymap</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">Work with Keymaps</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-crlf"><code>crlf</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Redisplay">Redisplay</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-D">D</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-delete_002dtext"><code>delete-text</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Modifying-Text">Modifying Text</a></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-D">D</th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-delete_002dtext"><code>delete-text</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Adding-and-modifying-Text">Adding and modifying Text</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-deprep_002dterminal"><code>deprep-terminal</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Terminal-Management">Terminal Management</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-ding"><code>ding</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Utility-Functions">Utility Functions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-do_002dundo"><code>do-undo</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Allowing-Undoing">Allowing Undoing</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-E">E</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-E">E</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-echo_002dsignal_002dchar"><code>echo-signal-char</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">Signal Handling</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-end_002dof_002dline"><code>end-of-line</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Moving-the-cursor">Moving the cursor</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-execute_002dnext"><code>execute-next</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Character-Input">Character Input</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-extend_002dline_002dbuffer"><code>extend-line-buffer</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Utility-Functions">Utility Functions</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-F">F</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-F">F</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-forced_002dupdate_002ddisplay"><code>forced-update-display</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Redisplay">Redisplay</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-forward_002dchar"><code>forward-char</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Moving-the-cursor">Moving the cursor</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-forward_002dword"><code>forward-word</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Moving-the-cursor">Moving the cursor</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-free_002dkeymap"><code>free-keymap</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">Work with Keymaps</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-free_002dline_002dstate"><code>free-line-state</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">Signal Handling</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-free_002dundo_002dlist"><code>free-undo-list</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Allowing-Undoing">Allowing Undoing</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-function_002ddumper"><code>function-dumper</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Associating-Function-Names-and-Bindings">Associating Function Names and Bindings</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-funmap_002dnames"><code>funmap-names</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Associating-Function-Names-and-Bindings">Associating Function Names and Bindings</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-G">G</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-G">G</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-get_002dkeymap"><code>get-keymap</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">Work with Keymaps</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-get_002dkeymap_002dby_002dname"><code>get-keymap-by-name</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">Work with Keymaps</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-get_002dscreen_002dsize"><code>get-screen-size</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">Signal Handling</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-I">I</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-I">I</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-initialize"><code>initialize</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Utility-Functions">Utility Functions</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-insert_002dtext"><code>insert-text</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Modifying-Text">Modifying Text</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-insert_002dtext"><code>insert-text</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Adding-and-modifying-Text">Adding and modifying Text</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-K">K</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-kill_002dtext"><code>kill-text</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Modifying-Text">Modifying Text</a></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-K">K</th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-kill_002dtext"><code>kill-text</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Adding-and-modifying-Text">Adding and modifying Text</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-L">L</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-L">L</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-list_002dfunmap_002dnames"><code>list-funmap-names</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Associating-Function-Names-and-Bindings">Associating Function Names and Bindings</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-M">M</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-M">M</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-macro_002ddumper"><code>macro-dumper</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Miscellaneous-Functions">Miscellaneous Functions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-make_002dkeymap"><code>make-keymap</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">Work with Keymaps</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-modifying"><code>modifying</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Allowing-Undoing">Allowing Undoing</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-O">O</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-O">O</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-on_002dnew_002dline"><code>on-new-line</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Redisplay">Redisplay</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-P">P</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-P">P</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-parse_002dand_002dbind"><code>parse-and-bind</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">Binding Keys</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-prep_002dterminal"><code>prep-terminal</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Terminal-Management">Terminal Management</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-R">R</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-R">R</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-read_002dhistory"><code>read-history</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Miscellaneous-Functions">Miscellaneous Functions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-read_002dinit_002dfile"><code>read-init-file</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">Binding Keys</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-read_002dkey"><code>read-key</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Character-Input">Character Input</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-readline"><code>readline</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Basic-Functionality">Basic Functionality</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-redisplay"><code>redisplay</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Redisplay">Redisplay</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-refresh_002dline"><code>refresh-line</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Moving-the-cursor">Moving the cursor</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-register_002dfunction"><code>register-function</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">Hooks and Custom Functions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-register_002dhook"><code>register-hook</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Hooks-and-Custom-Functions">Hooks and Custom Functions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-replace_002dline"><code>replace-line</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Utility-Functions">Utility Functions</a></td></tr>
@@ -1945,7 +1999,7 @@ Previous: <a href="#Concept-Index" accesskey="p" rel="prev">Concept Index</a>, U
 <tr><td></td><td valign="top"><a href="#index-reset_002dterminal"><code>reset-terminal</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Terminal-Management">Terminal Management</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-resize_002dterminal"><code>resize-terminal</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Signal-Handling">Signal Handling</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-S">S</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-S">S</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-set_002dkeyboard_002dinput_002dtimeout"><code>set-keyboard-input-timeout</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Character-Input">Character Input</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-set_002dkeymap"><code>set-keymap</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">Work with Keymaps</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-set_002dparen_002dblink_002dtimeout"><code>set-paren-blink-timeout</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Miscellaneous-Functions">Miscellaneous Functions</a></td></tr>
@@ -1955,21 +2009,21 @@ Previous: <a href="#Concept-Index" accesskey="p" rel="prev">Concept Index</a>, U
 <tr><td></td><td valign="top"><a href="#index-show_002dchar"><code>show-char</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Redisplay">Redisplay</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-stuff_002dchar"><code>stuff-char</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Character-Input">Character Input</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-T">T</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-T">T</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-tty_002dset_002ddefault_002dbindings"><code>tty-set-default-bindings</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Terminal-Management">Terminal Management</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-tty_002dunset_002ddefault_002dbindings"><code>tty-unset-default-bindings</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Terminal-Management">Terminal Management</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-U">U</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-U">U</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-unbind_002dcommand"><code>unbind-command</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">Binding Keys</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-unbind_002dkey"><code>unbind-key</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Binding-Keys">Binding Keys</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-undo_002dgroup"><code>undo-group</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Allowing-Undoing">Allowing Undoing</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-V">V</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-V">V</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-variable_002dbind"><code>variable-bind</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Miscellaneous-Functions">Miscellaneous Functions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-variable_002ddumper"><code>variable-dumper</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Miscellaneous-Functions">Miscellaneous Functions</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-variable_002dvalue"><code>variable-value</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Miscellaneous-Functions">Miscellaneous Functions</a></td></tr>
 <tr><td colspan="4"> <hr></td></tr>
-<tr><th><a name="Function-and-Variable-Index_fn_letter-W">W</a></th><td></td><td></td></tr>
+<tr><th id="Function-and-Variable-Index_fn_letter-W">W</th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-with_002dmessage"><code>with-message</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Redisplay">Redisplay</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-with_002dnew_002dkeymap"><code>with-new-keymap</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Work-with-Keymaps">Work with Keymaps</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-write_002dhistory"><code>write-history</code></a>:</td><td>&nbsp;</td><td valign="top"><a href="#Miscellaneous-Functions">Miscellaneous Functions</a></td></tr>

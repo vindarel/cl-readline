@@ -15,6 +15,7 @@ html:
 	sed -i "s@</pre>@</code></pre>@g" index.html
 	sed -i "s@<pre class=\"lisp\">@<pre><code class=\"lisp\">@g" index.html
 	sed -i "s@</body>@</body>  <script> HighlightLisp.highlight_auto(); HighlightLisp.paren_match(); </script>@g" index.html
+	cp index.html ../
 	# and update the gh-pages branch.
 
 html-local: html

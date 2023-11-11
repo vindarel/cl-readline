@@ -16,7 +16,7 @@ copy of the license is included in the section entitled "GNU Free
 Documentation License".
  -->
 <!-- Created by GNU Texinfo 6.7, http://www.gnu.org/software/texinfo/ -->
-<head>
+<head> <script type="text/javascript" src="https://vindarel.github.io/cl-readline/js/highlight-lisp.js"></script> <link rel="stylesheet" href="https://vindarel.github.io/cl-readline/js/github.css">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>cl-readline Library</title>
 
@@ -53,12 +53,7 @@ ul.no-bullet {list-style: none}
 <body lang="en">
 <h1 class="settitle" align="center">cl-readline Library</h1>
 
-<p>How to edit this file:
-- best in Emacs
-- when adding or removing a section, update the menu on that file. See the Emacs Texinfo menu or call M-x texinfo-all-menus-update.
-- try the rendering with M-x makeinfo-buffer (C-c RET C-b)
--
-</p>
+
 
 
 
@@ -911,8 +906,8 @@ key identifier that fired this command). The key is not used in the Lisp functio
 
 <p>Here&rsquo;s an example to enter an opening <code>(</code> and a closing <code>)</code>, and move the cursor in between the parenthesis:
 </p>
-<div class="example">
-<pre class="example">(defun insert-parens (&amp;optional count key)
+<div class="lisp">
+<pre><code class="lisp">(defun insert-parens (&amp;optional count key)
   (rl:insert-text &quot;()&quot;)
   (rl:backward-char))
 
@@ -925,7 +920,7 @@ key identifier that fired this command). The key is not used in the Lisp functio
   )
 
 (run-example)
-</pre></div>
+</code></pre></div>
 
 
 <hr>
@@ -1223,8 +1218,8 @@ Next: <a href="#GNU-Free-Documentation-License" accesskey="n" rel="next">GNU Fre
 <p>This program demonstrates some basic capacities of cl-readline. Note
 that you should run it in terminal, not via SLIME. See more at <a href="https://github.com/vindarel/cl-readline-example">https://github.com/vindarel/cl-readline-example</a>.
 </p>
-<div class="example">
-<pre class="example">;;; Load some systems and define a package...
+<div class="lisp">
+<pre><code class="lisp">;;; Load some systems and define a package...
 
 (asdf:load-system :str)
 (asdf:load-system :cl-readline)
@@ -1288,7 +1283,7 @@ that you should run it in terminal, not via SLIME. See more at <a href="https://
           (rl:readline :prompt (format nil &quot;[~a]&gt; &quot; i)
                        :add-history t
                        :novelty-check #'novelty-check))))
-</pre></div>
+</code></pre></div>
 
 <hr>
 <span id="GNU-Free-Documentation-License"></span><div class="header">
@@ -1306,7 +1301,7 @@ Next: <a href="#Concept-Index" accesskey="n" rel="next">Concept Index</a>, Previ
 
 Everyone is permitted to copy and distribute verbatim copies
 of this license document, but changing it is not allowed.
-</pre></div>
+</code></pre></div>
 
 <ol start="0">
 <li> PREAMBLE
@@ -1744,7 +1739,7 @@ license notices just after the title page:
   with no Invariant Sections, no Front-Cover Texts, and no Back-Cover
   Texts.  A copy of the license is included in the section entitled ``GNU
   Free Documentation License''.
-</pre></div>
+</code></pre></div>
 
 <p>If you have Invariant Sections, Front-Cover Texts and Back-Cover Texts,
 replace the &ldquo;with&hellip;Texts.&rdquo; line with this:
@@ -1753,7 +1748,7 @@ replace the &ldquo;with&hellip;Texts.&rdquo; line with this:
 <pre class="example">    with the Invariant Sections being <var>list their titles</var>, with
     the Front-Cover Texts being <var>list</var>, and with the Back-Cover Texts
     being <var>list</var>.
-</pre></div>
+</code></pre></div>
 
 <p>If you have Invariant Sections without Cover Texts, or some other
 combination of the three, merge those two alternatives to suit the
@@ -2078,5 +2073,5 @@ Previous: <a href="#Concept-Index" accesskey="p" rel="prev">Concept Index</a>, U
 
 
 
-</body>
+</body>  <script> HighlightLisp.highlight_auto(); HighlightLisp.paren_match(); </script>
 </html>

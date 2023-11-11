@@ -81,8 +81,6 @@ Update the index.html (displayed as-is by Github pages) by running:
 
 which calls the `makeinfo` program, and commit `doc/index.html` to the gh-pages branch.
 
-XXX: add Lisp syntax highlighting to code blocks.
-
 
 ## License
 

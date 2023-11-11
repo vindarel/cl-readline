@@ -779,7 +779,7 @@ Clear the screen and update the display."
 
 Here's an example to enter an opening @code{(} and a closing @code{)}, and move the cursor in between the parenthesis:
 
-@example
+@lisp
 (defun insert-parens (&optional count key)
   (rl:insert-text "()")
   (rl:backward-char))
@@ -793,7 +793,7 @@ Here's an example to enter an opening @code{(} and a closing @code{)}, and move 
   )
 
 (run-example)
-@end example
+@end lisp
 
 
 @node Terminal Management
@@ -1041,7 +1041,7 @@ Remove all of the Readline signal handlers installed by
 This program demonstrates some basic capacities of cl-readline. Note
 that you should run it in terminal, not via SLIME. See more at @url{https://github.com/vindarel/cl-readline-example}.
 
-@example
+@lisp
 ;;; Load some systems and define a package...
 
 (asdf:load-system :str)
@@ -1106,7 +1106,7 @@ that you should run it in terminal, not via SLIME. See more at @url{https://gith
           (rl:readline :prompt (format nil "[~a]> " i)
                        :add-history t
                        :novelty-check #'novelty-check))))
-@end example
+@end lisp
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License

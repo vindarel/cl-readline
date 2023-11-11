@@ -4,7 +4,7 @@
 # Edit cl-readline.texi
 # run make html
 # or make html-local to have syntax highlighting locally
-# then update and commit index.html in the gh-pages branch.
+# then update and commit index.html in the gh-pages branch (the one at the project root, not doc/index.html)
 #
 html:
         # --css-include manual.css

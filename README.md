@@ -27,12 +27,23 @@ Via Quicklisp (recommended):
 (ql:quickload "cl-readline")
 ```
 
-If you are using Homebrew on a Mac, please note that GNU Readline has
+If you are using **Homebrew on a Mac**, please note that GNU Readline has
 *keg-only* formula, which means you may need to link the library yourself:
 
 ```
 $ brew link readline --force
 ```
+
+On **Windows**, the assumption is that libreadline has been installed with msys2,
+specifically the mingw64 distribution. The gotcha here is that the
+`msys2/mingw64/bin` directory must be on `%PATH%` (that's not a typo -
+it's the bin directory, not the lib directory).
+
+The most current name for the dll is `libreadline8.dll`, and we have a
+fallback to `libreadline.dll` just in case someone has copied the DLL
+to somewhere on %PATH% or has it available as a checked-in binary
+under that name.
+
 
 ## Documentation
 

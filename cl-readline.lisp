@@ -39,7 +39,8 @@
   ;; On windows, this assumes that the libreadline is installed with msys2 
   ;; and built with the mingw64 toolchain. The msys2/mingw64/bin directory
   ;; needs to be on %PATH%
-  (:windows (:or "libreadline8.dll"))
+  (:windows (:or "libreadline8.dll"
+		 "libreadline.dll"))
   (t       (:default "libreadline")))
 
 (use-foreign-library readline)

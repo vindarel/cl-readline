@@ -19,7 +19,7 @@
 
 (in-package #:cl-readline)
 
-(define-foreign-library readline
+(cffi:define-foreign-library readline
   ;; On OSX we first search readline, installed by brew install readline
   ;; because native system version of readline is a symlink to libedit.
   ;; Some people on the internet advice to "fix" it by running:
@@ -43,7 +43,7 @@
 		 "libreadline.dll"))
   (t       (:default "libreadline")))
 
-(use-foreign-library readline)
+(cffi:use-foreign-library readline)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -416,12 +416,12 @@ actual string and NIL on failure."
                                :pointer)))
     (unless (null-pointer-p ptr))
       (unwind-protect
-           (let ((str (foreign-string-to-lisp ptr)))
+           (let ((str (cffi:foreign-string-to-lisp ptr)))
              (when (and add-history
-                        (not (emptyp str))
+                        (not (alexandria:emptyp str))
                         (or (not novelty-check)
                             (recent-history-line-satisfies-p
-                             (curry novelty-check str))))
+                             (alexandria:curry novelty-check str))))
                (foreign-funcall "add_history"
                                 :string str
                                 :void))
@@ -1255,13 +1255,13 @@ idea of that terminal dimension is unchanged."
   "Return Readline's idea of the terminal's size. The function returns
 multiple values: number of rows and columns."
   (ensure-initialization)
-  (with-foreign-objects ((rows :int)
+  (cffi:with-foreign-objects ((rows :int)
                          (cols :int))
     (foreign-funcall "rl_get_screen_size"
                      :pointer rows
                      :pointer cols
                      :void)
-    (values (mem-ref rows :int)
+    (values (cffi:mem-ref rows :int)
             (mem-ref cols :int))))
 
 (defcfun ("rl_reset_screen_size" reset-screen-size) :void

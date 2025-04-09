@@ -42,7 +42,7 @@ and list of keywords.")
   :vi
   :emacs)
 
-(defcstruct history-entry
+(cffi:defcstruct history-entry
   "C structure that represents a history entry in Readline."
   (line :pointer)
   (time :pointer)

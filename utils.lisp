@@ -63,7 +63,7 @@ list of components that can appear in result list."
   (mapcan (lambda (index keyword)
             (when (logbitp index state)
               (list keyword)))
-          (iota (length +states+))
+          (alexandria:iota (length +states+))
           +states+))
 
 (defmacro produce-callback (function return-type &optional func-arg-list)
@@ -75,9 +75,9 @@ can be ommited if FUNCTION doesn't take any arguments)."
     (with-gensyms (temp)
       `(if ,function
            (progn
-             (defcallback ,temp ,return-type ,gensymed-list
+             (cffi:defcallback ,temp ,return-type ,gensymed-list
                (funcall ,function ,@(mapcar #'car gensymed-list)))
-             (get-callback ',temp))
+             (cffi:get-callback ',temp))
            (null-pointer)))))
 
 (defun produce-callback* (function return-type &optional func-arg-list)
@@ -101,7 +101,7 @@ to into list of Lisp strings."
       (do ((i 0 (1+ i)))
           ((null-pointer-p (mem-aref pointer :pointer i))
            (reverse result))
-        (push (foreign-string-to-lisp (mem-aref pointer :pointer i))
+        (push (cffi:foreign-string-to-lisp (mem-aref pointer :pointer i))
               result)))))
 
 (defun to-array-of-strings (list)
@@ -113,7 +113,7 @@ strings. Memory for every string and the array itself should be freed with
              (ptr (foreign-funcall "malloc"
                                    :unsigned-int
                                    (* (1+ len)
-                                      (foreign-type-size :pointer))
+                                      (cffi:foreign-type-size :pointer))
                                    :pointer)))
         (setf (mem-aref ptr :pointer len)
               (null-pointer))
@@ -127,5 +127,5 @@ strings. Memory for every string and the array itself should be freed with
                                              (foreign-type-size :char))
                                           :pointer)))
             (setf (mem-aref ptr :pointer i)
-                  (lisp-string-to-foreign string buffer +c-buffer-size+)))))
+                  (cffi:lisp-string-to-foreign string buffer +c-buffer-size+)))))
       (null-pointer)))

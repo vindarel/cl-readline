@@ -72,36 +72,36 @@ return type of the function and FUNC-ARG-LIST is list of argument types (it
 can be ommited if FUNCTION doesn't take any arguments)."
   (let ((gensymed-list (mapcar (lambda (x) (list (gensym) x))
                                func-arg-list)))
-    (with-gensyms (temp)
+    (alexandria:with-gensyms (temp)
       `(if ,function
            (progn
              (cffi:defcallback ,temp ,return-type ,gensymed-list
                (funcall ,function ,@(mapcar #'car gensymed-list)))
              (cffi:get-callback ',temp))
-           (null-pointer)))))
+           (cffi:null-pointer)))))
 
 (defun produce-callback* (function return-type &optional func-arg-list)
   "Variant of PRODUCE-CALLBACK that should hopefully be more portable.
 This avoids using a GENSYM as the name of a callback, and is also funcallable."
   (let ((gensymed-list (mapcar (lambda (x) (list (gensym) x))
                                func-arg-list)))
-    (with-gensyms (temp)
+    (alexandria:with-gensyms (temp)
       (if function
           (progn
-            (eval `(defcallback ,temp ,return-type ,gensymed-list
+            (eval `(cffi:defcallback ,temp ,return-type ,gensymed-list
                      (funcall ,function ,@(mapcar #'car gensymed-list))))
-            (get-callback temp))
-          (null-pointer)))))
+            (cffi:get-callback temp))
+          (cffi:null-pointer)))))
 
 (defun to-list-of-strings (pointer)
   "Convert a null-terminated array of pointers to chars that POINTER points
 to into list of Lisp strings."
-  (unless (null-pointer-p pointer)
+  (unless (cffi:null-pointer-p pointer)
     (let (result)
       (do ((i 0 (1+ i)))
-          ((null-pointer-p (mem-aref pointer :pointer i))
+          ((cffi:null-pointer-p (cffi:mem-aref pointer :pointer i))
            (reverse result))
-        (push (cffi:foreign-string-to-lisp (mem-aref pointer :pointer i))
+        (push (cffi:foreign-string-to-lisp (cffi:mem-aref pointer :pointer i))
               result)))))
 
 (defun to-array-of-strings (list)
@@ -110,22 +110,22 @@ strings. Memory for every string and the array itself should be freed with
 `free' (C function). If LIST is NIL, null pointer will be returned."
   (if list
       (let* ((len (length list))
-             (ptr (foreign-funcall "malloc"
+             (ptr (cffi:foreign-funcall "malloc"
                                    :unsigned-int
                                    (* (1+ len)
                                       (cffi:foreign-type-size :pointer))
                                    :pointer)))
-        (setf (mem-aref ptr :pointer len)
-              (null-pointer))
+        (setf (cffi:mem-aref ptr :pointer len)
+              (cffi:null-pointer))
         (do ((i   0 (1+ i))
              (lst list (cdr lst)))
             ((null lst) ptr)
           (let* ((string (car lst))
-                 (buffer (foreign-funcall "malloc"
+                 (buffer (cffi:foreign-funcall "malloc"
                                           :unsigned-int
                                           (* +c-buffer-size+
-                                             (foreign-type-size :char))
+                                             (cffi:foreign-type-size :char))
                                           :pointer)))
-            (setf (mem-aref ptr :pointer i)
+            (setf (cffi:mem-aref ptr :pointer i)
                   (cffi:lisp-string-to-foreign string buffer +c-buffer-size+)))))
-      (null-pointer)))
+      (cffi:null-pointer)))

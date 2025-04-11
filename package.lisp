@@ -19,9 +19,7 @@
 
 (defpackage   :cl-readline
   (:nicknames :rl)
-  (:use       #:common-lisp
-              #:alexandria
-              #:cffi)
+  (:use #:common-lisp)
   (:export
    ;; Readline Variables
    #:*line-buffer*

@@ -19,43 +19,43 @@
 
 (in-package :cl-readline)
 
-(defctype int-char
+(cffi:defctype int-char
     (:wrapper :int
               :from-c code-char
               :to-c   char-code)
   "Wrapper for conversion between C int and Lisp character.")
 
-(defctype version
+(cffi:defctype version
     (:wrapper :int
               :from-c decode-version)
   "Wrapper for conversion between raw C int representing version of Readline
 library and Lisp values.")
 
-(defctype state
+(cffi:defctype state
     (:wrapper :int
               :from-c decode-state)
   "Wrapper for conversion between raw C int representing state of Readline
 and list of keywords.")
 
-(defcenum editing-mode
+(cffi:defcenum editing-mode
   "Enumeration of all possible editing modes in Readline."
   :vi
   :emacs)
 
-(defcstruct history-entry
+(cffi:defcstruct history-entry
   "C structure that represents a history entry in Readline."
   (line :pointer)
   (time :pointer)
   (data :pointer))
 
-(defcenum undo-code
+(cffi:defcenum undo-code
   "This enumeration contains codes for various types of undo operations."
   :undo-delete
   :undo-insert
   :undo-begin
   :undo-end)
 
-(defcenum unix-signal
+(cffi:defcenum unix-signal
   "Enumeration of some Unix signals for use with some Readline functions,
 see section «Signal Handling»."
   (:sighup  1)
@@ -67,7 +67,7 @@ see section «Signal Handling»."
   (:sigttin 26)
   (:sigttou 27))
 
-(defcenum completion-type
+(cffi:defcenum completion-type
   "Types of completion performed by Readline. See description of
 `+completion-type+' for more information."
   (:standard-completion 9)

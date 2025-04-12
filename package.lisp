@@ -19,6 +19,12 @@
 
 (defpackage   :cl-readline
   (:nicknames :rl)
+  (:documentation "The nickname RL is DEPRECATED.
+Please use CL-READLINE:SYMBOL or define a package-local-nickname like
+(defpackage :my-package
+  (:use #:common-lisp)
+  (:local-nicknames ((:rl :cl-readline)))
+  ...)")
   (:use #:common-lisp)
   (:export
    ;; Readline Variables

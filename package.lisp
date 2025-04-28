@@ -17,14 +17,20 @@
 ;;; You should have received a copy of the GNU General Public License along
 ;;; with this program. If not, see <http://www.gnu.org/licenses/>.
 
-(defpackage   :cl-readline
+(defpackage :cl-readline
   (:nicknames :rl)
-  (:documentation "The nickname RL is DEPRECATED.
+  (:documentation "Only package of cl-readline, the Common Lisp bindings to GNU Readline library.
+
+ATTENTION:
+
+The nickname RL is DEPRECATED.
 Please use CL-READLINE:SYMBOL or define a package-local-nickname like
-(defpackage :my-package
-  (:use #:common-lisp)
-  (:local-nicknames ((:rl :cl-readline)))
-  ...)")
+  (defpackage :my-package
+    (:use #:common-lisp)
+    (:local-nicknames ((:rl :cl-readline)))
+    ...)
+If you don't want to or can't change your package definition, another option is
+  (uiop:add-package-local-nickname :rl :cl-readline)")
   (:use #:common-lisp)
   (:export
    ;; Readline Variables

@@ -780,6 +780,8 @@ Clear the screen and update the display."
 Here's an example to enter an opening @code{(} and a closing @code{)}, and move the cursor in between the parenthesis:
 
 @lisp
+(uiop:add-package-local-nickname :rl :cl-readline)
+
 (defun insert-parens (&optional count key)
   (rl:insert-text "()")
   (rl:backward-char))
@@ -1049,6 +1051,7 @@ that you should run it in terminal, not via SLIME. See more at @url{https://gith
 
 (cl:defpackage :example
   (:use    #:common-lisp)
+  (:local-nicknames ((:rl :cl-readline)))
   (:export #:run-example))
 
 (in-package :example)

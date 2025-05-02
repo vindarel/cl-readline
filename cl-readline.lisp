@@ -375,8 +375,8 @@ PREDICATE. Return T if there is no history saved."
     (if (zerop +history-length+)
         t
         (funcall predicate
-                 (foreign-string-to-lisp
-                  (with-foreign-slots
+                 (cffi:foreign-string-to-lisp
+                  (cffi:with-foreign-slots
                       ((line)
                        (cffi:foreign-funcall "history_get"
                                         :int (1- (+ +history-base+
